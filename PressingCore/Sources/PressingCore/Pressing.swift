@@ -9,6 +9,13 @@ public final class Pressing {
     /// Every Play kept on the phone, newest first, the current one included.
     /// Apart from `state` so the level meter's updates don't redraw History.
     public internal(set) var history: [Play] = []
+
+    /// Recently played, as Now Playing lists it under the current Track:
+    /// History, newest first, without the current Play.
+    public var recentPlays: [Play] {
+        guard let current = state.play else { return history }
+        return history.filter { $0.id != current.id }
+    }
     @ObservationIgnored let artwork: any ArtworkDownloader
 
     @ObservationIgnored private let audioInput: any AudioInput
