@@ -219,6 +219,17 @@ xcodebuild -project Pressing.xcodeproj -scheme Pressing \
 
 **Specs and work.** Specs and tickets are GitHub issues. The original spec is [#1](https://github.com/steffentchr/Pressing/issues/1), and the first on-device checklist is [#10](https://github.com/steffentchr/Pressing/issues/10); it's a good template for checking a new build on the phone.
 
+### Xcode Cloud and TestFlight
+
+Xcode Cloud can build Pressing and send it to TestFlight. Because the `.xcodeproj` and both xcconfigs are git-ignored, [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh) recreates them right after Xcode Cloud clones the repo. It writes the xcconfigs from the workflow's environment, installs XcodeGen and runs `xcodegen generate`, which also builds LAME. Set these in the workflow's **Environment** section:
+
+| Variable | Value |
+|---|---|
+| `PRESSING_BUNDLE_ID` | The app's bundle ID, as registered in App Store Connect |
+| `PRESSING_DEVELOPMENT_TEAM` | The 10-character team ID |
+| `PRESSING_LASTFM_API_KEY` | Last.fm API key. Mark it **Secret**. Optional. |
+| `PRESSING_LASTFM_API_SECRET` | Last.fm shared secret. Mark it **Secret**. Optional. |
+
 ## Credits and notices
 
 - MP3 encoding uses [LAME](https://lame.sourceforge.io), which is licensed under the LGPL. It's downloaded and built by `scripts/build-lame.sh`, not included in this repository.
