@@ -96,25 +96,4 @@ struct HistoryTests {
         #expect(world.pressing.cover(for: .rocker) == nil)
         #expect(world.pressing.cover(for: .ballad) == nil)
     }
-
-    @Test("History has a header per day in the listener's time zone, newest day first")
-    func dayHeaders() throws {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = try #require(TimeZone(identifier: "Europe/Copenhagen"))
-        let formatter = ISO8601DateFormatter()
-        func play(_ track: Track, at time: String) throws -> Play {
-            Play(track: track, startedAt: try #require(formatter.date(from: time)))
-        }
-        // 22:30 UTC on the 16th is half past midnight on the 17th in Copenhagen.
-        let saturdayLate = try play(.rocker, at: "2026-10-17T09:00:00Z")
-        let saturdayEarly = try play(.ballad, at: "2026-10-16T22:30:00Z")
-        let friday = try play(.ballad, at: "2026-10-16T08:00:00Z")
-
-        let days = HistoryDay.days(of: [saturdayLate, saturdayEarly, friday], calendar: calendar)
-
-        #expect(days.map(\.plays) == [[saturdayLate, saturdayEarly], [friday]])
-        let saturday = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 17)))
-        let fridayStart = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 16)))
-        #expect(days.map(\.day) == [saturday, fridayStart])
-    }
 }

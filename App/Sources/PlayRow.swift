@@ -2,48 +2,9 @@ import SwiftUI
 import UIKit
 import PressingCore
 
-/// Every Play kept on the phone, newest first, under a header per day.
-/// Reached by swiping left from the waiting or Now Playing screen.
-struct HistoryView: View {
-    let pressing: Pressing
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if pressing.history.isEmpty {
-                    ContentUnavailableView(
-                        "No Plays yet",
-                        systemImage: "opticaldisc",
-                        description: Text("Every Track Pressing identifies is kept here.")
-                    )
-                } else {
-                    List {
-                        ForEach(HistoryDay.days(of: pressing.history)) { day in
-                            Section(Self.header(for: day.day)) {
-                                ForEach(day.plays) { play in
-                                    PlayRow(play: play, cover: pressing.cover(for: play.track))
-                                }
-                            }
-                        }
-                    }
-                    .listStyle(.plain)
-                }
-            }
-            .navigationTitle("History")
-        }
-    }
-
-    private static func header(for day: Date) -> String {
-        let calendar = Calendar.current
-        if calendar.isDateInToday(day) { return "Today" }
-        if calendar.isDateInYesterday(day) { return "Yesterday" }
-        let sameYear = calendar.isDate(day, equalTo: .now, toGranularity: .year)
-        let style = Date.FormatStyle.dateTime.weekday(.wide).day().month(.wide)
-        return day.formatted(sameYear ? style : style.year())
-    }
-}
-
-/// One Play: cover, artist, title, album when known, time and scrobble status.
+/// One Play: cover, artist, title, album when known, when it started and
+/// scrobble status. The list has no day headers, so a Play from before
+/// today shows its day too.
 struct PlayRow: View {
     let play: Play
     /// The cover kept on the phone, if it was downloaded.
@@ -67,12 +28,25 @@ struct PlayRow: View {
             Spacer(minLength: 8)
 
             VStack(alignment: .trailing, spacing: 4) {
-                Text(play.startedAt, format: .dateTime.hour().minute())
+                Text(Self.started(play.startedAt))
                     .font(.subheadline.monospacedDigit())
                 ScrobbleStatusLabel(status: play.scrobble)
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    /// "21:03" today, "Mon 21:03" this past week, "12 Oct" before that.
+    static func started(_ date: Date, now: Date = .now, calendar: Calendar = .current) -> String {
+        if calendar.isDateInToday(date) {
+            return date.formatted(.dateTime.hour().minute())
+        }
+        if let weekAgo = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: now)), date >= weekAgo {
+            return date.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+        }
+        let sameYear = calendar.isDate(date, equalTo: now, toGranularity: .year)
+        let style = Date.FormatStyle.dateTime.day().month(.abbreviated)
+        return date.formatted(sameYear ? style : style.year())
     }
 
     @ViewBuilder

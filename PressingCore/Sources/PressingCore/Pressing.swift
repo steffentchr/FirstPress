@@ -14,8 +14,13 @@ public final class Pressing {
     /// recent Plays, newest first, without the current Play. Older Plays
     /// stay kept on the phone but aren't listed.
     public var recentPlays: [Play] {
-        let current = state.play?.id
-        return Array(history.lazy.filter { $0.id != current }.prefix(Self.recentPlaysLimit))
+        Self.recentPlays(in: history, excluding: state.play?.id)
+    }
+
+    /// The same rule, for a view that reads `history` but not `state`, so
+    /// the level meter's updates don't redraw the list.
+    public static func recentPlays(in history: [Play], excluding current: Play.ID?) -> [Play] {
+        Array(history.lazy.filter { $0.id != current }.prefix(recentPlaysLimit))
     }
 
     /// How many Plays Now Playing lists.
