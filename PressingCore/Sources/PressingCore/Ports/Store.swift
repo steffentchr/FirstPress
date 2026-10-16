@@ -47,8 +47,8 @@ public struct DetectionSettings: Sendable, Equatable, Codable {
     public var startDelay: TimeInterval
     /// Seconds of silence that end a Record with a Flip.
     public var flipThreshold: TimeInterval
-    /// Seconds after a Flip within which a new Record keeps the Session going.
-    /// Must be longer than the Flip threshold.
+    /// Seconds of silence, counted from when it began, that end the Session
+    /// unless a new Record starts. Must be longer than the Flip threshold.
     public var stopDelay: TimeInterval
 
     public init(threshold: Double = -50, startDelay: TimeInterval = 1.5, flipThreshold: TimeInterval = 12, stopDelay: TimeInterval = 45) {

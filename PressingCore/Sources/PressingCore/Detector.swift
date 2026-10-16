@@ -16,7 +16,8 @@ final class Detector {
         case resumed
         /// The level stayed below the threshold for the Flip threshold. The Record has ended.
         case flip
-        /// No Record started within the stop delay after a Flip.
+        /// The silence that caused the Flip reached the stop delay, counted
+        /// from when it began, with no Record starting.
         case sessionEnded
     }
 
@@ -32,7 +33,8 @@ final class Detector {
     private var inRecord = false
     private var inGap = false
     private var timers: [any ScheduledWork] = []
-    /// Runs from a Flip until a new Record starts, independent of the level.
+    /// Runs from a Flip until a new Record starts, independent of the level,
+    /// and fires the stop delay after the silence began.
     private var sessionTimer: (any ScheduledWork)?
 
     init(scheduler: any Scheduler, onEvent: @escaping @MainActor (Event) -> Void) {
@@ -78,7 +80,8 @@ final class Detector {
         inRecord = false
         inGap = false
         onEvent(.flip)
-        sessionTimer = scheduler.schedule(after: settings.stopDelay) { [weak self] in
+        // The Flip comes the Flip threshold into the silence.
+        sessionTimer = scheduler.schedule(after: settings.stopDelay - settings.flipThreshold) { [weak self] in
             guard let self else { return }
             sessionTimer = nil
             onEvent(.sessionEnded)
