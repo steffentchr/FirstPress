@@ -13,9 +13,16 @@ final class FakeStore: Store {
     func loadSettings() -> Settings? { settings }
     func saveSettings(_ settings: Settings) { self.settings = settings }
 
-    /// Ended Plays, in the order they were saved.
+    /// Plays, in the order they were first saved.
     private(set) var plays: [Play] = []
-    func savePlay(_ play: Play) { plays.append(play) }
+    func savePlay(_ play: Play) {
+        if let index = plays.firstIndex(where: { $0.id == play.id }) {
+            plays[index] = play
+        } else {
+            plays.append(play)
+        }
+    }
+    func loadPlays() -> [Play] { plays }
     /// Plays that have ended, in the order they were saved.
     var endedPlays: [Play] { plays.filter { $0.endedAt != nil } }
 }

@@ -100,7 +100,7 @@ struct IdentificationTests {
         await settle()
 
         #expect(world.pressing.state.play == nil)
-        let play = try #require(world.store.plays.last)
+        let play = try #require(world.store.endedPlays.last)
         #expect(play.track == .ballad)
         let ended = try #require(play.endedAt)
         #expect(abs(ended.timeIntervalSince(start) - 12) < 1)
@@ -117,7 +117,7 @@ struct IdentificationTests {
 
         #expect(world.recognizer.searches.count == 1)
         #expect(world.pressing.state.play == nil)
-        #expect(world.store.plays.isEmpty)
+        #expect(world.store.endedPlays.isEmpty)
     }
 
     @Test("A repeat match of the current Track continues its Play")
@@ -135,7 +135,7 @@ struct IdentificationTests {
 
         #expect(world.recognizer.searches.count == 3)
         #expect(world.pressing.state.play == first)
-        #expect(world.store.plays.isEmpty)
+        #expect(world.store.endedPlays.isEmpty)
     }
 
     @Test("A different Track ends the current Play and starts a new one")
@@ -151,8 +151,8 @@ struct IdentificationTests {
 
         let current = try #require(world.pressing.state.play)
         #expect(current.track == .rocker)
-        #expect(world.store.plays.map(\.track) == [.ballad])
-        #expect(world.store.plays.first?.endedAt == current.startedAt)
+        #expect(world.store.endedPlays.map(\.track) == [.ballad])
+        #expect(world.store.endedPlays.first?.endedAt == current.startedAt)
     }
 
     @Test("The Track stays through a Gap and a single miss")
@@ -169,7 +169,7 @@ struct IdentificationTests {
 
         #expect(world.recognizer.searches.count == 2)
         #expect(world.pressing.state.play?.track == .ballad)
-        #expect(world.store.plays.isEmpty)
+        #expect(world.store.endedPlays.isEmpty)
     }
 
     @Test("A miss after a Gap and a miss on the next recheck end the Play as of the Gap")
@@ -186,7 +186,7 @@ struct IdentificationTests {
 
         #expect(world.recognizer.searches.count == 3)
         #expect(world.pressing.state.play == nil)
-        let play = try #require(world.store.plays.last)
+        let play = try #require(world.store.endedPlays.last)
         let ended = try #require(play.endedAt)
         #expect(abs(ended.timeIntervalSince(start) - 12) < 1)
     }

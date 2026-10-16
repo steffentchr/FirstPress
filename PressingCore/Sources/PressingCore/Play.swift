@@ -1,18 +1,53 @@
 import Foundation
 
 /// One occurrence of a Track during a Record. History is the list of Plays.
-public struct Play: Sendable, Equatable, Codable {
+///
+/// Kept on the phone from the moment it starts, and saved again whenever it
+/// changes: when it ends, and as its scrobble status moves on.
+public struct Play: Sendable, Equatable, Codable, Identifiable {
+    public var id: UUID
+    /// Artist, title, album when known, and the artwork URL. The cover itself
+    /// is kept on the phone by that URL; see `Pressing.cover(for:)`.
     public var track: Track
-    /// When the Play started.
+    /// The latest of: the start worked back from the match, the start of the
+    /// Record, and the end of the previous Play.
     public var startedAt: Date
     /// When the Play ended, nil while it is the current one.
     public var endedAt: Date?
+    /// Whether the Play reached Last.fm.
+    public var scrobble: ScrobbleStatus
 
-    public init(track: Track, startedAt: Date, endedAt: Date? = nil) {
+    public init(id: UUID = UUID(), track: Track, startedAt: Date, endedAt: Date? = nil, scrobble: ScrobbleStatus = .notScrobbled) {
+        self.id = id
         self.track = track
         self.startedAt = startedAt
         self.endedAt = endedAt
+        self.scrobble = scrobble
     }
+
+    // Plays saved before a field existed decode with that field's default.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        track = try container.decode(Track.self, forKey: .track)
+        startedAt = try container.decode(Date.self, forKey: .startedAt)
+        endedAt = try container.decodeIfPresent(Date.self, forKey: .endedAt)
+        scrobble = try container.decodeIfPresent(ScrobbleStatus.self, forKey: .scrobble) ?? .notScrobbled
+    }
+}
+
+/// Whether a Play reached Last.fm.
+public enum ScrobbleStatus: String, Sendable, Hashable, Codable {
+    /// Qualified and queued for Last.fm, not yet accepted.
+    case pending
+    /// Last.fm accepted it.
+    case scrobbled
+    /// Last.fm refused it.
+    case rejected
+    /// It ended before it qualified (too short, or not played long enough).
+    case notEligible
+    /// Last.fm wasn't connected when it played. It is never sent later.
+    case notScrobbled
 }
 
 extension Track {

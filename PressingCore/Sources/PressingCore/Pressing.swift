@@ -6,6 +6,9 @@ import Observation
 @Observable
 public final class Pressing {
     public internal(set) var state = PressingState()
+    /// Every Play kept on the phone, newest first, the current one included.
+    /// Apart from `state` so the level meter's updates don't redraw History.
+    public internal(set) var history: [Play] = []
 
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored let store: any Store
@@ -59,6 +62,7 @@ public final class Pressing {
     /// Call once at launch.
     public func start() {
         settings = store.loadSettings() ?? Settings()
+        loadHistory()
         applyDetection()
         state.screen.blankAfter = settings.blankAfter
         wakeScreen()

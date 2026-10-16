@@ -6,7 +6,7 @@ import PressingCore
 struct PressingApp: App {
     @State private var pressing = Pressing(
         audioInput: AVAudioSessionInput(),
-        store: UserDefaultsStore(),
+        store: PhoneStore(),
         scheduler: MainQueueScheduler(),
         sonos: BonjourSonosNetwork(),
         streamSink: NetworkStreamServer(),
