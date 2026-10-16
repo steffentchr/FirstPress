@@ -17,8 +17,8 @@ Pressing is an iPhone bridge from your record deck to Sonos speakers. `README.md
 - **`Vendor/LAME.xcframework` is git-ignored.** A fresh git worktree lacks it: copy it from the main checkout, or run `scripts/build-lame.sh`.
 - **Done means:** `swift test --package-path PressingCore` passes, and the simulator build from `README.md › Development` succeeds.
 - **Checking views in the simulator:** you can install the app and take screenshots with `xcrun simctl`, but you can't tap. To reach a sheet or state, add a temporary launch-argument hook, take the screenshot, then remove the hook before committing.
-- **Stay off real hardware.** Send nothing to real Sonos speakers or the Last.fm API. Everything that needs the phone, the deck or the speakers goes on the device checklist, issue #10, for the owner to run.
-- **Editing #10:** read its live body first and change only unticked lines. The owner ticks boxes there, and overwriting the body loses them.
+- **Stay off real hardware.** Send nothing to real Sonos speakers or the Last.fm API. Anything that needs the phone, the deck or the speakers becomes a device check for the owner to run: list it under the ticket's acceptance criteria, or in a device-test checklist issue modelled on #10, the first full pass (closed).
+- **Editing an issue the owner ticks boxes in:** read its live body first and change only unticked lines. Overwriting the body loses the owner's ticks.
 - **Artwork:** SVG sources are in `Design/`, rendered into `App/Resources/Assets.xcassets`. The commands are in `README.md › Artwork`.
 
 ## Agent skills

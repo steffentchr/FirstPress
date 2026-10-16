@@ -19,7 +19,7 @@ Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressi
 </p>
 <p align="center"><sub>Now Playing on an iPhone in kiosk mode, with a Track and before one is identified; the start screen and Settings, from the simulator.</sub></p>
 
-> **Status:** early and personal. The code is covered by about 200 tests, and it runs on an iPhone with a USB deck: capture, identification and Now Playing work, as the screens above show. The rest of the on-device test pass, including Sonos playback and Last.fm, is tracked in [#10](https://github.com/steffentchr/Pressing/issues/10). Expect rough edges.
+> **Status:** a personal project, in daily use. The code is covered by about 200 tests, and the first full test pass on an iPhone with a USB deck and Sonos speakers is complete ([#10](https://github.com/steffentchr/Pressing/issues/10)). Expect the occasional rough edge.
 
 ## What it does
 
@@ -217,7 +217,7 @@ xcodebuild -project Pressing.xcodeproj -scheme Pressing \
 
 **Where tests go.** Behaviour is tested through PressingCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
 
-**Specs and work.** Specs and tickets are GitHub issues, and the device checklist is [#10](https://github.com/steffentchr/Pressing/issues/10).
+**Specs and work.** Specs and tickets are GitHub issues. The original spec is [#1](https://github.com/steffentchr/Pressing/issues/1), and the first on-device checklist is [#10](https://github.com/steffentchr/Pressing/issues/10); it's a good template for checking a new build on the phone.
 
 ## Credits and notices
 
