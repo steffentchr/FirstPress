@@ -24,6 +24,10 @@ _Avoid_: Scrobble (as a noun), entry, listen
 A Sonos room as the Sonos app shows it — one or more speakers controlled as one. The unit the listener switches on and sets a volume for.
 _Avoid_: Speaker, zone, player, group
 
+**Phone output**:
+The iPhone's own audio output — its speaker, connected earphones or an AirPlay receiver — used as an extra place a Record plays, alongside the Rooms.
+_Avoid_: Monitor, local playback, passthrough
+
 **Takeover**:
 Pressing making a Room play the turntable, whatever that Room was doing before.
 _Avoid_: Grab, hijack
