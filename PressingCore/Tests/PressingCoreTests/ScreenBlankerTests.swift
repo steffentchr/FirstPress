@@ -182,6 +182,41 @@ struct ScreenBlankerTests {
         #expect(relaunched.state.screen.isKiosk == true)
     }
 
+    @Test("In kiosk mode, Now Playing's icons hide after 30 s without a touch and come back on a touch")
+    func kioskHidesControls() {
+        let (input, scheduler, pressing) = pressing(blankAfter: .after(60))
+        pressing.setKiosk(true)
+        #expect(pressing.state.hidesControls == false)
+
+        input.play(Signal.square(amplitude: music, seconds: 5, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.page == .nowPlaying)
+        input.play(Signal.square(amplitude: music, seconds: 30, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.hidesControls == true)
+
+        pressing.screenTouched()
+        #expect(pressing.state.hidesControls == false)
+        input.play(Signal.square(amplitude: music, seconds: 29, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.hidesControls == false)
+        input.play(Signal.square(amplitude: music, seconds: 2, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.hidesControls == true)
+
+        pressing.setKiosk(false)
+        #expect(pressing.state.hidesControls == false)
+    }
+
+    @Test("Outside kiosk mode, and on the waiting screen, the icons always show")
+    func controlsShowOtherwise() {
+        let (input, scheduler, pressing) = pressing(blankAfter: .never)
+        input.play(Signal.square(amplitude: music, seconds: 60, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.page == .nowPlaying)
+        #expect(pressing.state.hidesControls == false)
+
+        pressing.setKiosk(true)
+        input.play(Signal.square(amplitude: floor, seconds: 120, sampleRate: rate), sampleRate: rate, on: scheduler)
+        #expect(pressing.state.page == .waiting)
+        #expect(pressing.state.hidesControls == false)
+    }
+
     @Test("By default the screen blanks after five minutes")
     func defaultBlankAfter() {
         let input = FakeAudioInput(availableInputs: [.deck])

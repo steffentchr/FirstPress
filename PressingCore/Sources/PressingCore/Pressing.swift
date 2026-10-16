@@ -11,8 +11,9 @@ public final class Pressing {
     public internal(set) var history: [Play] = []
 
     /// History as Now Playing lists it under the current Track: the most
-    /// recent Plays, newest first, without the current Play. Older Plays
-    /// stay kept on the phone but aren't listed.
+    /// recent Plays, newest first, each Track once (at its most recent Play)
+    /// and not the current Track. Older Plays stay kept on the phone but
+    /// aren't listed.
     public var recentPlays: [Play] {
         Self.recentPlays(in: history, excluding: state.play?.id)
     }
@@ -20,7 +21,17 @@ public final class Pressing {
     /// The same rule, for a view that reads `history` but not `state`, so
     /// the level meter's updates don't redraw the list.
     public static func recentPlays(in history: [Play], excluding current: Play.ID?) -> [Play] {
-        Array(history.lazy.filter { $0.id != current }.prefix(recentPlaysLimit))
+        var listed: [Play] = []
+        var seen = Set<String>()
+        if let current, let playing = history.first(where: { $0.id == current }) {
+            seen.insert(playing.track.sameness)
+        }
+        for play in history where play.id != current {
+            guard seen.insert(play.track.sameness).inserted else { continue }
+            listed.append(play)
+            if listed.count == recentPlaysLimit { break }
+        }
+        return listed
     }
 
     /// How many Plays Now Playing lists.
@@ -98,6 +109,7 @@ public final class Pressing {
         state.screen.blankAfter = settings.blankAfter
         state.screen.isKiosk = settings.kiosk
         wakeScreen()
+        showControls()
         applyPhoneOutputSwitch()
         state.input.chosenID = settings.inputID
         state.input.chosenName = settings.inputName
@@ -173,6 +185,7 @@ public final class Pressing {
         settings.kiosk = on
         store.saveSettings(settings)
         state.screen.isKiosk = on
+        showControls()
     }
 
     /// Any touch on the screen. Returns true when the touch only woke a blank
@@ -181,6 +194,7 @@ public final class Pressing {
     public func screenTouched() -> Bool {
         let wasBlanked = state.screen.isBlanked
         wakeScreen()
+        showControls()
         return wasBlanked
     }
 
@@ -188,9 +202,26 @@ public final class Pressing {
     /// blank-after time, as a touch does, but there is no touch to swallow.
     public func cameToForeground() {
         wakeScreen()
+        showControls()
     }
 
     @ObservationIgnored private var blankTimer: (any ScheduledWork)?
+    @ObservationIgnored private var controlsTimer: (any ScheduledWork)?
+
+    /// How long Now Playing's icons stay after a touch in kiosk mode.
+    static let controlsShowFor: TimeInterval = 30
+
+    /// Shows Now Playing's icons, and in kiosk mode starts the time after
+    /// which they hide again.
+    func showControls() {
+        state.screen.controlsIdle = false
+        controlsTimer?.cancel()
+        controlsTimer = nil
+        guard settings.kiosk else { return }
+        controlsTimer = scheduler.schedule(after: Self.controlsShowFor) { [weak self] in
+            self?.state.screen.controlsIdle = true
+        }
+    }
 
     /// Wakes the screen and starts the blank-after time again. The time only
     /// runs while no Record is playing: the screen never blanks during one.

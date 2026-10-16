@@ -55,8 +55,11 @@ extension Track {
     /// The same Track, whatever the cover or album: artist and title alike,
     /// ignoring case and accents.
     func isSame(as other: Track) -> Bool {
-        Self.key(artist, title) == Self.key(other.artist, other.title)
+        sameness == other.sameness
     }
+
+    /// Equal for two Tracks exactly when they are the same Track.
+    var sameness: String { Self.key(artist, title) }
 
     private static func key(_ artist: String, _ title: String) -> String {
         "\(artist)\u{1F}\(title)".folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)

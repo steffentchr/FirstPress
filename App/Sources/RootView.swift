@@ -39,12 +39,14 @@ struct RootView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
                             .tint(iconTint)
+                            .kioskHidden(hidesControls)
                     }
                     .withoutGlass()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
                         .tint(iconTint)
+                        .kioskHidden(hidesControls)
                 }
                 .withoutGlass()
             }
@@ -65,6 +67,7 @@ struct RootView: View {
     }
 
     private var isKiosk: Bool { pressing.state.screen.isKiosk }
+    private var hidesControls: Bool { pressing.state.hidesControls }
 }
 
 extension ToolbarContent {
@@ -77,5 +80,17 @@ extension ToolbarContent {
         } else {
             self
         }
+    }
+}
+
+extension View {
+    /// In kiosk mode Now Playing's icons fade out after 30 s without a touch,
+    /// and any touch brings them back. They keep their place in the bar, so
+    /// nothing on the screen moves.
+    func kioskHidden(_ hidden: Bool) -> some View {
+        opacity(hidden ? 0 : 1)
+            .allowsHitTesting(!hidden)
+            .accessibilityHidden(hidden)
+            .animation(.easeInOut(duration: 0.4), value: hidden)
     }
 }

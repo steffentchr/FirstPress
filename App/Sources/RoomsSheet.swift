@@ -22,44 +22,8 @@ struct RoomsSheet: View {
                     RoomRow(room: room, pressing: pressing)
                 }
             }
+            .listRowBackground(Color.clear)
         }
-    }
-}
-
-/// One place the Record can play: its name, a line under it (the volume bar
-/// while switched on), and a checkbox on the right. Tapping the name or the
-/// checkbox switches it.
-private struct OutputRow<Detail: View>: View {
-    let name: String
-    let isOn: Bool
-    let toggle: () -> Void
-    @ViewBuilder let detail: Detail
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Button(action: toggle) {
-                    Text(name)
-                        .font(.title3)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                detail
-            }
-            Button(action: toggle) {
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.title)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(isOn ? Color.primary : Color.secondary)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(isOn ? "On" : "Off")
-        }
-        .padding(.vertical, 6)
-        .listRowBackground(Color.clear)
-        .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 }
 
@@ -71,7 +35,7 @@ struct PhoneOutputRow: View {
 
     var body: some View {
         let isOn = pressing.state.phoneOutput.isOn
-        OutputRow(name: "This iPhone", isOn: isOn, toggle: { pressing.switchPhoneOutput(on: !isOn) }) {
+        CheckboxRow(name: "This iPhone", isOn: isOn, toggle: { pressing.switchPhoneOutput(on: !isOn) }) {
             if isOn {
                 HStack(spacing: 8) {
                     RoutePickerButton()
@@ -108,7 +72,7 @@ struct RoomRow: View {
     let pressing: Pressing
 
     var body: some View {
-        OutputRow(name: room.name, isOn: room.isOn, toggle: { pressing.switchRoom(room.id, on: !room.isOn) }) {
+        CheckboxRow(name: room.name, isOn: room.isOn, toggle: { pressing.switchRoom(room.id, on: !room.isOn) }) {
             if let marker {
                 Label(marker.text, systemImage: marker.symbol)
                     .font(.footnote)

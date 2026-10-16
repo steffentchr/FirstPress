@@ -36,6 +36,21 @@ struct RecentPlaysTests {
         #expect(world.pressing.recentPlays.last?.track.title == "Track 10")
     }
 
+    @Test("A Track played more than once is listed once, at its most recent Play, and not at all while it's the current Play")
+    func noDuplicates() {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        func play(_ title: String, minute: Double) -> Play {
+            Play(track: Track(artist: "Artist", title: title), startedAt: start + minute * 60, endedAt: start + minute * 60 + 50)
+        }
+        // Newest first, as History keeps them.
+        let history = [play("C", minute: 4), play("a", minute: 3), play("B", minute: 2), play("A", minute: 1)]
+
+        #expect(Pressing.recentPlays(in: history, excluding: nil).map(\.track.title) == ["C", "a", "B"])
+
+        let current = play("A", minute: 5)
+        #expect(Pressing.recentPlays(in: [current] + history, excluding: current.id).map(\.track.title) == ["C", "B"])
+    }
+
     @Test("After a Flip, with no current Play, the Play that just ended is listed")
     func afterFlip() async throws {
         let world = World()

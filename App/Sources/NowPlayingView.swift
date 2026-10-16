@@ -18,6 +18,10 @@ struct NowPlayingView: View {
     /// shrinks to match, so two rows still show at rest.
     @ScaledMetric(relativeTo: .headline) private var rowHeight: CGFloat = 76
 
+    /// Scrolled into History. Until then its rows are slightly faded, so the
+    /// current Track stands out at rest.
+    @State private var isScrolled = false
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -25,14 +29,37 @@ struct NowPlayingView: View {
                     CurrentTrackView(track: play?.track)
                         .padding()
                         .frame(height: max(geometry.size.height - 2 * rowHeight, 0))
+                        .background {
+                            // Where the top of the content is, to tell rest from scrolled.
+                            GeometryReader { top in
+                                Color.clear.preference(
+                                    key: ScrolledKey.self,
+                                    value: top.frame(in: .named(Self.scrollSpace)).minY < -1
+                                )
+                            }
+                        }
                     RecentPlaysList(pressing: pressing, current: play?.id, rowHeight: rowHeight)
+                        .opacity(isScrolled ? 1 : 0.55)
+                        .animation(.easeInOut(duration: 0.3), value: isScrolled)
                 }
             }
+            .coordinateSpace(.named(Self.scrollSpace))
+            .onPreferenceChange(ScrolledKey.self) { isScrolled = $0 }
             .scrollIndicators(.hidden)
             // Keep the third row out of the home indicator's area at rest.
             .clipShape(Rectangle())
         }
     }
+}
+
+private extension NowPlayingView {
+    static let scrollSpace = "nowPlaying"
+}
+
+/// Whether Now Playing is scrolled away from rest.
+private struct ScrolledKey: PreferenceKey {
+    static let defaultValue = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
 }
 
 /// The current Track, or the app's artwork in grey while there is none. Both

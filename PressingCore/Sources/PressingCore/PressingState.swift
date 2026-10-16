@@ -37,6 +37,12 @@ public struct PressingState: Sendable, Equatable {
     /// The page the app shows, following the Session and the input.
     /// A running Session wins over a missing input: the Session ends by
     /// itself once the silence reaches the stop delay.
+    /// Now Playing's gear and speaker icons are hidden: kiosk mode, and no
+    /// touch for 30 s. A touch brings them back.
+    public var hidesControls: Bool {
+        screen.isKiosk && page == .nowPlaying && screen.controlsIdle
+    }
+
     public var page: Page {
         if case .running = session { return .nowPlaying }
         if input.chosenID == nil { return .chooseInput(.noneChosen) }
@@ -106,6 +112,8 @@ public struct ScreenState: Sendable, Equatable {
     public var blankAfter: BlankAfter
     /// Kiosk mode, as set in Settings: the app takes the whole screen.
     public var isKiosk: Bool
+    /// No touch for a while: in kiosk mode, Now Playing hides its icons.
+    public var controlsIdle = false
 
     public init(isBlanked: Bool = false, blankAfter: BlankAfter = .default, isKiosk: Bool = false) {
         self.isBlanked = isBlanked
