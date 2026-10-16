@@ -30,6 +30,9 @@ final class Detector {
     private let onEvent: @MainActor (Event) -> Void
 
     private var isAbove = false
+    /// When the level fell below the threshold within the Record, while it
+    /// stays there. A Gap or Flip that follows dates from then.
+    private(set) var silenceBegan: Date?
     private var inRecord = false
     private var inGap = false
     private var timers: [any ScheduledWork] = []
@@ -48,6 +51,7 @@ final class Detector {
         guard above != isAbove else { return }
         isAbove = above
         cancelTimers()
+        silenceBegan = !above && inRecord ? scheduler.now : nil
         if above {
             if inRecord {
                 if inGap {
@@ -79,6 +83,7 @@ final class Detector {
     private func flip() {
         inRecord = false
         inGap = false
+        silenceBegan = nil
         onEvent(.flip)
         // The Flip comes the Flip threshold into the silence.
         sessionTimer = scheduler.schedule(after: settings.stopDelay - settings.flipThreshold) { [weak self] in

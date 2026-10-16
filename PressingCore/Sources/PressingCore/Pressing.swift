@@ -17,7 +17,7 @@ public final class Pressing {
     @ObservationIgnored let scheduler: any Scheduler
     @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let encoder: any MP3Encoder
-    @ObservationIgnored private var detector: Detector!
+    @ObservationIgnored var detector: Detector!
     @ObservationIgnored var identifier: Identifier!
     @ObservationIgnored let stream: StreamServer
     @ObservationIgnored private var resampler: Resampler?

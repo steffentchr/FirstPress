@@ -156,20 +156,42 @@ extension Pressing {
         scheduleQualification(of: play)
     }
 
+    /// Checks, when the Play would have run long enough, that it really has.
     private func scheduleQualification(of play: Play) {
         scrobbling.qualifyTimer?.cancel()
         scrobbling.qualifyTimer = nil
         guard let time = Self.qualifyingTime(duration: scrobbling.duration) else { return }
         let due = play.startedAt.addingTimeInterval(time)
-        scrobbling.qualifyTimer = scheduler.schedule(after: max(0, due.timeIntervalSince(scheduler.now))) { [weak self] in
+        checkQualification(of: play, at: time, after: max(0, due.timeIntervalSince(scheduler.now)))
+    }
+
+    private func checkQualification(of play: Play, at time: TimeInterval, after delay: TimeInterval) {
+        scrobbling.qualifyTimer = scheduler.schedule(after: delay) { [weak self] in
             guard let self, scrobbling.current == play.id else { return }
             scrobbling.qualifyTimer = nil
-            enqueue(play.id)
+            let shortfall = time - surelyPlayed(play)
+            if shortfall <= 0 {
+                enqueue(play.id)
+            } else {
+                // The Play may yet end earlier than now: check again once it
+                // could have made up the difference.
+                checkQualification(of: play, at: time, after: max(shortfall, 1))
+            }
         }
     }
 
-    /// The status a Play ends with: still pending if it qualified (now, or
-    /// earlier), not eligible if it didn't.
+    /// How long the current Play has played for certain. Its end can still be
+    /// dated back to when the deck went silent (a Flip follows), or to a Gap
+    /// the searches haven't confirmed it since (a double miss follows).
+    private func surelyPlayed(_ play: Play) -> TimeInterval {
+        let end = [scheduler.now, detector.silenceBegan, identifier.earliestEnd].compactMap { $0 }.min() ?? scheduler.now
+        return end.timeIntervalSince(play.startedAt)
+    }
+
+    /// The status a Play ends with, judged on the time it played: still
+    /// pending if it qualified, not eligible if it didn't. A Play queued
+    /// while its end was still open, but whose end came earlier, leaves the
+    /// queue unless it is already on its way.
     func scrobbleStatusAtEnd(of play: Play) -> ScrobbleStatus {
         guard play.scrobble == .pending else { return play.scrobble }
         var duration: TimeInterval?
@@ -179,9 +201,15 @@ extension Pressing {
             scrobbling.qualifyTimer = nil
             scrobbling.current = nil
         }
-        if scrobbling.queue.contains(play.id) { return .pending }
         let played = (play.endedAt ?? scheduler.now).timeIntervalSince(play.startedAt)
-        guard Self.qualifies(played: played, duration: duration) else { return .notEligible }
+        if scrobbling.sending.contains(play.id) { return .pending }
+        guard Self.qualifies(played: played, duration: duration) else {
+            if scrobbling.queue.contains(play.id) {
+                scrobbling.queue.removeAll { $0 == play.id }
+                store.saveScrobbleQueue(scrobbling.queue)
+            }
+            return .notEligible
+        }
         enqueue(play.id)
         return .pending
     }
@@ -195,7 +223,7 @@ extension Pressing {
 
     /// Sends the oldest Plays owed, up to 50, unless a batch is on its way.
     func flushScrobbles() {
-        guard !scrobbling.isSending, let api = lastFmAPI, let session = scrobbling.session else { return }
+        guard scrobbling.sending.isEmpty, let api = lastFmAPI, let session = scrobbling.session else { return }
         scrobbling.retryTimer?.cancel()
         scrobbling.retryTimer = nil
         let owed = scrobbling.queue
@@ -217,7 +245,7 @@ extension Pressing {
                 params["album[\(index)]"] = album
             }
         }
-        scrobbling.isSending = true
+        scrobbling.sending = Set(batch.map(\.id))
         Task { [weak self] in
             let outcome: Result<[String: Any], LastFmAPI.Failure>
             do throws(LastFmAPI.Failure) {
@@ -226,7 +254,7 @@ extension Pressing {
                 outcome = .failure(error)
             }
             guard let self else { return }
-            scrobbling.isSending = false
+            scrobbling.sending = []
             sent(batch.map(\.id), outcome)
         }
     }
@@ -304,8 +332,8 @@ struct Scrobbling {
     /// The current Play's Track length from track.getInfo; nil while unknown.
     var duration: TimeInterval?
     var qualifyTimer: (any ScheduledWork)?
-    /// A batch is on its way to Last.fm.
-    var isSending = false
+    /// The Plays in the batch on its way to Last.fm, if one is.
+    var sending: Set<Play.ID> = []
     var retryTimer: (any ScheduledWork)?
     /// The wait before the next retry; 0 after a success.
     var backoff: TimeInterval = 0

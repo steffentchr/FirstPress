@@ -130,6 +130,88 @@ struct ScrobblingTests {
         #expect(world.store.plays.first?.scrobble == .notEligible)
     }
 
+    @Test("A Play whose Record goes silent before half the length is not eligible, though the Flip comes after it")
+    func silenceBeforeQualifyingFlipAfter() async throws {
+        let world = World(lastFm: .listener)
+        world.lastFm.knows(.ballad, durationMilliseconds: 300_000)
+        let play = try await world.identify(.ballad)
+
+        // Silent from 140 s; the Flip, 12 s later, ends the Play as of 140 s.
+        world.playFor(140, since: play)
+        world.silence(seconds: 15)
+        await settle()
+
+        #expect(world.lastFm.calls("track.scrobble").isEmpty)
+        let ended = try #require(world.pressing.history.first)
+        #expect(try #require(ended.endedAt).timeIntervalSince(ended.startedAt) < 150)
+        #expect(ended.scrobble == .notEligible)
+    }
+
+    @Test("A Play that the search after a Gap and the recheck both miss is judged by when that Gap began")
+    func doubleMissBeforeQualifying() async throws {
+        let world = World(lastFm: .listener)
+        world.lastFm.knows(.ballad, durationMilliseconds: 300_000)
+        let play = try await world.identify(.ballad)
+
+        // A Gap at 140 s; the music comes back, but neither the search after
+        // the Gap nor the recheck finds anything.
+        world.playFor(140, since: play)
+        world.silence(seconds: 3)
+        world.recognizer.answers = [.noMatch, .noMatch]
+        world.music(seconds: 45)
+        await settle()
+
+        #expect(world.lastFm.calls("track.scrobble").isEmpty)
+        let ended = try #require(world.pressing.history.first)
+        #expect(try #require(ended.endedAt).timeIntervalSince(ended.startedAt) < 150)
+        #expect(ended.scrobble == .notEligible)
+    }
+
+    @Test("A Play that goes quiet and plays on qualifies once it has played long enough")
+    func gapThenQualifies() async throws {
+        let world = World(lastFm: .listener)
+        world.lastFm.knows(.ballad, durationMilliseconds: 300_000)
+        let play = try await world.identify(.ballad)
+
+        world.playFor(140, since: play)
+        world.silence(seconds: 3)
+        world.recognizer.answers = [.match(.ballad, offset: 150)]
+        world.music(seconds: 10)
+        await settle()
+        world.music(seconds: 10)
+        await settle()
+
+        #expect(world.lastFm.calls("track.scrobble").count == 1)
+        #expect(world.pressing.history.first?.scrobble == .scrobbled)
+    }
+
+    @Test("A queued Play whose end is dated back before it qualified is never sent")
+    func queuedThenEndedEarlier() async throws {
+        let world = World(lastFm: .listener)
+        world.lastFm.knows(.ballad, durationMilliseconds: 300_000)
+        let play = try await world.identify(.ballad)
+        world.lastFm.isOffline = true
+
+        // Queued at 150 s, but Last.fm can't be reached.
+        world.playFor(155, since: play)
+        await settle()
+        // A recheck finds the next Track 30 s in: the Play ended at about 125 s.
+        world.recognizer.answers = [.match(.rocker, offset: 30)]
+        world.music(seconds: 10)
+        await settle()
+        let triedOffline = world.lastFm.calls.count
+        world.lastFm.isOffline = false
+        world.pressing.networkBecameAvailable()
+        await settle()
+
+        let sentOnline = world.lastFm.calls.dropFirst(triedOffline).filter { $0.method == "track.scrobble" }
+        #expect(sentOnline.allSatisfy { $0.scrobbles.allSatisfy { $0.track != Track.ballad.title } })
+        let ended = try #require(world.pressing.history.first { $0.id == play.id })
+        #expect(try #require(ended.endedAt).timeIntervalSince(ended.startedAt) < 150)
+        #expect(ended.scrobble == .notEligible)
+        #expect(world.store.scrobbleQueue.isEmpty)
+    }
+
     @Test("Length unknown to Last.fm: the Play qualifies at 4 minutes")
     func unknownLengthAt240() async throws {
         let world = World(lastFm: .listener)

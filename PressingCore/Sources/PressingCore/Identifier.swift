@@ -50,6 +50,10 @@ final class Identifier {
     /// The search after a Gap missed while a Play was current: when that
     /// Gap's silence began. One more miss ends the Play as of then.
     private var missedAfterGap: Date?
+    /// When the silence of the first Gap since the current Play was last
+    /// confirmed began. Until a match confirms it again, the Play may still
+    /// end as of then.
+    private var unconfirmedSince: Date?
     /// Bumped whenever the Record ends, so an answer to a search from before
     /// then is ignored.
     private var generation = 0
@@ -68,6 +72,9 @@ final class Identifier {
 
     /// The search collects once the music comes back.
     func gap(silenceBegan: Date) {
+        if play != nil, unconfirmedSince == nil {
+            unconfirmedSince = silenceBegan
+        }
         startSearch(.gap(silenceBegan: silenceBegan))
     }
 
@@ -111,6 +118,7 @@ final class Identifier {
         switch answer {
         case .match(let track, let offset):
             missedAfterGap = nil
+            unconfirmedSince = nil
             if let play, play.track.isSame(as: track) { return }
             // The latest of: worked back from the match, the Record start,
             // and the end of the previous Play.
@@ -137,9 +145,15 @@ final class Identifier {
         }
     }
 
+    /// The earliest the current Play could still be ended as of, from what
+    /// the searches have said so far: the Gap it hasn't been confirmed
+    /// since, if any.
+    var earliestEnd: Date? { unconfirmedSince }
+
     private func endPlay(at time: Date) {
         guard var play else { return }
         self.play = nil
+        unconfirmedSince = nil
         play.endedAt = max(time, play.startedAt)
         previousEnd = play.endedAt
         onEvent(.playEnded(play))
