@@ -104,10 +104,13 @@ public struct ScreenState: Sendable, Equatable {
     public var isBlanked: Bool
     /// As set in Settings.
     public var blankAfter: BlankAfter
+    /// Kiosk mode, as set in Settings: the app takes the whole screen.
+    public var isKiosk: Bool
 
-    public init(isBlanked: Bool = false, blankAfter: BlankAfter = .default) {
+    public init(isBlanked: Bool = false, blankAfter: BlankAfter = .default, isKiosk: Bool = false) {
         self.isBlanked = isBlanked
         self.blankAfter = blankAfter
+        self.isKiosk = isKiosk
     }
 }
 

@@ -23,10 +23,11 @@ struct SettingsView: View {
                             Text(Self.label(choice)).tag(choice)
                         }
                     }
+                    Toggle("Kiosk mode", isOn: kiosk)
                 } header: {
                     Text("Screen")
                 } footer: {
-                    Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it.")
+                    Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it. Kiosk mode lets Pressing take the whole screen, without the clock, battery and other status icons. To keep others from leaving the app, also start Guided Access.")
                 }
 
                 LastFmSection(pressing: pressing)
@@ -41,6 +42,13 @@ struct SettingsView: View {
                 Button("Done") { dismiss() }
             }
         }
+    }
+
+    private var kiosk: Binding<Bool> {
+        Binding(
+            get: { pressing.state.screen.isKiosk },
+            set: { pressing.setKiosk($0) }
+        )
     }
 
     private var blankAfter: Binding<BlankAfter> {

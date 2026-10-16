@@ -16,6 +16,9 @@ public struct Settings: Sendable, Equatable, Codable {
     public var rooms: [String: RoomChoice]
     /// The Phone output is switched on. Off on a fresh install.
     public var phoneOutput: Bool
+    /// Kiosk mode: the app takes the whole screen, with no status bar.
+    /// Off on a fresh install.
+    public var kiosk: Bool
 
     public init(
         inputID: AudioInputDevice.ID? = nil,
@@ -23,7 +26,8 @@ public struct Settings: Sendable, Equatable, Codable {
         detection: DetectionSettings = DetectionSettings(),
         blankAfter: BlankAfter = .default,
         rooms: [String: RoomChoice] = [:],
-        phoneOutput: Bool = false
+        phoneOutput: Bool = false,
+        kiosk: Bool = false
     ) {
         self.inputID = inputID
         self.inputName = inputName
@@ -31,6 +35,7 @@ public struct Settings: Sendable, Equatable, Codable {
         self.blankAfter = blankAfter
         self.rooms = rooms
         self.phoneOutput = phoneOutput
+        self.kiosk = kiosk
     }
 
     // Settings saved before a field existed decode with that field's default.
@@ -42,6 +47,7 @@ public struct Settings: Sendable, Equatable, Codable {
         blankAfter = try container.decodeIfPresent(BlankAfter.self, forKey: .blankAfter) ?? .default
         rooms = try container.decodeIfPresent([String: RoomChoice].self, forKey: .rooms) ?? [:]
         phoneOutput = try container.decodeIfPresent(Bool.self, forKey: .phoneOutput) ?? false
+        kiosk = try container.decodeIfPresent(Bool.self, forKey: .kiosk) ?? false
     }
 }
 

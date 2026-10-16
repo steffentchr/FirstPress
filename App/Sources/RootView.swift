@@ -54,5 +54,11 @@ struct RootView: View {
             }
         }
         .screenBlanker(pressing)
+        // Kiosk mode: no clock, battery or other status bar, and the home
+        // indicator fades away until the screen is touched near it.
+        .statusBarHidden(isKiosk)
+        .persistentSystemOverlays(isKiosk ? .hidden : .automatic)
     }
+
+    private var isKiosk: Bool { pressing.state.screen.isKiosk }
 }

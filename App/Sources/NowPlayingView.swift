@@ -28,14 +28,15 @@ struct NowPlayingView: View {
                     RecentPlaysList(pressing: pressing, current: play?.id, rowHeight: rowHeight)
                 }
             }
+            .scrollIndicators(.hidden)
             // Keep the third row out of the home indicator's area at rest.
             .clipShape(Rectangle())
         }
     }
 }
 
-/// The current Track, or a placeholder while there is none. Both take the
-/// same space, so nothing moves when a Track appears or goes.
+/// The current Track, or the app's artwork in grey while there is none. Both
+/// take the same space, so nothing moves when a Track appears or goes.
 private struct CurrentTrackView: View {
     let track: Track?
 
@@ -47,9 +48,9 @@ private struct CurrentTrackView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
             VStack(spacing: 6) {
-                Text(track?.title ?? "Listening…")
+                // Blank lines hold the space while no Track is identified.
+                Text(track?.title ?? " ")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(track == nil ? .secondary : .primary)
                 Text(track?.artist ?? " ")
                     .font(.title2)
                 Text(track?.album ?? " ")
@@ -65,29 +66,27 @@ private struct CurrentTrackView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// The Track's artwork, or a generic record (for now: until the screens
-    /// are designed).
+    /// The Track's artwork, or the app icon's artwork in grey
+    /// (Design/NoTrackCover.svg) while there's none.
     private var cover: some View {
         ZStack {
-            Rectangle().fill(.quaternary)
             if let artwork = track?.artworkURL {
                 AsyncImage(url: artwork) { image in
                     image.resizable().aspectRatio(contentMode: .fill)
                 } placeholder: {
-                    record
+                    noTrack
                 }
             } else {
-                record
+                noTrack
             }
         }
     }
 
-    private var record: some View {
-        Image(systemName: "opticaldisc")
+    private var noTrack: some View {
+        Image("NoTrackCover")
             .resizable()
-            .scaledToFit()
-            .padding(56)
-            .foregroundStyle(.secondary)
+            .scaledToFill()
+            .accessibilityLabel("No Track identified")
     }
 }
 

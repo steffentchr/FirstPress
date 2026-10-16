@@ -169,6 +169,19 @@ struct ScreenBlankerTests {
         #expect(relaunched.state.screen.isBlanked == false)
     }
 
+    @Test("Kiosk mode is off on a fresh install, and switching it on is remembered across a restart")
+    func kioskMode() {
+        let store = FakeStore(settings: Settings(inputID: "usb-deck"))
+        let (_, _, pressing) = pressing(blankAfter: .after(60), store: store)
+        #expect(pressing.state.screen.isKiosk == false)
+
+        pressing.setKiosk(true)
+        #expect(pressing.state.screen.isKiosk == true)
+
+        let (_, _, relaunched) = self.pressing(blankAfter: .after(60), store: store)
+        #expect(relaunched.state.screen.isKiosk == true)
+    }
+
     @Test("By default the screen blanks after five minutes")
     func defaultBlankAfter() {
         let input = FakeAudioInput(availableInputs: [.deck])

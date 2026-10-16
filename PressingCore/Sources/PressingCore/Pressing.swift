@@ -96,6 +96,7 @@ public final class Pressing {
         startLastFm()
         applyDetection()
         state.screen.blankAfter = settings.blankAfter
+        state.screen.isKiosk = settings.kiosk
         wakeScreen()
         applyPhoneOutputSwitch()
         state.input.chosenID = settings.inputID
@@ -165,6 +166,13 @@ public final class Pressing {
         store.saveSettings(settings)
         state.screen.blankAfter = blankAfter
         wakeScreen()
+    }
+
+    /// Intent from Settings: switch kiosk mode on or off.
+    public func setKiosk(_ on: Bool) {
+        settings.kiosk = on
+        store.saveSettings(settings)
+        state.screen.isKiosk = on
     }
 
     /// Any touch on the screen. Returns true when the touch only woke a blank
