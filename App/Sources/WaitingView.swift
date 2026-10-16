@@ -58,7 +58,7 @@ struct WaitingView: View {
 
     private var waiting: some View {
         VStack(spacing: 16) {
-            Text("Drop the needle to start.")
+            Text("Put on a pressing to start.")
                 .font(.title2.bold())
             InputNameMenu(pressing: pressing)
                 .font(.subheadline)
