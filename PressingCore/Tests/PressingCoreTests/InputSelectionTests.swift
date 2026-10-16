@@ -59,4 +59,25 @@ struct InputSelectionTests {
         #expect(input.startedInputs == ["built-in-mic"])
         #expect(pressing.state.input.status == .present)
     }
+
+    @Test("The chosen input's name is known while it's unplugged, and after a restart with it still unplugged")
+    func chosenNameWhileMissing() {
+        let input = FakeAudioInput(availableInputs: [.mic, .deck])
+        let store = FakeStore()
+        let pressing = Pressing(audioInput: input, store: store, scheduler: FakeScheduler())
+        pressing.start()
+        #expect(pressing.state.input.chosenName == nil)
+
+        pressing.chooseInput(AudioInputDevice.deck.id)
+        #expect(pressing.state.input.chosenName == "Numark TT USB")
+
+        input.unplug(AudioInputDevice.deck.id)
+        #expect(pressing.state.input.status == .missing)
+        #expect(pressing.state.input.chosenName == "Numark TT USB")
+
+        let relaunched = Pressing(audioInput: FakeAudioInput(availableInputs: [.mic]), store: store, scheduler: FakeScheduler())
+        relaunched.start()
+        #expect(relaunched.state.input.status == .missing)
+        #expect(relaunched.state.input.chosenName == "Numark TT USB")
+    }
 }

@@ -84,6 +84,7 @@ public final class Pressing {
         state.screen.blankAfter = settings.blankAfter
         wakeScreen()
         state.input.chosenID = settings.inputID
+        state.input.chosenName = settings.inputName
         state.input.available = audioInput.availableInputs
         audioInput.setEventHandler { [weak self] event in
             self?.handle(event)
@@ -288,11 +289,12 @@ public final class Pressing {
             return
         }
         // Never fall back: if the chosen input isn't there, capture nothing.
-        guard state.input.available.contains(where: { $0.id == chosen }) else {
+        guard let device = state.input.available.first(where: { $0.id == chosen }) else {
             audioInput.stop()
             state.input.status = .missing
             return
         }
+        rememberName(of: device)
         do {
             try audioInput.start(inputID: chosen)
             state.input.status = .present
@@ -305,5 +307,13 @@ public final class Pressing {
         } catch {
             state.input.status = .failed("\(error)")
         }
+    }
+
+    /// Keeps the chosen input's name, so it can be named while it isn't connected.
+    private func rememberName(of device: AudioInputDevice) {
+        state.input.chosenName = device.name
+        guard settings.inputName != device.name else { return }
+        settings.inputName = device.name
+        store.saveSettings(settings)
     }
 }
