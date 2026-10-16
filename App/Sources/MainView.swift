@@ -16,6 +16,7 @@ struct MainView: View {
                 // Takes the rest of the screen and scrolls within it.
                 RoomsView(pressing: pressing)
                     .frame(maxHeight: .infinity, alignment: .top)
+                LowerThirdView(play: pressing.state.play)
             }
             .padding()
             .navigationTitle("Pressing")

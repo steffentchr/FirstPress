@@ -20,4 +20,14 @@ final class UserDefaultsStore: Store {
         guard let data = try? JSONEncoder().encode(settings) else { return }
         defaults.set(data, forKey: settingsKey)
     }
+
+    private let playsKey = "plays"
+
+    /// Appends the Play to a JSON list. History (ticket #6) reads it back.
+    func savePlay(_ play: Play) {
+        var plays = defaults.data(forKey: playsKey).flatMap { try? JSONDecoder().decode([Play].self, from: $0) } ?? []
+        plays.append(play)
+        guard let data = try? JSONEncoder().encode(plays) else { return }
+        defaults.set(data, forKey: playsKey)
+    }
 }

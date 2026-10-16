@@ -12,4 +12,8 @@ final class FakeStore: Store {
 
     func loadSettings() -> Settings? { settings }
     func saveSettings(_ settings: Settings) { self.settings = settings }
+
+    /// Ended Plays, in the order they were saved.
+    private(set) var plays: [Play] = []
+    func savePlay(_ play: Play) { plays.append(play) }
 }
