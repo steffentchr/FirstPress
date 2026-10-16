@@ -5,17 +5,21 @@ import Observation
 @MainActor
 @Observable
 public final class Pressing {
-    public private(set) var state = PressingState()
+    public internal(set) var state = PressingState()
 
     @ObservationIgnored private let audioInput: any AudioInput
-    @ObservationIgnored private let store: any Store
+    @ObservationIgnored let store: any Store
     @ObservationIgnored private let scheduler: any Scheduler
-    @ObservationIgnored private let sonos: any SonosNetwork
+    @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let streamSink: any StreamSink
     @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored private var detector: Detector!
     @ObservationIgnored private let stream: StreamServer
     @ObservationIgnored private var resampler: Resampler?
+    /// Where each Room's player answers SOAP, by RINCON id.
+    @ObservationIgnored var roomHosts: [String: String] = [:]
+    /// A topology read is under way, so further players found join it.
+    @ObservationIgnored var isReadingTopology = false
 
     /// The port the stream is served on. Fixed, so Pressing recognises its
     /// own stream in a Room whatever the phone's IP address is now.
@@ -55,6 +59,7 @@ public final class Pressing {
             self?.handle(event)
         }
         stream.start(port: Self.streamPort)
+        startDiscovery()
         startCapture()
     }
 
@@ -131,7 +136,7 @@ public final class Pressing {
         noiseFloor.threshold = settings.detection.threshold
     }
 
-    @ObservationIgnored private var settings = Settings()
+    @ObservationIgnored var settings = Settings()
     @ObservationIgnored private var meter = LevelMeter()
     @ObservationIgnored private var window = LevelWindow()
     @ObservationIgnored private var noiseFloor = NoiseFloor(threshold: DetectionSettings().threshold)

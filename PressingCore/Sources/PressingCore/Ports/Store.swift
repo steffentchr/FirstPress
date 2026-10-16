@@ -9,15 +9,19 @@ public struct Settings: Sendable, Equatable, Codable {
     public var detection: DetectionSettings
     /// How long the screen stays on without a touch or a Record starting.
     public var blankAfter: BlankAfter
+    /// The listener's choice for each Room they have touched, by RINCON id.
+    public var rooms: [String: RoomChoice]
 
     public init(
         inputID: AudioInputDevice.ID? = nil,
         detection: DetectionSettings = DetectionSettings(),
-        blankAfter: BlankAfter = .default
+        blankAfter: BlankAfter = .default,
+        rooms: [String: RoomChoice] = [:]
     ) {
         self.inputID = inputID
         self.detection = detection
         self.blankAfter = blankAfter
+        self.rooms = rooms
     }
 
     // Settings saved before a field existed decode with that field's default.
@@ -26,6 +30,22 @@ public struct Settings: Sendable, Equatable, Codable {
         inputID = try container.decodeIfPresent(AudioInputDevice.ID.self, forKey: .inputID)
         detection = try container.decodeIfPresent(DetectionSettings.self, forKey: .detection) ?? DetectionSettings()
         blankAfter = try container.decodeIfPresent(BlankAfter.self, forKey: .blankAfter) ?? .default
+        rooms = try container.decodeIfPresent([String: RoomChoice].self, forKey: .rooms) ?? [:]
+    }
+}
+
+/// Whether a Room is switched on in Pressing, and its volume.
+public struct RoomChoice: Sendable, Equatable, Codable {
+    public var isOn: Bool
+    /// 0 to 100.
+    public var volume: Int
+
+    /// A Room seen for the first time is off, at a moderate volume.
+    public static let `default` = RoomChoice(isOn: false, volume: 25)
+
+    public init(isOn: Bool, volume: Int) {
+        self.isOn = isOn
+        self.volume = volume
     }
 }
 
@@ -66,7 +86,8 @@ public enum DetectionSettingsError: Error, Sendable, Equatable {
 
 /// Port: durable storage on the phone.
 ///
-/// Later tickets add Room choices and volumes, Plays and the scrobble queue.
+/// Settings include Room choices and volumes. Later tickets add Plays and
+/// the scrobble queue.
 /// Credentials do not go here; they go in the Keychain.
 @MainActor
 public protocol Store: AnyObject {

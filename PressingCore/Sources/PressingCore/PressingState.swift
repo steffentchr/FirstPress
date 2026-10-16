@@ -1,10 +1,12 @@
 import Foundation
 
-/// The one snapshot the app renders. Later tickets add Rooms, the lower-third
-/// Track and the Last.fm connection.
+/// The one snapshot the app renders. Later tickets add the lower-third Track
+/// and the Last.fm connection.
 public struct PressingState: Sendable, Equatable {
     public var input: InputState
     public var session: SessionState
+    /// The Sonos Rooms found on the network, by name.
+    public var rooms: [RoomState]
     /// The detection calibration in force, as set in Settings.
     public var detection: DetectionSettings
     public var screen: ScreenState
@@ -12,11 +14,13 @@ public struct PressingState: Sendable, Equatable {
     public init(
         input: InputState = InputState(),
         session: SessionState = .idle,
+        rooms: [RoomState] = [],
         detection: DetectionSettings = DetectionSettings(),
         screen: ScreenState = ScreenState()
     ) {
         self.input = input
         self.session = session
+        self.rooms = rooms
         self.detection = detection
         self.screen = screen
     }
@@ -101,4 +105,23 @@ public enum RecordState: Sendable, Equatable {
     /// The last Record ended with a Flip. The Session ends unless a new Record
     /// starts within the stop delay.
     case flipped
+}
+
+/// A Sonos Room as the main screen lists it.
+public struct RoomState: Sendable, Equatable, Identifiable {
+    /// The RINCON id of the Room's visible player.
+    public var id: String
+    /// The Room's name, as the Sonos app shows it.
+    public var name: String
+    /// Switched on in Pressing: a Session takes it over.
+    public var isOn: Bool
+    /// The volume Pressing sets when it takes the Room over, 0 to 100.
+    public var volume: Int
+
+    public init(id: String, name: String, isOn: Bool, volume: Int) {
+        self.id = id
+        self.name = name
+        self.isOn = isOn
+        self.volume = volume
+    }
 }
