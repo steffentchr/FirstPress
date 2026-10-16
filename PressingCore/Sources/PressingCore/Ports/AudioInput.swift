@@ -45,8 +45,9 @@ public enum AudioInputError: Error, Sendable, Equatable {
 
 /// Port: delivers captured audio from one explicitly chosen input.
 ///
-/// The production adapter wraps `AVAudioSession` (`.record`, `.measurement`)
-/// and selects the chosen input explicitly. It must never capture from any
+/// The production adapter wraps `AVAudioSession` (`.record`, `.measurement`;
+/// `.playAndRecord` while the Phone output is on) and selects the chosen
+/// input explicitly. It must never capture from any
 /// input other than the one passed to `start(inputID:)`: when the route
 /// changes it stops capture and reports `.routeChanged`, and the core decides
 /// whether to start again.

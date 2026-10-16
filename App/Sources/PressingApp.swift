@@ -21,6 +21,7 @@ struct PressingApp: App {
             sonos: BonjourSonosNetwork(),
             streamSink: NetworkStreamServer(),
             encoder: LAMEEncoder(),
+            phoneOutput: AVAudioPhoneOutput(input: audioInput),
             recognizer: ShazamRecognizer(),
             artwork: URLSessionArtworkDownloader(),
             lastFm: LastFmPorts(

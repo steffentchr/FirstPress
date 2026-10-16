@@ -1,8 +1,10 @@
+import AVKit
 import SwiftUI
 import PressingCore
 
-/// Opened from the speaker icon: the Sonos Rooms, each with an on/off switch
-/// and a volume, and why a Room may be quiet. Works mid-Session too.
+/// Opened from the speaker icon: "This iPhone" (the Phone output), then the
+/// Sonos Rooms, each with an on/off switch and a volume, and why a Room may
+/// be quiet. Works mid-Session too.
 struct RoomsSheet: View {
     let pressing: Pressing
     @Environment(\.dismiss) private var dismiss
@@ -10,12 +12,17 @@ struct RoomsSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                if pressing.state.rooms.isEmpty {
-                    Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
-                        .foregroundStyle(.secondary)
+                Section {
+                    PhoneOutputRow(pressing: pressing)
                 }
-                ForEach(pressing.state.rooms) { room in
-                    RoomRow(room: room, pressing: pressing)
+                Section {
+                    if pressing.state.rooms.isEmpty {
+                        Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(pressing.state.rooms) { room in
+                        RoomRow(room: room, pressing: pressing)
+                    }
                 }
             }
             .navigationTitle("Rooms")
@@ -25,6 +32,48 @@ struct RoomsSheet: View {
             }
         }
     }
+}
+
+/// The Phone output: on or off, and where the phone plays (its speaker,
+/// earphones or AirPlay), chosen with the system route picker. The volume is
+/// the system's, so there is no slider.
+struct PhoneOutputRow: View {
+    let pressing: Pressing
+
+    var body: some View {
+        let isOn = pressing.state.phoneOutput.isOn
+        HStack {
+            Toggle(isOn: Binding(
+                get: { isOn },
+                set: { pressing.switchPhoneOutput(on: $0) }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("This iPhone")
+                    Text("Its speaker, earphones or AirPlay. Plays ahead of the Rooms.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            RoutePickerButton()
+                .frame(width: 32, height: 32)
+                .opacity(isOn ? 1 : 0.4)
+                .allowsHitTesting(isOn)
+                .accessibilityLabel("Where This iPhone plays")
+        }
+    }
+}
+
+/// The system's AirPlay and Bluetooth route picker.
+struct RoutePickerButton: UIViewRepresentable {
+    func makeUIView(context: Context) -> AVRoutePickerView {
+        let picker = AVRoutePickerView()
+        picker.prioritizesVideoDevices = false
+        picker.tintColor = .secondaryLabel
+        picker.activeTintColor = .tintColor
+        return picker
+    }
+
+    func updateUIView(_ uiView: AVRoutePickerView, context: Context) {}
 }
 
 struct RoomRow: View {

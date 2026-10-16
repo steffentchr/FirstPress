@@ -4,6 +4,11 @@ import PressingCore
 /// Production AudioInput: AVAudioSession in `.record` / `.measurement` (no AGC,
 /// no voice processing) with the chosen input selected explicitly.
 ///
+/// While the Phone output is switched on, the session is `.playAndRecord`
+/// instead, still in `.measurement` and still on the chosen input, so the
+/// phone can play while it captures. Bluetooth is allowed only as an output
+/// (A2DP), never as a headset microphone (HFP), and AirPlay is allowed.
+///
 /// It never captures from anything but the input passed to `start(inputID:)`.
 /// When a device comes or goes, or the route ends up on another input, it stops
 /// capture before telling the core, so a fallback to the built-in mic is never
@@ -15,6 +20,9 @@ final class AVAudioSessionInput: AudioInput {
     private var chosenID: AudioInputDevice.ID?
     private var handler: (@MainActor (AudioInputEvent) -> Void)?
     private var observers: [NSObjectProtocol] = []
+    /// The Phone output is switched on, so the session must be able to play.
+    private var allowsPlayback = false
+    private var engineObserver: NSObjectProtocol?
 
     init() {
         // availableInputs is only filled in once the category can record.
@@ -45,6 +53,22 @@ final class AVAudioSessionInput: AudioInput {
         handler?(.routeChanged)
     }
 
+    /// Called by the Phone output when it is switched on or off. The category
+    /// only changes with capture stopped, so a running capture restarts at
+    /// once, from the same input. Not capturing, the next start applies it.
+    func setPlaybackAllowed(_ allowed: Bool) {
+        guard allowed != allowsPlayback else { return }
+        allowsPlayback = allowed
+        guard engine != nil, let chosenID else { return }
+        do {
+            try start(inputID: chosenID)
+        } catch {
+            // Let the core decide, as for any other lost input.
+            stopEngine()
+            handler?(.routeChanged)
+        }
+    }
+
     func start(inputID: AudioInputDevice.ID) throws {
         stopEngine()
         chosenID = inputID
@@ -65,7 +89,7 @@ final class AVAudioSessionInput: AudioInput {
         }
 
         do {
-            try session.setCategory(.record, mode: .measurement, options: [])
+            try setCategory()
             try session.setActive(true)
             guard let port = session.availableInputs?.first(where: { $0.uid == inputID }) else {
                 throw AudioInputError.inputUnavailable
@@ -96,6 +120,7 @@ final class AVAudioSessionInput: AudioInput {
             throw AudioInputError.failed(error.localizedDescription)
         }
         self.engine = engine
+        observeConfigurationChange(of: engine)
     }
 
     func stop() {
@@ -105,7 +130,42 @@ final class AVAudioSessionInput: AudioInput {
 
     // MARK: - Private
 
+    /// Capture alone records; with the Phone output on it also plays, with
+    /// the speaker rather than the earpiece when nothing else is connected.
+    /// `.allowBluetoothHFP` stays off, so a headset never becomes the input.
+    private func setCategory() throws {
+        if allowsPlayback {
+            try session.setCategory(.playAndRecord, mode: .measurement, options: [.allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker])
+        } else {
+            try session.setCategory(.record, mode: .measurement, options: [])
+        }
+    }
+
+    /// With the Phone output on, choosing another output (earphones, AirPlay)
+    /// can change the hardware's sample rate, and the engine then stops itself
+    /// without a route change that names a device. Treat that like a route
+    /// change so the core starts capture again from the chosen input. Only
+    /// while playback is allowed: with the Phone output off, capture behaves
+    /// exactly as before.
+    private func observeConfigurationChange(of engine: AVAudioEngine) {
+        let id = ObjectIdentifier(engine)
+        engineObserver = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main) { [weak self] _ in
+            // Not torn down inside the notification itself: that can deadlock.
+            Task { @MainActor in self?.engineStoppedItself(id) }
+        }
+    }
+
+    private func engineStoppedItself(_ id: ObjectIdentifier) {
+        guard allowsPlayback, let engine, ObjectIdentifier(engine) == id else { return }
+        stopEngine()
+        handler?(.routeChanged)
+    }
+
     private func stopEngine() {
+        if let engineObserver {
+            NotificationCenter.default.removeObserver(engineObserver)
+            self.engineObserver = nil
+        }
         guard let engine else { return }
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
@@ -151,6 +211,8 @@ final class AVAudioSessionInput: AudioInput {
         let deviceCameOrWent = reason == .newDeviceAvailable || reason == .oldDeviceUnavailable
         let onWrongInput = engine != nil && session.currentRoute.inputs.first?.uid != chosenID
         // Our own setPreferredInput also changes the route; ignore that, or we'd loop.
+        // So is the category change when the Phone output is switched: capture
+        // has already restarted on the chosen input by the time it arrives.
         guard deviceCameOrWent || onWrongInput else { return }
         stopEngine()
         handler?(.routeChanged)
