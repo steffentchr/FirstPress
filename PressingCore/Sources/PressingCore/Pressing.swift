@@ -14,7 +14,8 @@ public final class Pressing {
     @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored private var detector: Detector!
-    @ObservationIgnored private let stream: StreamServer
+    @ObservationIgnored var identifier: Identifier!
+    @ObservationIgnored let stream: StreamServer
     @ObservationIgnored private var resampler: Resampler?
     /// Where each Room's player answers SOAP, by RINCON id.
     @ObservationIgnored var roomHosts: [String: String] = [:]
@@ -37,7 +38,8 @@ public final class Pressing {
         scheduler: any Scheduler,
         sonos: any SonosNetwork,
         streamSink: any StreamSink,
-        encoder: any MP3Encoder
+        encoder: any MP3Encoder,
+        recognizer: any Recognizer
     ) {
         self.audioInput = audioInput
         self.store = store
@@ -47,6 +49,9 @@ public final class Pressing {
         self.encoder = encoder
         stream = StreamServer(sink: streamSink, path: Self.streamPath)
         detector = Detector(scheduler: scheduler) { [weak self] event in
+            self?.handle(event)
+        }
+        identifier = Identifier(recognizer: recognizer, scheduler: scheduler) { [weak self] event in
             self?.handle(event)
         }
     }
@@ -125,7 +130,7 @@ public final class Pressing {
 
     /// Wakes the screen and starts the blank-after time again. The time only
     /// runs while no Record is playing: the screen never blanks during one.
-    private func wakeScreen() {
+    func wakeScreen() {
         state.screen.isBlanked = false
         blankTimer?.cancel()
         blankTimer = nil
@@ -161,6 +166,9 @@ public final class Pressing {
             state.input.noiseFloor = noiseFloor.add(level)
             detector.level(level)
         }
+        if case .running(_, .playing) = state.session {
+            identifier.add(buffer)
+        }
         encode(buffer)
     }
 
@@ -184,16 +192,19 @@ public final class Pressing {
             case .running(let records, _):
                 state.session = .running(records: records + 1, record: .playing)
             }
+            identifier.recordStarted()
             wakeScreen()
         case .sessionEnded:
             state.session = .idle
             stopRooms()
         case .gap:
             setRecord(.gap)
+            identifier.gap(silenceBegan: scheduler.now.addingTimeInterval(-Detector.gapSeconds))
         case .resumed:
             setRecord(.playing)
         case .flip:
             setRecord(.flipped)
+            identifier.flip(silenceBegan: scheduler.now.addingTimeInterval(-settings.detection.flipThreshold))
             // No Record is playing any more: the blank-after time starts.
             wakeScreen()
         }

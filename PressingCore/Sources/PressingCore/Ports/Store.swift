@@ -86,11 +86,13 @@ public enum DetectionSettingsError: Error, Sendable, Equatable {
 
 /// Port: durable storage on the phone.
 ///
-/// Settings include Room choices and volumes. Later tickets add Plays and
-/// the scrobble queue.
+/// Settings include Room choices and volumes. Later tickets add reading
+/// Plays back for History, and the scrobble queue.
 /// Credentials do not go here; they go in the Keychain.
 @MainActor
 public protocol Store: AnyObject {
     func loadSettings() -> Settings?
     func saveSettings(_ settings: Settings)
+    /// Keeps a Play that has ended.
+    func savePlay(_ play: Play)
 }

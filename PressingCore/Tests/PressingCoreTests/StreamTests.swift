@@ -32,7 +32,7 @@ struct StreamTests {
         let headers = try #require(world.sink.headers[sonos])
         #expect(headers["icy-name"] == "Pressing")
         #expect(headers["Content-Type"] == "audio/mpeg")
-        let samples = PassThroughEncoder.samples(in: world.sink.received[sonos] ?? Data())
+        let samples = try world.sink.audioSamples(of: sonos)
         let seconds = Double(samples.count) / rate
         #expect(seconds >= 2.9 && seconds <= 3.1)
         // The pre-roll is the newest audio, whole frames, in order.
@@ -42,20 +42,20 @@ struct StreamTests {
     }
 
     @Test("After the pre-roll, a client gets the live audio as it is encoded")
-    func live() {
+    func live() throws {
         let world = World()
         world.play(ramp(from: 0, seconds: 5))
         world.sink.connect(sonos, path: Pressing.streamPath, wantsMetadata: false)
 
         world.play(ramp(from: 5 * 44_100, seconds: 2))
 
-        let samples = PassThroughEncoder.samples(in: world.sink.received[sonos] ?? Data())
+        let samples = try world.sink.audioSamples(of: sonos)
         #expect(samples.last == Float(7 * 44_100 / MP3.samplesPerFrame * MP3.samplesPerFrame - 1))
         #expect(zip(samples, samples.dropFirst()).allSatisfy { $1 == $0 + 1 })
     }
 
     @Test("Two clients each get the pre-roll and the live audio")
-    func twoClients() {
+    func twoClients() throws {
         let world = World()
         let other = StreamClientID(2)
         world.play(ramp(from: 0, seconds: 4))
@@ -65,8 +65,8 @@ struct StreamTests {
         world.sink.connect(other, path: Pressing.streamPath, wantsMetadata: true)
         world.play(ramp(from: 5 * 44_100, seconds: 1))
 
-        let first = PassThroughEncoder.samples(in: world.sink.received[sonos] ?? Data())
-        let second = PassThroughEncoder.samples(in: world.sink.received[other] ?? Data())
+        let first = try world.sink.audioSamples(of: sonos)
+        let second = try world.sink.audioSamples(of: other)
         #expect(first.last == second.last)
         #expect(Double(first.count) / rate > 3.9)
         #expect(Double(second.count) / rate > 3.9 && Double(second.count) / rate < 4.1)

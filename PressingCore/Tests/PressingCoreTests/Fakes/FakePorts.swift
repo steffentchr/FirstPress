@@ -24,15 +24,28 @@ final class FakeSonosNetwork: SonosNetwork {
     func discover(_ event: SonosDiscoveryEvent) { handler?(event) }
 }
 
+/// A search the core asked for: the mono audio it handed over.
+struct Search {
+    var samples: [Float]
+    var sampleRate: Double
+    var seconds: Double { Double(samples.count) / sampleRate }
+}
+
 @MainActor
 final class FakeRecognizer: Recognizer {
-    private(set) var searches = 0
-    /// Answers in order; `.noMatch` once they run out.
-    var answers: [Recognition] = []
+    struct Unavailable: Error {}
+
+    /// Every search, in order.
+    private(set) var searches: [Search] = []
+    /// Answers in order; `.noMatch` once they run out. A nil answer throws,
+    /// as ShazamKit does when its servers can't be reached.
+    var answers: [Recognition?] = []
 
     func recognize(_ samples: [Float], sampleRate: Double) async throws -> Recognition {
-        searches += 1
-        return answers.isEmpty ? .noMatch : answers.removeFirst()
+        searches.append(Search(samples: samples, sampleRate: sampleRate))
+        guard !answers.isEmpty else { return .noMatch }
+        guard let answer = answers.removeFirst() else { throw Unavailable() }
+        return answer
     }
 }
 

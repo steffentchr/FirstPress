@@ -1,7 +1,6 @@
 import Foundation
 
-/// The one snapshot the app renders. Later tickets add the lower-third Track
-/// and the Last.fm connection.
+/// The one snapshot the app renders. A later ticket adds the Last.fm connection.
 public struct PressingState: Sendable, Equatable {
     public var input: InputState
     public var session: SessionState
@@ -10,19 +9,24 @@ public struct PressingState: Sendable, Equatable {
     /// The detection calibration in force, as set in Settings.
     public var detection: DetectionSettings
     public var screen: ScreenState
+    /// The current Play, whose Track fills the lower third. Nil when nothing
+    /// is identified: the lower third is empty but keeps its space.
+    public var play: Play?
 
     public init(
         input: InputState = InputState(),
         session: SessionState = .idle,
         rooms: [RoomState] = [],
         detection: DetectionSettings = DetectionSettings(),
-        screen: ScreenState = ScreenState()
+        screen: ScreenState = ScreenState(),
+        play: Play? = nil
     ) {
         self.input = input
         self.session = session
         self.rooms = rooms
         self.detection = detection
         self.screen = screen
+        self.play = play
     }
 }
 
