@@ -14,6 +14,10 @@ struct Hold {
     var topology: [TopologyRoom] = []
     /// The volume each held Room last had at Sonos, as Pressing set or read it.
     var volumes: [String: Int] = [:]
+    /// The next Session monitor read.
+    var monitor: (any ScheduledWork)?
+    /// A monitor read is queued or under way.
+    var isPolling = false
 }
 
 /// Takeover at the start of a Session and Stop at its end.
@@ -32,6 +36,7 @@ extension Pressing {
 
     /// Session start: takes over every switched-on Room.
     func takeOverRooms() {
+        startMonitor()
         enqueueSonos { [weak self] in
             guard let self else { return }
             hold.rooms = []
@@ -44,6 +49,7 @@ extension Pressing {
     /// Session end: Stop to the leader only. Its group stops with it; nothing
     /// is ungrouped and nothing restored.
     func stopRooms() {
+        stopMonitor()
         enqueueSonos { [weak self] in
             guard let self else { return }
             if let leader = hold.leader, let host = roomHosts[leader] {

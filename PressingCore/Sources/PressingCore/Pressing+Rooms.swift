@@ -64,7 +64,7 @@ extension Pressing {
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
-    private func updateChoice(for id: RoomState.ID, _ change: (inout RoomChoice) -> Void) {
+    func updateChoice(for id: RoomState.ID, _ change: (inout RoomChoice) -> Void) {
         var choice = settings.rooms[id] ?? .default
         change(&choice)
         settings.rooms[id] = choice
