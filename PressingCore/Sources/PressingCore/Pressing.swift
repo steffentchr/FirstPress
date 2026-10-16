@@ -10,12 +10,34 @@ public final class Pressing {
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored private let store: any Store
     @ObservationIgnored private let scheduler: any Scheduler
+    @ObservationIgnored private let sonos: any SonosNetwork
+    @ObservationIgnored private let streamSink: any StreamSink
+    @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored private var detector: Detector!
+    @ObservationIgnored private let stream: StreamServer
+    @ObservationIgnored private var resampler: Resampler?
 
-    public init(audioInput: any AudioInput, store: any Store, scheduler: any Scheduler) {
+    /// The port the stream is served on. Fixed, so Pressing recognises its
+    /// own stream in a Room whatever the phone's IP address is now.
+    public static let streamPort: UInt16 = 8020
+    /// The stream's path. Distinctive, so no other app's radio URL matches it.
+    public static let streamPath = "/pressing/turntable.mp3"
+
+    public init(
+        audioInput: any AudioInput,
+        store: any Store,
+        scheduler: any Scheduler,
+        sonos: any SonosNetwork,
+        streamSink: any StreamSink,
+        encoder: any MP3Encoder
+    ) {
         self.audioInput = audioInput
         self.store = store
         self.scheduler = scheduler
+        self.sonos = sonos
+        self.streamSink = streamSink
+        self.encoder = encoder
+        stream = StreamServer(sink: streamSink, path: Self.streamPath)
         detector = Detector(scheduler: scheduler) { [weak self] event in
             self?.handle(event)
         }
@@ -32,6 +54,7 @@ public final class Pressing {
         audioInput.setEventHandler { [weak self] event in
             self?.handle(event)
         }
+        stream.start(port: Self.streamPort)
         startCapture()
     }
 
@@ -128,6 +151,17 @@ public final class Pressing {
             state.input.noiseFloor = noiseFloor.add(level)
             detector.level(level)
         }
+        encode(buffer)
+    }
+
+    /// Everything captured is encoded, Session or not, so the pre-roll already
+    /// holds the needle drop when a Session starts.
+    private func encode(_ buffer: PCMBuffer) {
+        if resampler?.inputRate != buffer.sampleRate {
+            resampler = Resampler(inputRate: buffer.sampleRate)
+        }
+        let audio = resampler!.process(left: buffer.left, right: buffer.right)
+        stream.send(encoder.encode(left: audio.left, right: audio.right))
     }
 
     private func handle(_ event: Detector.Event) {

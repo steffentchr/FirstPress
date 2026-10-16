@@ -17,6 +17,9 @@ public enum StreamSinkEvent: Sendable, Equatable {
 /// Network.framework listener.
 @MainActor
 public protocol StreamSink: AnyObject {
+    /// The phone's IPv4 address on the LAN, which Rooms fetch the stream
+    /// from. Nil while the phone has none (no Wi-Fi).
+    var localAddress: String? { get }
     func setEventHandler(_ handler: @escaping @MainActor (StreamSinkEvent) -> Void)
     func startListening(port: UInt16) throws
     func stopListening()

@@ -9,7 +9,7 @@ import PressingCore
 final class FakeSonosNetwork: SonosNetwork {
     private(set) var requests: [HTTPRequest] = []
     private(set) var isDiscovering = false
-    var respond: (HTTPRequest) throws -> HTTPResponse = { _ in HTTPResponse(status: 200) }
+    var respond: @MainActor (HTTPRequest) throws -> HTTPResponse = { _ in HTTPResponse(status: 200) }
     private var handler: (@MainActor (SonosDiscoveryEvent) -> Void)?
 
     func setDiscoveryHandler(_ handler: @escaping @MainActor (SonosDiscoveryEvent) -> Void) { self.handler = handler }
@@ -39,7 +39,7 @@ final class FakeRecognizer: Recognizer {
 @MainActor
 final class FakeLastFmHTTP: LastFmHTTP {
     private(set) var requests: [HTTPRequest] = []
-    var respond: (HTTPRequest) throws -> HTTPResponse = { _ in HTTPResponse(status: 200) }
+    var respond: @MainActor (HTTPRequest) throws -> HTTPResponse = { _ in HTTPResponse(status: 200) }
 
     func send(_ request: HTTPRequest) async throws -> HTTPResponse {
         requests.append(request)
@@ -106,6 +106,8 @@ final class FakeScheduler: Scheduler {
 @MainActor
 final class FakeStreamSink: StreamSink {
     private(set) var listeningPort: UInt16?
+    /// The phone's address on the LAN.
+    var localAddress: String? = "192.168.1.50"
     private(set) var headers: [StreamClientID: [String: String]] = [:]
     private(set) var received: [StreamClientID: Data] = [:]
     private(set) var closed: Set<StreamClientID> = []
@@ -120,5 +122,9 @@ final class FakeStreamSink: StreamSink {
 
     func connect(_ client: StreamClientID, path: String, wantsMetadata: Bool) {
         handler?(.connected(client, path: path, wantsMetadata: wantsMetadata))
+    }
+
+    func disconnect(_ client: StreamClientID) {
+        handler?(.disconnected(client))
     }
 }
