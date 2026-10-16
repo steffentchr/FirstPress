@@ -10,12 +10,16 @@ public final class Pressing {
     /// Apart from `state` so the level meter's updates don't redraw History.
     public internal(set) var history: [Play] = []
 
-    /// Recently played, as Now Playing lists it under the current Track:
-    /// History, newest first, without the current Play.
+    /// History as Now Playing lists it under the current Track: the most
+    /// recent Plays, newest first, without the current Play. Older Plays
+    /// stay kept on the phone but aren't listed.
     public var recentPlays: [Play] {
-        guard let current = state.play else { return history }
-        return history.filter { $0.id != current.id }
+        let current = state.play?.id
+        return Array(history.lazy.filter { $0.id != current }.prefix(Self.recentPlaysLimit))
     }
+
+    /// How many Plays Now Playing lists.
+    public static let recentPlaysLimit = 50
     @ObservationIgnored let artwork: any ArtworkDownloader
 
     @ObservationIgnored private let audioInput: any AudioInput
