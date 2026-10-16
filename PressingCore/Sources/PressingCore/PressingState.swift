@@ -140,6 +140,9 @@ public struct InputState: Sendable, Equatable {
     public var available: [AudioInputDevice]
     /// The input chosen in Settings.
     public var chosenID: AudioInputDevice.ID?
+    /// The chosen input's name, kept while it isn't connected. Nil when none
+    /// is chosen, or when it hasn't been seen since it was chosen.
+    public var chosenName: String?
     /// Live level in dBFS, nil while nothing is being captured.
     public var level: Double?
     /// Level during silence (below the start threshold) in dBFS, nil until measured.
@@ -149,12 +152,14 @@ public struct InputState: Sendable, Equatable {
         status: Status = .notChosen,
         available: [AudioInputDevice] = [],
         chosenID: AudioInputDevice.ID? = nil,
+        chosenName: String? = nil,
         level: Double? = nil,
         noiseFloor: Double? = nil
     ) {
         self.status = status
         self.available = available
         self.chosenID = chosenID
+        self.chosenName = chosenName
         self.level = level
         self.noiseFloor = noiseFloor
     }

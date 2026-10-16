@@ -1,28 +1,14 @@
 import SwiftUI
 import PressingCore
 
-/// The app's root: the page the core names, with History a swipe away.
-/// Swipe left to History, right to come back.
-struct RootView: View {
-    let pressing: Pressing
-    let audioInput: AVAudioSessionInput
-
-    var body: some View {
-        TabView {
-            HomeView(pressing: pressing, audioInput: audioInput)
-            HistoryView(pressing: pressing)
-                .screenBlanker(pressing)
-        }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-    }
-}
-
-/// Choose input, waiting or Now Playing, under a gear and a speaker icon.
+/// The app's root: the page the core names (choose input, waiting or Now
+/// Playing) under a gear and a speaker icon. History is listed on Now
+/// Playing, under the current Track.
 ///
 /// The sheets hang off this view rather than off each page, so an open
 /// Settings or Rooms sheet stays open when a Record starts or a Session ends
 /// underneath it.
-struct HomeView: View {
+struct RootView: View {
     let pressing: Pressing
     let audioInput: AVAudioSessionInput
     @State private var showingSettings = false
@@ -39,7 +25,7 @@ struct HomeView: View {
                 case .waiting:
                     WaitingView(pressing: pressing, audioInput: audioInput, chooseInput: nil)
                 case .nowPlaying:
-                    NowPlayingView(play: pressing.state.play)
+                    NowPlayingView(pressing: pressing, play: pressing.state.play)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

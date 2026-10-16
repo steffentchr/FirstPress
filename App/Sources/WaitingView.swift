@@ -41,7 +41,7 @@ struct WaitingView: View {
                  : "Check the cable, or choose another input.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            InputPicker(pressing: pressing)
+            InputNameMenu(pressing: pressing)
                 .buttonStyle(.bordered)
             if audioInput.isPermissionDenied {
                 Button("Allow microphone access") {
@@ -58,6 +58,8 @@ struct WaitingView: View {
                 .foregroundStyle(.secondary)
             Text("Drop the needle to start.")
                 .foregroundStyle(.secondary)
+            InputNameMenu(pressing: pressing)
+                .font(.subheadline)
             // Only a problem is worth a word here; a ready input says nothing.
             if pressing.state.input.status != .present {
                 InputStatusView(input: pressing.state.input)

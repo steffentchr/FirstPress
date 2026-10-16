@@ -5,6 +5,9 @@ public struct Settings: Sendable, Equatable, Codable {
     /// The input chosen in Settings. Nil until the listener chooses one; Pressing
     /// never picks one on its own.
     public var inputID: AudioInputDevice.ID?
+    /// The chosen input's name when it was last seen, so it can be named
+    /// while it isn't connected.
+    public var inputName: String?
     /// How Records and Sessions are detected.
     public var detection: DetectionSettings
     /// How long the screen stays on once no Record is playing.
@@ -16,12 +19,14 @@ public struct Settings: Sendable, Equatable, Codable {
 
     public init(
         inputID: AudioInputDevice.ID? = nil,
+        inputName: String? = nil,
         detection: DetectionSettings = DetectionSettings(),
         blankAfter: BlankAfter = .default,
         rooms: [String: RoomChoice] = [:],
         phoneOutput: Bool = false
     ) {
         self.inputID = inputID
+        self.inputName = inputName
         self.detection = detection
         self.blankAfter = blankAfter
         self.rooms = rooms
@@ -32,6 +37,7 @@ public struct Settings: Sendable, Equatable, Codable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         inputID = try container.decodeIfPresent(AudioInputDevice.ID.self, forKey: .inputID)
+        inputName = try container.decodeIfPresent(String.self, forKey: .inputName)
         detection = try container.decodeIfPresent(DetectionSettings.self, forKey: .detection) ?? DetectionSettings()
         blankAfter = try container.decodeIfPresent(BlankAfter.self, forKey: .blankAfter) ?? .default
         rooms = try container.decodeIfPresent([String: RoomChoice].self, forKey: .rooms) ?? [:]

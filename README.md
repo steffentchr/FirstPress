@@ -31,11 +31,11 @@ Audio capture needs a real iPhone with the deck plugged in.
 
 ## The screens
 
-Pressing is an appliance with one screen at a time, and History a swipe to the left.
+Pressing is an appliance with one screen at a time.
 
-- **Choose input.** On first launch Pressing asks for the input before it starts anything else: it asks for the microphone, which listing the inputs needs, and only looks for Sonos Rooms once an input is chosen. Choose the deck's input from the dropdown. The same screen comes back, saying the input isn't connected, whenever the chosen input disappears while no Record is playing, and goes away by itself once it is plugged back in.
-- **Waiting.** The input is ready and no Record is playing.
-- **Now Playing.** Shown by itself while a Session runs: the current Track, large. It stays through Gaps and Flips and gives way to the waiting screen when the Session ends. If the input disappears mid-Session, Now Playing stays until the Session ends.
+- **Choose input.** On first launch Pressing asks for the input before it starts anything else: it asks for the microphone, which listing the inputs needs, and only looks for Sonos Rooms once an input is chosen. Tap "Choose the input" and pick the deck's input from the menu. The same screen comes back, saying the input isn't connected, whenever the chosen input disappears while no Record is playing, and goes away by itself once it is plugged back in.
+- **Waiting.** The input is ready and no Record is playing. The chosen input's name shows under "Drop the needle to start"; tap it to switch to another input at once, with the same choices as Settings. While the chosen input isn't connected, its name is marked "Not connected".
+- **Now Playing.** Shown by itself while a Session runs: the current Track, large. While no Track is identified (before the first match, between Tracks, after a Flip, or for a Record Shazam doesn't know) a generic record and "Listening…" take its place, so nothing moves when a Track appears. Below it is History: at rest the two most recent Plays sit at the bottom of the screen, and scrolling down reveals more, up to the 50 most recent. The current Play isn't repeated there. Tap a Play to search Spotify for its Track; it opens the Spotify app when it's installed. The screen stays through Gaps and Flips and gives way to the waiting screen when the Session ends. If the input disappears mid-Session, Now Playing stays until the Session ends.
 
 The waiting and Now Playing screens have two icons in the top right. The speaker opens the Rooms: switch each on or off and set its volume, mid-Session too. It also shows which Rooms Pressing stepped back from and which can't be reached. The gear opens Settings: the input, screen blanking and Last.fm, with Detection and Permissions in submenus. An open sheet stays open when the screen changes underneath it.
 
@@ -67,7 +67,7 @@ Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it ne
 
 When a Play starts while Last.fm is connected, Pressing sends "now playing" and asks Last.fm for the Track's length and album; the album fills in the Play, since Shazam gives none. The Play is scrobbled once it qualifies: the Track is longer than 30 s and has played for half its length or 4 minutes, whichever comes first. If Last.fm doesn't know the length, it qualifies at 4 minutes, or at its end if it ran at least 30 s. Plays waiting for Last.fm are queued across a restart, go in batches of up to 50, and are retried with backoff and as soon as the network returns.
 
-History shows each Play's status: waiting for Last.fm (pending), scrobbled, rejected by Last.fm, too short to scrobble, or not scrobbled. Plays made while Last.fm isn't connected are never sent later, and nor are those still waiting when you disconnect. If Last.fm stops accepting the session (revoked from your Last.fm settings), Settings says so; connect again and the Plays still waiting are sent.
+History, on Now Playing, shows each Play's start (with its day, for Plays before today) and its status: waiting for Last.fm (pending), scrobbled, rejected by Last.fm, too short to scrobble, or not scrobbled. Plays made while Last.fm isn't connected are never sent later, and nor are those still waiting when you disconnect. If Last.fm stops accepting the session (revoked from your Last.fm settings), Settings says so; connect again and the Plays still waiting are sent.
 
 ## Rooms and the stream
 

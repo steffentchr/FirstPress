@@ -2,34 +2,57 @@ import SwiftUI
 import PressingCore
 
 /// Shown while a Session runs: the current Track, large enough to read from
-/// across the room, and nothing else.
+/// across the room, with History below it.
 ///
-/// The Track's space is always reserved and only its opacity changes, so
-/// nothing moves between Tracks, after a Flip or for an unknown Record. When
-/// a Play ends with no successor the last Track stays drawn while it fades out.
+/// At rest the current Track fills the screen but for exactly two rows of
+/// History at the bottom: the Track's area is the visible height less two
+/// row heights, and every row has that one fixed height. Scrolling down
+/// reveals more Plays; the gear and speaker icons stay in the toolbar.
 struct NowPlayingView: View {
+    let pressing: Pressing
+    /// Passed in rather than read here, so this view doesn't follow every
+    /// change to `state` (the level meter's included).
     let play: Play?
 
-    /// The Track being shown or fading out.
-    @State private var shown: Track?
+    /// One row of History. Scales with Dynamic Type, and the Track's area
+    /// shrinks to match, so two rows still show at rest.
+    @ScaledMetric(relativeTo: .headline) private var rowHeight: CGFloat = 76
+
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 0) {
+                    CurrentTrackView(track: play?.track)
+                        .padding()
+                        .frame(height: max(geometry.size.height - 2 * rowHeight, 0))
+                    RecentPlaysList(pressing: pressing, current: play?.id, rowHeight: rowHeight)
+                }
+            }
+            // Keep the third row out of the home indicator's area at rest.
+            .clipShape(Rectangle())
+        }
+    }
+}
+
+/// The current Track, or a placeholder while there is none. Both take the
+/// same space, so nothing moves when a Track appears or goes.
+private struct CurrentTrackView: View {
+    let track: Track?
 
     var body: some View {
         VStack(spacing: 24) {
-            AsyncImage(url: shown?.artworkURL) { image in
-                image.resizable().aspectRatio(contentMode: .fill)
-            } placeholder: {
-                Rectangle().fill(.quaternary)
-            }
-            .aspectRatio(1, contentMode: .fit)
-            .frame(maxWidth: 320)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            cover
+                .aspectRatio(1, contentMode: .fit)
+                .frame(maxWidth: 320)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
             VStack(spacing: 6) {
-                Text(shown?.title ?? " ")
+                Text(track?.title ?? "Listening…")
                     .font(.largeTitle.bold())
-                Text(shown?.artist ?? " ")
+                    .foregroundStyle(track == nil ? .secondary : .primary)
+                Text(track?.artist ?? " ")
                     .font(.title2)
-                Text(shown?.album ?? " ")
+                Text(track?.album ?? " ")
                     .font(.title3)
                     .foregroundStyle(.secondary)
             }
@@ -37,13 +60,62 @@ struct NowPlayingView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.6)
         }
-        .padding()
-        .opacity(play == nil ? 0 : 1)
-        .animation(.easeInOut(duration: 0.8), value: play == nil)
-        .onChange(of: play?.track, initial: true) { _, track in
-            // Keep the old Track drawn while fading out; swap in a new one at once.
-            if let track { shown = track }
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .animation(.easeInOut(duration: 0.6), value: track)
         .accessibilityElement(children: .combine)
+    }
+
+    /// The Track's artwork, or a generic record (for now: until the screens
+    /// are designed).
+    private var cover: some View {
+        ZStack {
+            Rectangle().fill(.quaternary)
+            if let artwork = track?.artworkURL {
+                AsyncImage(url: artwork) { image in
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    record
+                }
+            } else {
+                record
+            }
+        }
+    }
+
+    private var record: some View {
+        Image(systemName: "opticaldisc")
+            .resizable()
+            .scaledToFit()
+            .padding(56)
+            .foregroundStyle(.secondary)
+    }
+}
+
+/// History under the current Track: the most recent Plays, newest first,
+/// without the current one. Tapping a Play searches Spotify for its Track.
+///
+/// Reads `history` but not `state`, so the level meter doesn't redraw it.
+private struct RecentPlaysList: View {
+    let pressing: Pressing
+    let current: Play.ID?
+    let rowHeight: CGFloat
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        LazyVStack(spacing: 0) {
+            ForEach(Pressing.recentPlays(in: pressing.history, excluding: current)) { play in
+                Button {
+                    openURL(play.track.spotifySearchURL)
+                } label: {
+                    PlayRow(play: play, cover: pressing.cover(for: play.track))
+                        .padding(.horizontal)
+                        .frame(height: rowHeight)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .overlay(alignment: .top) { Divider().padding(.leading) }
+                .accessibilityHint("Searches Spotify for this Track")
+            }
+        }
     }
 }
