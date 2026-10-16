@@ -1,20 +1,24 @@
+import CryptoKit
 import Foundation
 import os
 import PressingCore
 
 /// Production Store. Settings are one small JSON value in UserDefaults; Plays
 /// go in a SQLite database (`PlayDatabase`), since History is kept
-/// indefinitely and each Play is saved several times as it changes.
-/// Credentials never go here.
+/// indefinitely and each Play is saved several times as it changes; covers
+/// are files beside it. Credentials never go here.
 @MainActor
 final class PhoneStore: Store {
     private let defaults: UserDefaults
     private let settingsKey = "settings"
     private let plays: PlayDatabase?
+    /// Covers as downloaded, one file each.
+    private let coversDirectory: URL
     private let log = Logger(subsystem: "Pressing", category: "Store")
 
     init(defaults: UserDefaults = .standard, directory: URL = PhoneStore.defaultDirectory) {
         self.defaults = defaults
+        coversDirectory = directory.appending(path: "Covers", directoryHint: .isDirectory)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let database = try PlayDatabase(url: directory.appending(path: "history.sqlite"))
@@ -57,6 +61,26 @@ final class PhoneStore: Store {
             log.error("History can't be read: \(error)")
             return []
         }
+    }
+
+    func saveCover(_ cover: Data, for artworkURL: URL) {
+        do {
+            try FileManager.default.createDirectory(at: coversDirectory, withIntermediateDirectories: true)
+            try cover.write(to: coverFile(for: artworkURL), options: .atomic)
+        } catch {
+            log.error("A cover can't be saved: \(error)")
+        }
+    }
+
+    func loadCover(for artworkURL: URL) -> Data? {
+        try? Data(contentsOf: coverFile(for: artworkURL))
+    }
+
+    /// One file per artwork URL, named by its SHA-256 so any URL makes a
+    /// safe file name.
+    private func coverFile(for artworkURL: URL) -> URL {
+        let digest = SHA256.hash(data: Data(artworkURL.absoluteString.utf8))
+        return coversDirectory.appending(path: digest.map { String(format: "%02x", $0) }.joined())
     }
 
     /// Before History, ended Plays went to a JSON list in UserDefaults. Move
