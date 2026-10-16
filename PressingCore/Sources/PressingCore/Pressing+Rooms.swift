@@ -34,6 +34,7 @@ extension Pressing {
             Task {
                 await readTopology(from: device.host)
                 isReadingTopology = false
+                recoverRoomsAtLaunch()
                 // Rooms found or back during a Session join it.
                 takeOverMissingRooms()
             }

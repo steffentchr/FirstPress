@@ -18,6 +18,10 @@ struct Hold {
     var monitor: (any ScheduledWork)?
     /// A monitor read is queued or under way.
     var isPolling = false
+    /// Launch recovery has looked at the Rooms; it does so once per launch.
+    var hasLookedForRecovery = false
+    /// Stops the Rooms found on a Pressing stream at launch, unless a Session starts first.
+    var recovery: (any ScheduledWork)?
 }
 
 /// Takeover at the start of a Session and Stop at its end.
