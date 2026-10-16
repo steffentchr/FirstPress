@@ -25,6 +25,8 @@ public final class Pressing {
     public func start() {
         settings = store.loadSettings() ?? Settings()
         applyDetection()
+        state.screen.blankAfter = settings.blankAfter
+        wakeScreen()
         state.input.chosenID = settings.inputID
         state.input.available = audioInput.availableInputs
         audioInput.setEventHandler { [weak self] event in
@@ -70,6 +72,36 @@ public final class Pressing {
         applyDetection()
     }
 
+    /// Intent from Settings: blank the screen after this long, or never.
+    public func setBlankAfter(_ blankAfter: BlankAfter) {
+        settings.blankAfter = blankAfter
+        store.saveSettings(settings)
+        state.screen.blankAfter = blankAfter
+        wakeScreen()
+    }
+
+    /// Any touch on the screen. Returns true when the touch only woke a blank
+    /// screen, so the app must not pass it on to a control.
+    @discardableResult
+    public func screenTouched() -> Bool {
+        let wasBlanked = state.screen.isBlanked
+        wakeScreen()
+        return wasBlanked
+    }
+
+    @ObservationIgnored private var blankTimer: (any ScheduledWork)?
+
+    /// Wakes the screen and starts the blank-after time again.
+    private func wakeScreen() {
+        state.screen.isBlanked = false
+        blankTimer?.cancel()
+        blankTimer = nil
+        guard case .after(let seconds) = settings.blankAfter else { return }
+        blankTimer = scheduler.schedule(after: seconds) { [weak self] in
+            self?.state.screen.isBlanked = true
+        }
+    }
+
     private func applyDetection() {
         state.detection = settings.detection
         detector.settings = settings.detection
@@ -101,6 +133,7 @@ public final class Pressing {
     private func handle(_ event: Detector.Event) {
         switch event {
         case .recordStarted:
+            wakeScreen()
             switch state.session {
             case .idle:
                 state.session = .running(records: 1, record: .playing)

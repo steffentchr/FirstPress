@@ -7,10 +7,17 @@ public struct Settings: Sendable, Equatable, Codable {
     public var inputID: AudioInputDevice.ID?
     /// How Records and Sessions are detected.
     public var detection: DetectionSettings
+    /// How long the screen stays on without a touch or a Record starting.
+    public var blankAfter: BlankAfter
 
-    public init(inputID: AudioInputDevice.ID? = nil, detection: DetectionSettings = DetectionSettings()) {
+    public init(
+        inputID: AudioInputDevice.ID? = nil,
+        detection: DetectionSettings = DetectionSettings(),
+        blankAfter: BlankAfter = .default
+    ) {
         self.inputID = inputID
         self.detection = detection
+        self.blankAfter = blankAfter
     }
 
     // Settings saved before a field existed decode with that field's default.
@@ -18,7 +25,17 @@ public struct Settings: Sendable, Equatable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         inputID = try container.decodeIfPresent(AudioInputDevice.ID.self, forKey: .inputID)
         detection = try container.decodeIfPresent(DetectionSettings.self, forKey: .detection) ?? DetectionSettings()
+        blankAfter = try container.decodeIfPresent(BlankAfter.self, forKey: .blankAfter) ?? .default
     }
+}
+
+/// When the screen blanks to protect the OLED panel.
+public enum BlankAfter: Sendable, Hashable, Codable {
+    case never
+    /// Seconds without a touch or a Record starting.
+    case after(TimeInterval)
+
+    public static let `default` = BlankAfter.after(5 * 60)
 }
 
 /// The calibration for Record and Session detection.

@@ -7,11 +7,31 @@ public struct PressingState: Sendable, Equatable {
     public var session: SessionState
     /// The detection calibration in force, as set in Settings.
     public var detection: DetectionSettings
+    public var screen: ScreenState
 
-    public init(input: InputState = InputState(), session: SessionState = .idle, detection: DetectionSettings = DetectionSettings()) {
+    public init(
+        input: InputState = InputState(),
+        session: SessionState = .idle,
+        detection: DetectionSettings = DetectionSettings(),
+        screen: ScreenState = ScreenState()
+    ) {
         self.input = input
         self.session = session
         self.detection = detection
+        self.screen = screen
+    }
+}
+
+/// The screen blanker. Blanking is Pressing's own: the app keeps the system
+/// idle timer disabled and covers the screen in black while `isBlanked`.
+public struct ScreenState: Sendable, Equatable {
+    public var isBlanked: Bool
+    /// As set in Settings.
+    public var blankAfter: BlankAfter
+
+    public init(isBlanked: Bool = false, blankAfter: BlankAfter = .default) {
+        self.isBlanked = isBlanked
+        self.blankAfter = blankAfter
     }
 }
 
