@@ -77,6 +77,22 @@ struct IdentificationTests {
         #expect(world.recognizer.searches.count == 2)
     }
 
+    @Test("Rechecks carry on after a Gap that outlasts the recheck")
+    func recheckAfterLongGap() async {
+        // A Flip threshold long enough that a Gap can run past 30 s.
+        let world = World(settings: Settings(inputID: AudioInputDevice.deck.id, detection: DetectionSettings(flipThreshold: 40, stopDelay: 60)))
+
+        world.music(seconds: 12)
+        world.silence(seconds: 35)
+        world.music(seconds: 12)
+        await settle()
+        #expect(world.recognizer.searches.count == 2)
+
+        world.music(seconds: 60)
+        await settle()
+        #expect(world.recognizer.searches.count == 4)
+    }
+
     @Test("No search runs while the deck is silent between Records")
     func noSearchWhenSilent() async {
         let world = World()

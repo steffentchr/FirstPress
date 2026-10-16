@@ -148,10 +148,20 @@ final class Identifier {
     private func startSearch(_ trigger: Trigger) {
         collecting = trigger
         samples = []
+        scheduleRecheck()
+    }
+
+    /// A search still collecting (after a long Gap, say) puts the recheck
+    /// off another 30 s rather than cancelling it.
+    private func scheduleRecheck() {
         recheckTimer?.cancel()
         recheckTimer = scheduler.schedule(after: Self.recheckSeconds) { [weak self] in
-            guard let self, collecting == nil else { return }
-            startSearch(.recheck)
+            guard let self else { return }
+            if collecting == nil {
+                startSearch(.recheck)
+            } else {
+                scheduleRecheck()
+            }
         }
     }
 }
