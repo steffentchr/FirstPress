@@ -1,45 +1,43 @@
 import SwiftUI
 import PressingCore
 
-/// Artist, title, album and cover of the current Play, in a fixed area at the
-/// bottom of the main screen, readable from across the room.
+/// Shown while a Session runs: the current Track, large enough to read from
+/// across the room, and nothing else.
 ///
-/// The area is always reserved and only its opacity changes, so nothing in
-/// the layout moves. When a Play ends with no successor the last Track stays
-/// drawn while it fades out.
-struct LowerThirdView: View {
+/// The Track's space is always reserved and only its opacity changes, so
+/// nothing moves between Tracks, after a Flip or for an unknown Record. When
+/// a Play ends with no successor the last Track stays drawn while it fades out.
+struct NowPlayingView: View {
     let play: Play?
-
-    static let height: CGFloat = 132
-    private static let cover: CGFloat = 116
 
     /// The Track being shown or fading out.
     @State private var shown: Track?
 
     var body: some View {
-        HStack(spacing: 16) {
+        VStack(spacing: 24) {
             AsyncImage(url: shown?.artworkURL) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
                 Rectangle().fill(.quaternary)
             }
-            .frame(width: Self.cover, height: Self.cover)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 320)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(spacing: 6) {
                 Text(shown?.title ?? " ")
-                    .font(.title.bold())
+                    .font(.largeTitle.bold())
                 Text(shown?.artist ?? " ")
-                    .font(.title3)
+                    .font(.title2)
                 Text(shown?.album ?? " ")
-                    .font(.body)
+                    .font(.title3)
                     .foregroundStyle(.secondary)
             }
+            .multilineTextAlignment(.center)
             .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            Spacer(minLength: 0)
+            .minimumScaleFactor(0.6)
         }
-        .frame(height: Self.height)
+        .padding()
         .opacity(play == nil ? 0 : 1)
         .animation(.easeInOut(duration: 0.8), value: play == nil)
         .onChange(of: play?.track, initial: true) { _, track in

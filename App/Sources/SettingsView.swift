@@ -2,54 +2,19 @@ import SwiftUI
 import UIKit
 import PressingCore
 
+/// Opened from the gear: the common settings at the top, and Detection and
+/// Permissions, rarely touched once set, in submenus.
 struct SettingsView: View {
     let pressing: Pressing
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
-    @State private var refusal: String?
-
-    private var input: InputState { pressing.state.input }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("Input", selection: chosenInput) {
-                        if input.chosenID == nil {
-                            Text("None").tag(AudioInputDevice.ID?.none)
-                        }
-                        if let chosen = input.chosenID, !input.available.contains(where: { $0.id == chosen }) {
-                            Text("Not connected").tag(AudioInputDevice.ID?.some(chosen))
-                        }
-                        ForEach(input.available) { device in
-                            Text(Self.label(device)).tag(AudioInputDevice.ID?.some(device.id))
-                        }
-                    }
-                    .pickerStyle(.inline)
-                    .labelsHidden()
-                } header: {
-                    Text("Input")
+                    InputPicker(pressing: pressing)
                 } footer: {
                     Text("Pressing only listens to the input chosen here. It never switches to the built-in microphone on its own.")
-                }
-
-                Section {
-                    Stepper("Threshold \(Int(detection.threshold)) dBFS", value: detectionBinding(\.threshold), in: -80...(-20), step: 1)
-                    Stepper("Start delay \(Self.seconds(detection.startDelay))", value: detectionBinding(\.startDelay), in: 0.5...10, step: 0.5)
-                    Stepper("Flip after \(Self.seconds(detection.flipThreshold))", value: detectionBinding(\.flipThreshold), in: 3...120, step: 1)
-                    Stepper("Stop delay \(Self.seconds(detection.stopDelay))", value: detectionBinding(\.stopDelay), in: 5...600, step: 5)
-                    // Pitch-shifted playback isn't supported: Tracks stop matching.
-                    Label("Keep the deck's pitch control at zero, so Tracks are identified and reach Last.fm correctly.", systemImage: "dial.low")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } header: {
-                    Text("Detection")
-                } footer: {
-                    if let refusal {
-                        Text(refusal).foregroundStyle(.orange)
-                    } else {
-                        Text("Set the threshold clearly above the noise floor and below the quietest music. A Record starts once the level stays above it for the start delay, and ends with a Flip after that long below it. The Session ends once the silence reaches the stop delay, counted from when it began, unless a new Record starts.")
-                    }
                 }
 
                 Section {
@@ -67,13 +32,8 @@ struct SettingsView: View {
                 LastFmSection(pressing: pressing)
 
                 Section {
-                    // Both switches are on Pressing's own page in the Settings app.
-                    Button("Microphone access") { openAppSettings() }
-                    Button("Local network access") { openAppSettings() }
-                } header: {
-                    Text("Permissions")
-                } footer: {
-                    Text("Pressing needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
+                    NavigationLink("Detection") { DetectionSettingsView(pressing: pressing) }
+                    NavigationLink("Permissions") { PermissionsView() }
                 }
             }
             .navigationTitle("Settings")
@@ -81,39 +41,6 @@ struct SettingsView: View {
                 Button("Done") { dismiss() }
             }
         }
-    }
-
-    private func openAppSettings() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            openURL(url)
-        }
-    }
-
-    private var chosenInput: Binding<AudioInputDevice.ID?> {
-        Binding(
-            get: { input.chosenID },
-            set: { id in
-                if let id { pressing.chooseInput(id) }
-            }
-        )
-    }
-
-    private var detection: DetectionSettings { pressing.state.detection }
-
-    private func detectionBinding(_ keyPath: WritableKeyPath<DetectionSettings, Double>) -> Binding<Double> {
-        Binding(
-            get: { detection[keyPath: keyPath] },
-            set: { value in
-                var changed = detection
-                changed[keyPath: keyPath] = value
-                do {
-                    try pressing.setDetection(changed)
-                    refusal = nil
-                } catch {
-                    refusal = "The stop delay must be longer than the Flip threshold, or a Session could end before its Record."
-                }
-            }
-        )
     }
 
     private var blankAfter: Binding<BlankAfter> {
@@ -132,16 +59,28 @@ struct SettingsView: View {
             Int(seconds / 60) == 1 ? "After 1 minute of silence" : "After \(Int(seconds / 60)) minutes of silence"
         }
     }
+}
 
-    private static func seconds(_ value: TimeInterval) -> String {
-        value.rounded() == value ? "\(Int(value)) s" : String(format: "%.1f s", value)
+/// Settings › Permissions: shortcuts to Pressing's page in the Settings app.
+struct PermissionsView: View {
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        Form {
+            Section {
+                // Both switches are on Pressing's own page in the Settings app.
+                Button("Microphone access") { openAppSettings() }
+                Button("Local network access") { openAppSettings() }
+            } footer: {
+                Text("Pressing needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
+            }
+        }
+        .navigationTitle("Permissions")
     }
 
-    private static func label(_ device: AudioInputDevice) -> String {
-        switch device.kind {
-        case .usb: "\(device.name) (USB)"
-        case .builtInMic: "\(device.name) (picks up the room)"
-        case .other: device.name
+    private func openAppSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            openURL(url)
         }
     }
 }

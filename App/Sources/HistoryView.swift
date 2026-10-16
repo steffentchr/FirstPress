@@ -3,7 +3,7 @@ import UIKit
 import PressingCore
 
 /// Every Play kept on the phone, newest first, under a header per day.
-/// Reached by swiping left from the main screen.
+/// Reached by swiping left from the waiting or Now Playing screen.
 struct HistoryView: View {
     let pressing: Pressing
 

@@ -30,6 +30,21 @@ final class AVAudioSessionInput: AudioInput {
         self.handler = handler
     }
 
+    /// The listener refused microphone access, so the inputs can't be listed.
+    var isPermissionDenied: Bool {
+        AVAudioApplication.shared.recordPermission == .denied
+    }
+
+    /// Asks for microphone access if it hasn't been asked yet, since listing
+    /// the inputs needs it. Called from the choose-input screen, so the first
+    /// launch asks for nothing before then. Once answered, the core reads the
+    /// inputs again through the usual route-change path.
+    func requestPermission() async {
+        guard AVAudioApplication.shared.recordPermission == .undetermined else { return }
+        _ = await AVAudioApplication.requestRecordPermission()
+        handler?(.routeChanged)
+    }
+
     func start(inputID: AudioInputDevice.ID) throws {
         stopEngine()
         chosenID = inputID

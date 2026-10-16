@@ -1,26 +1,28 @@
 import SwiftUI
 import PressingCore
 
-/// The Sonos Rooms, each with an on/off switch and a volume. Scrolls when
-/// there are more Rooms than fit.
-struct RoomsView: View {
+/// Opened from the speaker icon: the Sonos Rooms, each with an on/off switch
+/// and a volume, and why a Room may be quiet. Works mid-Session too.
+struct RoomsSheet: View {
     let pressing: Pressing
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Rooms").font(.headline)
-            if pressing.state.rooms.isEmpty {
-                Text("Looking for Sonos Rooms… If none appear, allow Local Network access in Settings.")
-                    .foregroundStyle(.secondary)
-            }
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    ForEach(pressing.state.rooms) { room in
-                        RoomRow(room: room, pressing: pressing)
-                    }
+        NavigationStack {
+            List {
+                if pressing.state.rooms.isEmpty {
+                    Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
+                        .foregroundStyle(.secondary)
+                }
+                ForEach(pressing.state.rooms) { room in
+                    RoomRow(room: room, pressing: pressing)
                 }
             }
-            .scrollBounceBehavior(.basedOnSize)
+            .navigationTitle("Rooms")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                Button("Done") { dismiss() }
+            }
         }
     }
 }
