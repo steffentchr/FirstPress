@@ -16,8 +16,8 @@ struct RootView: View {
 
     private var page: Page { pressing.state.page }
 
-    /// White over the start screen's orange; the system tint on Now Playing.
-    private var iconTint: Color? { page == .nowPlaying ? nil : .white }
+    /// White over the start screen's orange; the primary colour on Now Playing.
+    private var iconColor: Color { page == .nowPlaying ? .primary : .white }
 
     var body: some View {
         NavigationStack {
@@ -33,23 +33,27 @@ struct RootView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.easeInOut(duration: 0.4), value: page)
-            .toolbar {
-                // Before any input is chosen, no Rooms are looked for yet.
-                if page != .chooseInput(.noneChosen) {
-                    ToolbarItem(placement: .topBarTrailing) {
+            // The two icons are Pressing's own row rather than toolbar items:
+            // the system's bar buttons ignore a fade, and kiosk mode fades them.
+            // The row always keeps its height, so nothing moves when they fade.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                HStack(spacing: 20) {
+                    Spacer()
+                    // Before any input is chosen, no Rooms are looked for yet.
+                    if page != .chooseInput(.noneChosen) {
                         Button("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
-                            .tint(iconTint)
-                            .kioskHidden(hidesControls)
                     }
-                    .withoutGlass()
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
-                        .tint(iconTint)
-                        .kioskHidden(hidesControls)
                 }
-                .withoutGlass()
+                .labelStyle(.iconOnly)
+                .font(.title2)
+                .buttonStyle(.plain)
+                .foregroundStyle(iconColor)
+                .frame(height: 44)
+                .padding(.horizontal, 20)
+                .kioskHidden(hidesControls)
             }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingSettings) {
                 SettingsView(pressing: pressing)
                     .screenBlanker(pressing)
@@ -70,23 +74,10 @@ struct RootView: View {
     private var hidesControls: Bool { pressing.state.hidesControls }
 }
 
-extension ToolbarContent {
-    /// Just the icon: no Liquid Glass background behind it (iOS 26 and later;
-    /// earlier versions draw none anyway).
-    @ToolbarContentBuilder
-    func withoutGlass() -> some ToolbarContent {
-        if #available(iOS 26, *) {
-            sharedBackgroundVisibility(.hidden)
-        } else {
-            self
-        }
-    }
-}
-
 extension View {
     /// In kiosk mode Now Playing's icons fade out after 30 s without a touch,
-    /// and any touch brings them back. They keep their place in the bar, so
-    /// nothing on the screen moves.
+    /// and any touch brings them back. They keep their place, so nothing on
+    /// the screen moves.
     func kioskHidden(_ hidden: Bool) -> some View {
         opacity(hidden ? 0 : 1)
             .allowsHitTesting(!hidden)

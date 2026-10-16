@@ -1,102 +1,222 @@
-# Pressing
+<p align="center">
+  <img src="docs/images/icon.png" width="128" alt="Pressing's icon: a record with a cleaning brush on an orange background">
+</p>
 
-Pressing is an iPhone bridge from your record deck to Sonos speakers.
+<h1 align="center">Pressing</h1>
 
-All behaviour lives in `PressingCore`, a Swift package with no UIKit or SwiftUI. The app in `App/` is a thin SwiftUI shell plus the production adapters for the core's ports.
+<p align="center">An iPhone bridge from your record deck to Sonos speakers.</p>
 
-## Run the tests
+Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressing on the deck, and the phone streams it to the Sonos Rooms you've chosen. It also shows what's playing and keeps a history, and it can scrobble every Track to Last.fm. You don't have to touch the phone.
+
+<p align="center">
+  <img src="docs/images/start-screen.png" width="270" alt="The start screen: an orange background with a record and brush at the bottom, asking you to choose the input">
+  &nbsp;&nbsp;
+  <img src="docs/images/settings-sheet.png" width="270" alt="The Settings sheet in Liquid Glass over the start screen">
+</p>
+
+> **Status:** early and personal. The code is covered by about 200 tests, but much of it hasn't run on real hardware yet: capture from the deck, Sonos playback, ShazamKit and Last.fm. The on-device test pass is tracked in [#10](https://github.com/steffentchr/Pressing/issues/10). Expect rough edges.
+
+## What it does
+
+- **Starts by itself.** Drop the needle and a Session starts. When the side runs out, Pressing waits through the Flip. If no new Record starts, it stops the speakers after 45 s of silence, even with the stylus still in the run-out groove.
+- **Plays in your Sonos Rooms.** Tick any number of Rooms, each with its own volume, and they play in sync. Pressing takes them over even if they were playing something else. If someone takes a Room back in the Sonos app, Pressing steps back and leaves it alone until the next Session.
+- **Plays on the phone too, if you like.** "This iPhone" plays the Record on the phone's speaker, Bluetooth earphones or an AirPlay receiver, a few seconds ahead of the Rooms.
+- **Knows what's playing.** ShazamKit identifies each Track. Now Playing shows the cover, title, artist and album. The Sonos app shows "Artist – Title" under the station name "Pressing".
+- **Keeps a history.** The Tracks you've played sit under Now Playing, newest first, each Track once. Tap one to look it up on Spotify.
+- **Scrobbles to Last.fm.** It sends "now playing" and scrobbles each Track once it qualifies. Scrobbles queue up while offline.
+- **Behaves like an appliance.** The screen never blanks while a Record plays. It blanks after a set time of silence to protect the OLED panel. Kiosk mode hides the status bar, and hides the on-screen icons until you touch the screen.
+
+## How it works
+
+```
+turntable ─► USB (deck with built-in preamp, or preamp + USB audio interface)
+          ─► Lightning/USB-C camera adapter with charging ─► iPhone running Pressing
+                                                               │
+              ┌────────────────────────────────────────────────┼─────────────────────┐
+              ▼                                                ▼                     ▼
+   live 320 kbps MP3 stream on the phone              ShazamKit identifies     Last.fm scrobbles
+   ─► Sonos Rooms, controlled over the LAN            the Track
+```
+
+- **Detection.** Pressing watches the input level and detects Records, Gaps between tracks, Flips and Sessions. It uses a median that ignores the clicks of the run-out groove. The settings are described in [Calibrate detection](#calibrate-detection).
+- **Sonos.** Pressing controls the speakers over Sonos's local UPnP interface, not the cloud API ([ADR 0001](docs/adr/0001-local-upnp-for-sonos-control.md)). It finds them with Bonjour ([ADR 0003](docs/adr/0003-bonjour-discovery.md)). Each Room plays the phone's own live MP3 stream ([ADR 0002](docs/adr/0002-live-mp3-stream.md)), encoded with LAME. A few seconds of Sonos buffering is expected.
+- **Vocabulary.** Words like Record, Gap, Flip, Session, Track, Play, Room, Takeover and Step back have exact meanings, defined in [GLOSSARY.md](GLOSSARY.md).
+
+## What you need
+
+- **An iPhone on iOS 17 or later** that can stay beside the deck, plugged in. It was designed on an iPhone 12 mini.
+- **A turntable with USB audio.** Either a deck with a USB output, such as the Numark TT USB, or a phono preamp feeding a class-compliant USB audio interface.
+- **A camera adapter with a charging port**, so the phone charges while the deck is plugged in. On Lightning phones that's Apple's Lightning to USB 3 Camera Adapter.
+- **Sonos speakers** on the same Wi-Fi network as the phone.
+- **A Mac with Xcode** (current release) and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+- **An Apple Developer Program membership.** You install Pressing from source onto your own phone, and the ShazamKit App Service is enabled per App ID in the developer portal. This guide assumes a paid membership.
+- **Optional: a Last.fm account**, if you want scrobbling.
+
+## Install it on your iPhone
+
+Pressing isn't on the App Store. You build it from source and install it on your own phone.
+
+1. **Clone the repository and install XcodeGen.**
+
+   ```sh
+   git clone https://github.com/steffentchr/Pressing.git
+   cd Pressing
+   brew install xcodegen
+   ```
+
+2. **Set your bundle ID and team.** Copy the example and fill in both values:
+
+   ```sh
+   cp Config/Signing.xcconfig.example Config/Signing.xcconfig
+   ```
+
+   - `PRESSING_BUNDLE_ID` is a bundle ID you make up. It must be unique, and in reverse-domain form, for example `com.yourname.pressing`.
+   - `PRESSING_DEVELOPMENT_TEAM` is your 10-character team ID. Find it in Xcode › Settings › Accounts, or under Membership details at [developer.apple.com/account](https://developer.apple.com/account).
+
+   The copy is git-ignored.
+
+3. **Optional: add a Last.fm API account.** This step is only for scrobbling.
+   1. Create an API account at [last.fm/api/account/create](https://www.last.fm/api/account/create). The callback URL can stay empty.
+   2. Copy the example config:
+
+      ```sh
+      cp Config/LastFm.xcconfig.example Config/LastFm.xcconfig
+      ```
+
+   3. Fill in the API key and shared secret from [last.fm/api/accounts](https://www.last.fm/api/accounts).
+
+   Without this file, the app still builds, and Settings says Last.fm isn't available. The secret ends up inside the built app, so keep your builds to your own devices.
+
+4. **Generate the Xcode project.**
+
+   ```sh
+   xcodegen generate
+   ```
+
+   The first run also builds the MP3 encoder, which takes about a minute and needs the network once. `scripts/build-lame.sh` downloads LAME 3.100, checks its SHA-256, and builds `Vendor/LAME.xcframework`, which is git-ignored. Run `xcodegen generate` again whenever you pull changes, because the `.xcodeproj` isn't checked in.
+
+5. **Register the App ID with ShazamKit.** Without this step, nothing is identified.
+   1. At [developer.apple.com/account](https://developer.apple.com/account), open **Certificates, IDs & Profiles**, then **Identifiers**, and click **+**.
+   2. Choose **App IDs**, then **App**.
+   3. Enter an **Explicit** bundle ID: the one from step 2.
+   4. On the **App Services** tab, tick **ShazamKit** and register.
+
+   Do this yourself. Xcode's automatic signing usually installs Pressing under the team's wildcard profile, so it never creates an App ID you could add the service to. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit).
+
+6. **Install on the phone.**
+   1. Open `Pressing.xcodeproj`, connect the iPhone and choose it as the run destination.
+   2. Run (⌘R).
+   3. On first install, iOS asks you to turn on **Developer Mode** (Settings › Privacy & Security). Turn it on and run again.
+
+7. **First launch.**
+   1. Plug the deck into the phone.
+   2. Choose the deck's input on the start screen, allowing the microphone when asked. Pressing only ever listens to the input you choose.
+   3. Allow **local network** access when asked. Pressing then finds your Sonos Rooms.
+   4. Tap the speaker icon and tick the Rooms that should play.
+   5. [Calibrate detection](#calibrate-detection) once for your deck.
+   6. For a dedicated phone, tick **Kiosk mode** in Settings › Screen, and start **Guided Access** (Settings › Accessibility) so nobody can leave the app.
+
+## Using Pressing
+
+Pressing shows one screen at a time:
+
+- **Start screen.** It asks for the input until one is chosen, and again whenever the chosen input is unplugged. Once the input is ready, it reads "Put on a pressing to start." with the input's name under it. Tap the name to switch inputs.
+- **Now Playing.** This appears by itself when a Record starts and stays through Gaps and Flips. It shows the current Track large. Until a Track is identified, the grey version of the app's artwork holds its place. History sits below, with the two latest Tracks at rest; scroll down for up to 50.
+
+Two icons sit in the top right:
+- **The speaker** opens the Rooms sheet. Tick a Room to switch it on at once, and a volume bar appears. The sheet also shows Rooms that can't be reached or that Pressing stepped back from. "This iPhone" at the top plays on the phone's own output; once it's ticked, its AirPlay button chooses where.
+- **The gear** opens Settings: the input, screen blanking, kiosk mode and Last.fm, with Detection and Permissions in submenus.
+
+### Identification and Last.fm
+
+Pressing searches for the Track at the start of a Record, after each Gap, and every 30 s otherwise. Keep the deck's pitch at zero, or Tracks won't match.
+
+Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve Pressing, close it, and Pressing finishes connecting.
+
+Rules for scrobbling:
+- **When a Track counts:** it must be longer than 30 s and have played for half its length or 4 minutes, whichever is less. If Last.fm doesn't know the length, it counts at 4 minutes, or at its end if it ran at least 30 s.
+- **Offline:** Plays waiting for Last.fm survive a restart and are retried as soon as the network returns.
+- **While not connected:** Plays made while Last.fm isn't connected are never sent later.
+
+Shazam doesn't give album names, so the album comes from Last.fm when it's connected.
+
+### Calibrate detection
+
+A Record starts when the level stays above the threshold for the start delay. It ends with a Flip once the level stays below the threshold for the Flip threshold. Calibrate once per deck and gain setting:
+
+1. Set the deck's USB gain so loud passages peak well below clipping. On the Numark TT USB, the gain and phono/line switches are on the underside.
+2. Keep pitch at zero.
+3. Play a Record through to the run-out groove and leave the stylus there with the platter turning.
+4. In Settings › Detection, read the noise floor (white tick). Set the threshold (orange tick) clearly above it but below the quietest music.
+
+Changing the gain means calibrating again. If the noise floor is high because of hum, try another charger or socket first, since the deck and the phone's charger can form a ground loop.
+
+The defaults are a start threshold of −50 dBFS, a 1.5 s start delay, a 12 s Flip threshold, and a 45 s stop delay. The stop delay counts from when the silence began, and it must be longer than the Flip threshold.
+
+## Artwork
+
+<p>
+  <img src="docs/images/icon.png" width="96" alt="The app icon">
+  &nbsp;
+  <img src="docs/images/no-track-cover.png" width="96" alt="The grey artwork shown when no Track is identified">
+</p>
+
+The artwork shows a vinyl record with an orange label, and a record-cleaning brush resting on it, against a warm orange gradient. The SVG sources are in [`Design/`](Design):
+
+| Source | Used as |
+|---|---|
+| [`Design/AppIcon.svg`](Design/AppIcon.svg) | The app icon. |
+| [`Design/StartScreen.svg`](Design/StartScreen.svg) | The start screen and the launch screen: the icon's artwork with the orange extended upwards and the record anchored at the bottom. It's sized at 450 × 972 pt, so it covers every iPhone. The launch screen shows it at the same size and position, so the app opens without a jump. |
+| [`Design/NoTrackCover.svg`](Design/NoTrackCover.svg) | The cover on Now Playing while no Track is identified: the icon in grey. |
+
+The PNGs in `App/Resources/Assets.xcassets` are rendered from these files and are opaque, as iOS requires. After editing an SVG, re-render with `rsvg-convert` and ImageMagick (`brew install librsvg imagemagick`):
+
+```sh
+rsvg-convert -w 1024 -h 1024 Design/AppIcon.svg | magick - -alpha remove -alpha off \
+  App/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+rsvg-convert Design/StartScreen.svg | magick - -alpha remove -alpha off \
+  App/Resources/Assets.xcassets/StartScreen.imageset/StartScreen@3x.png
+rsvg-convert -w 960 -h 960 Design/NoTrackCover.svg | magick - -alpha remove -alpha off \
+  App/Resources/Assets.xcassets/NoTrackCover.imageset/NoTrackCover@3x.png
+```
+
+`Design/StartScreen.svg` and `Design/NoTrackCover.svg` are derived from the icon. If the icon changes, regenerate them too.
+
+## Development
+
+```
+App/            SwiftUI shell and the production adapters (AVAudioSession, Bonjour, ShazamKit, …)
+PressingCore/   All behaviour, as a Swift package with no UIKit or SwiftUI; see its README
+Config/         xcconfig files: shared settings, plus examples for your signing and Last.fm keys
+Design/         SVG sources for the icon and artwork
+docs/adr/       Architecture decisions
+docs/agents/    How coding agents use the issue tracker, labels and domain docs
+scripts/        build-lame.sh
+GLOSSARY.md     The domain vocabulary
+project.yml     XcodeGen project definition
+```
+
+Run the tests. They run on macOS and need no simulator:
 
 ```sh
 swift test --package-path PressingCore
 ```
 
-Runs on macOS; no simulator needed.
-
-## Build the app
-
-1. Install [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`.
-2. Copy `Config/Signing.xcconfig.example` to `Config/Signing.xcconfig` and fill in your bundle ID and team ID. The copy is git-ignored. Without it, the app still builds for the simulator with a placeholder bundle ID.
-3. Generate the project with `xcodegen generate`, then open `Pressing.xcodeproj`. The project is generated from `project.yml` and not checked in. Run `xcodegen generate` again after pulling changes to it.
-
-   The first `xcodegen generate` also builds the MP3 encoder: `scripts/build-lame.sh` downloads LAME 3.100, checks its SHA-256, and cross-compiles it into `Vendor/LAME.xcframework` (iOS device, simulator and macOS). This takes about a minute and needs the network once. The framework is git-ignored. To rebuild it, run `scripts/build-lame.sh` yourself.
-
-To build for the simulator from the command line:
+Build the app for the simulator:
 
 ```sh
+xcodegen generate
 xcodebuild -project Pressing.xcodeproj -scheme Pressing \
   -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO
 ```
 
-Audio capture needs a real iPhone with the deck plugged in.
+**Where tests go.** Behaviour is tested through PressingCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
 
-## The screens
+**Specs and work.** Specs and tickets are GitHub issues, and the device checklist is [#10](https://github.com/steffentchr/Pressing/issues/10).
 
-Pressing is an appliance with one screen at a time.
+## Credits and notices
 
-- **Choose input.** On first launch Pressing asks for the input before it starts anything else: it asks for the microphone, which listing the inputs needs, and only looks for Sonos Rooms once an input is chosen. Tap "Choose the input" and pick the deck's input from the menu. The same screen comes back, saying the input isn't connected, whenever the chosen input disappears while no Record is playing, and goes away by itself once it is plugged back in.
-- **Waiting.** The input is ready and no Record is playing. The chosen input's name shows under "Put on a pressing to start."; tap it to switch to another input at once, with the same choices as Settings. While the chosen input isn't connected, its name is marked "Not connected".
-- **Kiosk mode.** Tick Settings › Screen › Kiosk mode and Pressing takes the whole screen: no clock, battery or other status icons, and the home indicator fades away. On Now Playing, the gear and speaker icons fade out after 30 s without a touch; any touch brings them back. It's off on a fresh install. To keep others from leaving the app, also start Guided Access.
-- **Now Playing.** Shown by itself while a Session runs: the current Track, large. While no Track is identified (before the first match, between Tracks, after a Flip, or for a Record Shazam doesn't know) the app icon's artwork in grey takes the cover's place, with no text, so nothing moves when a Track appears. Below it is History: at rest the two most recent Plays sit at the bottom of the screen, and scrolling down reveals more, up to the 50 most recent. Each Play shows its cover, title, artist and album; no time or scrobble status. A Track played more than once is listed once, at its most recent Play, and not at all while it's the current Track. The rows are slightly faded until you scroll into the list. The current Play isn't repeated there. Tap a Play to search Spotify for its Track; it opens the Spotify app when it's installed. The screen stays through Gaps and Flips and gives way to the waiting screen when the Session ends. If the input disappears mid-Session, Now Playing stays until the Session ends.
-
-The waiting and Now Playing screens have two icons in the top right. The speaker opens the Rooms: switch each on or off and set its volume, mid-Session too. It also shows which Rooms Pressing stepped back from and which can't be reached. The gear opens Settings: the input, screen blanking and Last.fm, with Detection and Permissions in submenus. An open sheet stays open when the screen changes underneath it.
-
-The screen blanks after the time set in Settings once no Record is playing, never while one plays. A touch wakes it without pressing anything; so does a Record starting, or coming back to Pressing from another app.
-
-### Enable ShazamKit for your App ID
-
-Pressing identifies Tracks against the Shazam catalog, which only answers apps whose App ID has the ShazamKit App Service. Without it, nothing is identified. Do this once for the bundle ID you put in `Config/Signing.xcconfig`:
-
-1. Sign in at [developer.apple.com/account](https://developer.apple.com/account) and open **Certificates, IDs & Profiles → Identifiers**.
-2. Select the App ID for your bundle ID (create it if Xcode hasn't yet).
-3. Open the **App Services** tab, tick **ShazamKit**, and save.
-
-No entitlement or Info.plist key is needed for the Shazam catalog. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit). Identification also needs the phone online, since Shazam matches on Apple's servers.
-
-### Set up the Last.fm API account
-
-Pressing scrobbles to Last.fm with its own API account. The key and secret are build configuration and are never committed:
-
-1. Sign in at Last.fm and create an API account at [last.fm/api/account/create](https://www.last.fm/api/account/create). Name the application "Pressing". The callback URL can stay empty: Pressing passes its own callback, `pressing://lastfm-auth`, when it opens the sign-in page.
-2. Copy `Config/LastFm.xcconfig.example` to `Config/LastFm.xcconfig` and fill in the API key and shared secret from [last.fm/api/accounts](https://www.last.fm/api/accounts). The copy is git-ignored.
-3. Build again. The values reach the app through `App/Info.plist` (`LastFmAPIKey`, `LastFmAPISecret`).
-
-Without `Config/LastFm.xcconfig` the app still builds, and Settings says Last.fm isn't available in this build. The secret ends up inside the built app, as it does for any app that signs Last.fm calls on the phone; keep builds to your own devices.
-
-## Last.fm
-
-Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve Pressing, close it: Pressing then finishes connecting. Disconnect in Settings to stop scrobbling.
-
-When a Play starts while Last.fm is connected, Pressing sends "now playing" and asks Last.fm for the Track's length and album; the album fills in the Play, since Shazam gives none. The Play is scrobbled once it qualifies: the Track is longer than 30 s and has played for half its length or 4 minutes, whichever comes first. If Last.fm doesn't know the length, it qualifies at 4 minutes, or at its end if it ran at least 30 s. Plays waiting for Last.fm are queued across a restart, go in batches of up to 50, and are retried with backoff and as soon as the network returns.
-
-Each Play is kept with its scrobble status (waiting for Last.fm, scrobbled, rejected by Last.fm, too short to scrobble, or not scrobbled), though History on Now Playing doesn't show it. Plays made while Last.fm isn't connected are never sent later, and nor are those still waiting when you disconnect. If Last.fm stops accepting the session (revoked from your Last.fm settings), Settings says so; connect again and the Plays still waiting are sent.
-
-## Rooms and the stream
-
-Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. It starts looking once an input is chosen. Allow local network access when asked; the shortcut is in Settings › Permissions. Tap the speaker icon and tick the Rooms that should play: a ticked Room is switched on at once, with nothing to apply, and shows a volume bar while it's on. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
-
-The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
-
-## Phone output
-
-"This iPhone", at the top of the Rooms sheet, plays the Record through the phone's own output as well: its speaker, Bluetooth earphones, or an AirPlay speaker or TV. Tick it, then choose which with the route button that appears under it. It's off on a fresh install, and the switch is remembered. Like a Room, it follows the Session: switched on, it plays from Record start until the Session ends, Gaps and Flips included, and switching it on or off mid-Session takes effect at once. Its volume is the system's: the phone's buttons, or the AirPlay receiver's own control.
-
-It plays the captured audio straight from the input, uncompressed, not the MP3 stream the Rooms get. So it runs a few seconds ahead of the Sonos Rooms, and if you can hear both they won't be in sync. That's expected.
-
-It never changes the input. Switched on, the audio session becomes play-and-record, with AirPlay and Bluetooth allowed only as outputs, never a Bluetooth headset microphone; the deck stays the input, and capture restarts once, briefly, on the same input when you flip the switch. Switched off, the audio session is record-only, exactly as without this feature. Output in measurement mode (needed so the input has no gain control) is a little quieter than other apps.
-
-## Identification
-
-Pressing searches for the Track when a Record starts, after each Gap, and every 30 s otherwise, each time on 8 s of the deck's audio. The current Track shows on the Now Playing screen (cover, title, artist and album) and in the Sonos app as "Artist – Title" under the station name "Pressing". It stays through quiet passages: it is cleared at a Flip, when a different Track matches, or when the search after a Gap and the following recheck both find nothing. Keep the deck's pitch at zero, or Tracks won't match.
-
-## Calibrate detection
-
-Pressing starts a Record when the level stays above the start threshold for the start delay, and ends it with a Flip once the level stays below it for the Flip threshold. The level is the median of 100 ms frames over the last second, so the run-out groove's clicks don't count. Calibrate once per deck and gain setting:
-
-1. Set the deck's USB gain once, so loud passages peak well below clipping. On the Numark TT USB the gain and phono/line switches are on the underside.
-2. Keep pitch at zero.
-3. Play a Record through to the run-out groove and leave the stylus there with the platter turning.
-4. Read the noise floor (the white tick) from the level display in Settings › Detection, and there set the threshold (the orange tick) clearly above it but below the quietest music.
-
-Changing the deck's gain means calibrating again. If the noise floor is high because of hum, try a different charger or socket first: the deck and the phone's charger may form a ground loop.
-
-The start delay (default 1.5 s), Flip threshold (default 12 s) and stop delay (default 45 s of silence, counted from when it began) are in Settings › Detection too. The stop delay must be longer than the Flip threshold.
+- MP3 encoding uses [LAME](https://lame.sourceforge.io), which is licensed under the LGPL. It's downloaded and built by `scripts/build-lame.sh`, not included in this repository.
+- The Sonos UPnP calls follow the work of [SoCo](https://github.com/SoCo/SoCo) and [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api).
+- Pressing isn't affiliated with or endorsed by Sonos, Apple, Shazam, Spotify or Last.fm. Their names are trademarks of their owners.
+- No licence has been chosen for Pressing's own code yet.
