@@ -55,8 +55,8 @@ struct LaunchRecoveryTests {
         #expect(sonos.transportState(of: .kitchen) == "PLAYING")
     }
 
-    @Test("A switched-off Room is not even asked what it plays at launch")
-    func switchedOffNotAsked() async {
+    @Test("A switched-off Room still on a Pressing stream at launch is stopped, once")
+    func switchedOffStopped() async {
         let sonos = FakeSonos(groups: [[.kitchen], [.bathroom]])
         sonos.play(oldStream, on: .kitchen)
         let world = await World.household(sonos, foundThrough: .bathroom, on: [])
@@ -64,6 +64,33 @@ struct LaunchRecoveryTests {
         world.silence(seconds: 10)
         await settle()
 
-        #expect(sonos.requests(to: .kitchen).isEmpty)
+        #expect(sonos.calls(to: .kitchen) == [Calls.stop])
+        #expect(sonos.transportState(of: .kitchen) == "STOPPED")
+    }
+
+    @Test("A switched-off Room on a Pressing stream is stopped, not taken into the Session, when there is signal")
+    func switchedOffStoppedWithSignal() async {
+        let sonos = FakeSonos(groups: [[.kitchen], [.livingRoom], [.bathroom]])
+        sonos.play(oldStream, on: .kitchen)
+        let world = await World.household(sonos, foundThrough: .bathroom, on: [(.livingRoom, 40)])
+
+        world.music(seconds: 15)
+        await settle()
+
+        #expect(sonos.calls(to: .kitchen) == [Calls.stop])
+        #expect(sonos.calls(to: .livingRoom) == Calls.lead(volume: 40))
+    }
+
+    @Test("A switched-off Room playing anything else at launch gets no command")
+    func switchedOffOtherLeftAlone() async {
+        let sonos = FakeSonos(groups: [[.kitchen], [.bathroom]])
+        sonos.play("x-rincon-mp3radio://192.168.1.77:8000/radio.mp3", on: .kitchen)
+        let world = await World.household(sonos, foundThrough: .bathroom, on: [])
+
+        world.silence(seconds: 10)
+        await settle()
+
+        #expect(sonos.calls(to: .kitchen).isEmpty)
+        #expect(sonos.transportState(of: .kitchen) == "PLAYING")
     }
 }

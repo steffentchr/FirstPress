@@ -68,7 +68,7 @@ struct GroupingTests {
         #expect(sonos.malformed.isEmpty)
     }
 
-    @Test("A switched-on Room grouped with a switched-off Room is pulled out first; the switched-off Room is never asked anything")
+    @Test("A switched-on Room grouped with a switched-off Room is pulled out first; the switched-off Room is only asked, at launch, what it plays")
     func pulledOutOfMixedGroup() async {
         let sonos = FakeSonos(groups: [[.livingRoom, .kitchen], [.bathroom]])
         sonos.play("x-sonos-spotify:track", on: .livingRoom)
@@ -79,7 +79,7 @@ struct GroupingTests {
         await settle()
 
         #expect(sonos.calls(to: .kitchen) == [Calls.leave] + Calls.join(.bathroom, volume: 30))
-        #expect(sonos.requests(to: .livingRoom).isEmpty)
+        #expect(sonos.requests(to: .livingRoom).map(\.action) == ["GetMediaInfo"])
         #expect(sonos.source(of: .livingRoom) == "x-sonos-spotify:track")
         #expect(sonos.transportState(of: .livingRoom) == "PLAYING")
     }

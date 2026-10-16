@@ -30,7 +30,7 @@ struct StepBackTests {
         #expect(sonos.requests(to: .bathroom, since: mark).map(\.action).contains("GetTransportInfo"))
         #expect(sonos.calls(to: .bathroom, since: mark).isEmpty)
         #expect(sonos.calls(to: .kitchen, since: mark).isEmpty)
-        #expect(sonos.requests(to: .livingRoom).isEmpty)
+        #expect(sonos.requests(to: .livingRoom, since: mark).isEmpty)
     }
 
     @Test("Someone playing something else on the leader: Pressing steps back from the whole group without stopping it, for the rest of the Session")

@@ -19,7 +19,9 @@ struct RoomsTests {
         world.sonos.discover(.kitchen)
         await settle()
 
-        #expect(world.sonos.allCalls == [SOAPCall("GetZoneGroupState")])
+        // Besides the topology, only launch recovery's one read of what each Room plays.
+        #expect(world.sonos.allCalls.first == SOAPCall("GetZoneGroupState"))
+        #expect(world.sonos.allCalls.dropFirst().allSatisfy { $0.action == "GetMediaInfo" })
         #expect(world.sonos.network.requests.first?.url.host == FakeRoom.kitchen.host)
         #expect(world.sonos.malformed.isEmpty)
         #expect(world.pressing.state.rooms.map(\.name) == ["Kitchen", "Living Room"])
