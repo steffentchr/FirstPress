@@ -52,7 +52,7 @@ public enum ScrobbleStatus: String, Sendable, Hashable, Codable {
 }
 
 extension Track {
-    /// The same song, whatever the cover or album: artist and title alike,
+    /// The same Track, whatever the cover or album: artist and title alike,
     /// ignoring case and accents.
     func isSame(as other: Track) -> Bool {
         Self.key(artist, title) == Self.key(other.artist, other.title)

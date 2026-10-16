@@ -35,8 +35,8 @@ public struct LastFmAccount: Sendable, Equatable {
     }
 }
 
-/// The listener's Last.fm session: whose it is, and the key that signs their
-/// scrobbles. Session keys don't expire until the listener revokes them.
+/// The listener's Last.fm session: whose it is, and the key that signs the
+/// Plays sent to their profile. Session keys don't expire until the listener revokes them.
 public struct LastFmSession: Sendable, Equatable, Codable {
     public var username: String
     public var key: String

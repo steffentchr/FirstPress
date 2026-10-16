@@ -55,7 +55,7 @@ public struct LastFmState: Sendable, Equatable {
         /// until Last.fm is connected again.
         case sessionRevoked
         /// Last.fm refuses Pressing's API key or signature (its error code).
-        /// The build configuration needs fixing; scrobbles wait meanwhile.
+        /// The build configuration needs fixing; Plays wait for Last.fm meanwhile.
         case misconfigured(code: Int)
     }
 

@@ -2,8 +2,8 @@ import Foundation
 import Network
 import PressingCore
 
-/// Tells the core when the phone gets a network path back, so scrobbles
-/// owed go at once instead of at the next retry.
+/// Tells the core when the phone gets a network path back, so Plays waiting
+/// for Last.fm go at once instead of at the next retry.
 @MainActor
 final class NetworkReturnMonitor {
     private let monitor = NWPathMonitor()

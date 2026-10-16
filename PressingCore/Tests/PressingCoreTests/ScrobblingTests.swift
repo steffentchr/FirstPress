@@ -62,12 +62,12 @@ struct ScrobblingTests {
 
         world.playFor(151, since: play)
         await settle()
-        let scrobble = try #require(world.lastFm.calls("track.scrobble").first)
-        #expect(scrobble.scrobbles.count == 1)
-        #expect(scrobble.scrobbles.first?.artist == "Kate Bush")
-        #expect(scrobble.scrobbles.first?.track == "Wuthering Heights")
-        #expect(scrobble.scrobbles.first?.timestamp == String(Int(play.startedAt.timeIntervalSince1970)))
-        #expect(scrobble.params["sk"] == "SESSIONKEY")
+        let batch = try #require(world.lastFm.calls("track.scrobble").first)
+        #expect(batch.scrobbles.count == 1)
+        #expect(batch.scrobbles.first?.artist == "Kate Bush")
+        #expect(batch.scrobbles.first?.track == "Wuthering Heights")
+        #expect(batch.scrobbles.first?.timestamp == String(Int(play.startedAt.timeIntervalSince1970)))
+        #expect(batch.params["sk"] == "SESSIONKEY")
         #expect(world.pressing.history.first?.scrobble == .scrobbled)
         #expect(world.store.plays.first?.scrobble == .scrobbled)
     }

@@ -76,7 +76,7 @@ extension Pressing {
                 await takeOver([id])
             } else {
                 setSteppedBack(false, id)
-                await release(id)
+                await switchOff(id)
             }
         }
     }
@@ -105,8 +105,8 @@ extension Pressing {
         }
     }
 
-    /// Lets go of a held Room: it leaves the group, then stops.
-    private func release(_ id: RoomState.ID) async {
+    /// A held Room switched off: it leaves the group, then stops.
+    private func switchOff(_ id: RoomState.ID) async {
         guard hold.rooms.contains(id), let host = roomHosts[id] else { return }
         hold.rooms.remove(id)
         // Leaving first, so a group it led plays on until it re-forms.

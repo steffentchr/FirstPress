@@ -53,7 +53,7 @@ Without `Config/LastFm.xcconfig` the app still builds, and Settings says Last.fm
 
 Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve Pressing, close it: Pressing then finishes connecting. Disconnect in Settings to stop scrobbling.
 
-When a Play starts while Last.fm is connected, Pressing sends "now playing" and asks Last.fm for the Track's length and album; the album fills in the Play, since Shazam gives none. The Play is scrobbled once it qualifies: the Track is longer than 30 s and has played for half its length or 4 minutes, whichever comes first. If Last.fm doesn't know the length, it qualifies at 4 minutes, or at its end if it ran at least 30 s. Scrobbles wait in a queue that survives a restart, go in batches of up to 50, and are retried with backoff and as soon as the network returns.
+When a Play starts while Last.fm is connected, Pressing sends "now playing" and asks Last.fm for the Track's length and album; the album fills in the Play, since Shazam gives none. The Play is scrobbled once it qualifies: the Track is longer than 30 s and has played for half its length or 4 minutes, whichever comes first. If Last.fm doesn't know the length, it qualifies at 4 minutes, or at its end if it ran at least 30 s. Plays waiting for Last.fm are queued across a restart, go in batches of up to 50, and are retried with backoff and as soon as the network returns.
 
 History shows each Play's status: waiting for Last.fm (pending), scrobbled, rejected by Last.fm, too short to scrobble, or not scrobbled. Plays made while Last.fm isn't connected are never sent later, and nor are those still waiting when you disconnect. If Last.fm stops accepting the session (revoked from your Last.fm settings), Settings says so; connect again and the Plays still waiting are sent.
 
@@ -73,7 +73,7 @@ Pressing starts a Record when the level stays above the start threshold for the 
 
 1. Set the deck's USB gain once, so loud passages peak well below clipping. On the Numark TT USB the gain and phono/line switches are on the underside.
 2. Keep pitch at zero.
-3. Play a side through to the run-out and leave the stylus there with the platter turning.
+3. Play a Record through to the run-out groove and leave the stylus there with the platter turning.
 4. Read the noise floor (the white tick) from the level display on the main screen, and in Settings set the threshold (the orange tick) clearly above it but below the quietest music.
 
 Changing the deck's gain means calibrating again. If the noise floor is high because of hum, try a different charger or socket first: the deck and the phone's charger may form a ground loop.

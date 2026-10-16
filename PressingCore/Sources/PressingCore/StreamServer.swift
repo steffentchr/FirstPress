@@ -3,7 +3,7 @@ import Foundation
 /// The live MP3 stream Rooms play: ICY headers, then pre-roll, then live frames.
 ///
 /// Every client gets the last ~3 s of frames as a burst first, so Sonos fills
-/// its buffer at once and the first notes of a side are not lost, then each
+/// its buffer at once and the first notes of a Record are not lost, then each
 /// frame as the encoder produces it. Frames are whole, so every client starts
 /// on a frame boundary.
 ///

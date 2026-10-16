@@ -163,7 +163,7 @@ struct ScrobbleQueueTests {
         #expect(world.pressing.history.first?.scrobble == .scrobbled)
     }
 
-    @Test("Last.fm ignoring a scrobble makes that Play rejected, and the others in the batch scrobbled")
+    @Test("Last.fm ignoring one Play in a batch makes that Play rejected, and the others scrobbled")
     func ignoredPerItem() async throws {
         let first = Play(track: .ballad, startedAt: Date(timeIntervalSince1970: 1_760_000_000), endedAt: Date(timeIntervalSince1970: 1_760_000_200), scrobble: .pending)
         let second = Play(track: .rocker, startedAt: Date(timeIntervalSince1970: 1_760_000_200), endedAt: Date(timeIntervalSince1970: 1_760_000_400), scrobble: .pending)

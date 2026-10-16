@@ -263,7 +263,7 @@ extension Pressing {
         switch outcome {
         case .success(let answer):
             if case .misconfigured = state.lastFm.problem { state.lastFm.problem = nil }
-            // One item per scrobble, each with its own ignoredMessage code.
+            // One item per Play, each with its own ignoredMessage code.
             // An answer that can't be read item by item was still accepted.
             let items = LastFmAPI.list((answer["scrobbles"] as? [String: Any])?["scrobble"])
             let codes = items.flatMap { items in
