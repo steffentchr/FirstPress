@@ -3,12 +3,12 @@ import Foundation
 /// A Room as ZoneGroupTopology lists it.
 struct TopologyRoom: Equatable {
     /// The RINCON id of the Room's visible player.
-    var id: String
+    var id: RoomState.ID
     var name: String
     /// Where its SOAP interface is, on port 1400.
     var host: String
     /// The RINCON id of the player leading its Sonos group.
-    var coordinator: String
+    var coordinator: RoomState.ID
 }
 
 /// Reads the Rooms out of `GetZoneGroupState`.

@@ -6,14 +6,14 @@ import Foundation
 /// group with `x-rincon:` so every Room plays in sync. Everything here is
 /// changed only by work on the Sonos queue, in the order it was asked for.
 struct Hold {
-    /// Rooms Pressing plays in this Session, by RINCON id.
-    var rooms: Set<String> = []
+    /// Rooms Pressing plays in this Session.
+    var rooms: Set<RoomState.ID> = []
     /// The held Room that plays the stream.
-    var leader: String?
+    var leader: RoomState.ID?
     /// The household's groups as last read.
     var topology: [TopologyRoom] = []
     /// The volume each held Room last had at Sonos, as Pressing set or read it.
-    var volumes: [String: Int] = [:]
+    var volumes: [RoomState.ID: Int] = [:]
     /// The next Session monitor read.
     var monitor: (any ScheduledWork)?
     /// A monitor read is queued or under way.
@@ -22,6 +22,12 @@ struct Hold {
     var hasLookedForRecovery = false
     /// Stops the Rooms found on a Pressing stream at launch, unless a Session starts first.
     var recovery: (any ScheduledWork)?
+
+    /// Holds no Room, and so no leader.
+    mutating func clearRooms() {
+        rooms = []
+        leader = nil
+    }
 }
 
 /// Takeover at the start of a Session and Stop at its end.
@@ -43,8 +49,7 @@ extension Pressing {
         startMonitor()
         enqueueSonos { [weak self] in
             guard let self else { return }
-            hold.rooms = []
-            hold.leader = nil
+            hold.clearRooms()
             for index in state.rooms.indices { state.rooms[index].isSteppedBack = false }
             await takeOver(state.rooms.filter(\.isOn).map(\.id))
         }
@@ -59,8 +64,7 @@ extension Pressing {
             if let leader = hold.leader, let host = roomHosts[leader] {
                 try? await send(host, .avTransport, "Stop", ["InstanceID": "0"])
             }
-            hold.rooms = []
-            hold.leader = nil
+            hold.clearRooms()
         }
     }
 
@@ -95,8 +99,7 @@ extension Pressing {
     /// it rejoins when it returns. If it led, the rest re-form.
     func roomLost(at host: String) {
         enqueueSonos { [weak self] in
-            guard let self, let id = roomHosts.first(where: { $0.value == host })?.key,
-                  hold.rooms.contains(id)
+            guard let self, let id = room(at: host), hold.rooms.contains(id)
             else { return }
             hold.rooms.remove(id)
             if hold.leader == id {
@@ -120,8 +123,7 @@ extension Pressing {
     /// Chooses a new leader among the held Rooms; the rest join it.
     func reform() async {
         let rest = Array(hold.rooms)
-        hold.rooms = []
-        hold.leader = nil
+        hold.clearRooms()
         await takeOver(rest)
     }
 
@@ -169,7 +171,7 @@ extension Pressing {
         }
     }
 
-    private func lead(_ id: RoomState.ID, uri: String, ours: Set<String>) async -> Bool {
+    private func lead(_ id: RoomState.ID, uri: String, ours: Set<RoomState.ID>) async -> Bool {
         guard let host = roomHosts[id], let volume = volume(of: id) else { return false }
         do {
             // The stream can only be set on a coordinator, and the Room must
@@ -190,7 +192,7 @@ extension Pressing {
         }
     }
 
-    private func join(_ id: RoomState.ID, leader: RoomState.ID, ours: Set<String>) async -> Bool {
+    private func join(_ id: RoomState.ID, leader: RoomState.ID, ours: Set<RoomState.ID>) async -> Bool {
         guard let host = roomHosts[id], let volume = volume(of: id) else { return false }
         do {
             if isGroupedWithOthers(id, ours: ours) {
@@ -225,12 +227,12 @@ extension Pressing {
         }
     }
 
-    func coordinator(of id: RoomState.ID) -> String? {
+    func coordinator(of id: RoomState.ID) -> RoomState.ID? {
         hold.topology.first { $0.id == id }?.coordinator
     }
 
     /// The Room shares its Sonos group with a Room that isn't ours.
-    private func isGroupedWithOthers(_ id: RoomState.ID, ours: Set<String>) -> Bool {
+    private func isGroupedWithOthers(_ id: RoomState.ID, ours: Set<RoomState.ID>) -> Bool {
         guard let coordinator = coordinator(of: id) else { return false }
         return hold.topology.contains { $0.coordinator == coordinator && !ours.contains($0.id) }
     }
@@ -269,6 +271,11 @@ extension Pressing {
         }
         setReachable(true, host: host)
         return try SOAP.outArguments(of: response)
+    }
+
+    /// The Room whose player answers at this host.
+    func room(at host: String) -> RoomState.ID? {
+        roomHosts.first { $0.value == host }?.key
     }
 
     func setReachable(_ reachable: Bool, host: String) {

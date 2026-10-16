@@ -22,7 +22,7 @@ public final class Pressing {
     @ObservationIgnored let stream: StreamServer
     @ObservationIgnored private var resampler: Resampler?
     /// Where each Room's player answers SOAP, by RINCON id.
-    @ObservationIgnored var roomHosts: [String: String] = [:]
+    @ObservationIgnored var roomHosts: [RoomState.ID: String] = [:]
     /// A topology read is under way, so further players found join it.
     @ObservationIgnored var isReadingTopology = false
     /// The Rooms Pressing holds, and how it watches them.

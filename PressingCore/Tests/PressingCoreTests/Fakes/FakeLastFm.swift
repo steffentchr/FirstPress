@@ -62,7 +62,12 @@ final class FakeLastFm: LastFmHTTP {
         answers["auth.getSession"] = { _ in .json(#"{"session":{"name":"listener","key":"SESSIONKEY","subscriber":0}}"#) }
         answers["track.updateNowPlaying"] = { _ in .json(##"{"nowplaying":{"ignoredMessage":{"code":"0","#text":""}}}"##) }
         answers["track.getInfo"] = { _ in .lastFmError(6, "Track not found") }
-        answers["track.scrobble"] = { call in .scrobbles(ignoredCodes: call.scrobbles.map { _ in 0 }) }
+        answers["track.scrobble"] = Self.acceptingEveryPlay
+    }
+
+    /// Last.fm's usual answer to `track.scrobble`: every Play in the batch accepted.
+    static let acceptingEveryPlay: @MainActor (LastFmCall) -> HTTPResponse = { call in
+        .scrobbles(ignoredCodes: call.scrobbles.map { _ in 0 })
     }
 
     func send(_ request: HTTPRequest) async throws -> HTTPResponse {

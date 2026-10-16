@@ -95,38 +95,22 @@ struct ScrobbleStatusLabel: View {
     let status: ScrobbleStatus
 
     var body: some View {
-        Label(text, systemImage: symbol)
+        let look = look
+        Label(look.text, systemImage: look.symbol)
             .labelStyle(.iconOnly)
             .font(.footnote)
-            .foregroundStyle(color)
-            .accessibilityLabel(text)
+            .foregroundStyle(look.color)
+            .accessibilityLabel(look.text)
     }
 
-    private var text: String {
+    /// How each status shows: what it says, its symbol and its colour.
+    private var look: (text: String, symbol: String, color: Color) {
         switch status {
-        case .pending: "Waiting for Last.fm"
-        case .scrobbled: "Scrobbled"
-        case .rejected: "Rejected by Last.fm"
-        case .notEligible: "Too short to scrobble"
-        case .notScrobbled: "Not scrobbled"
-        }
-    }
-
-    private var symbol: String {
-        switch status {
-        case .pending: "clock"
-        case .scrobbled: "checkmark.circle.fill"
-        case .rejected: "xmark.circle"
-        case .notEligible: "minus.circle"
-        case .notScrobbled: "circle.dashed"
-        }
-    }
-
-    private var color: Color {
-        switch status {
-        case .scrobbled: .green
-        case .rejected: .orange
-        default: .secondary
+        case .pending: ("Waiting for Last.fm", "clock", .secondary)
+        case .scrobbled: ("Scrobbled", "checkmark.circle.fill", .green)
+        case .rejected: ("Rejected by Last.fm", "xmark.circle", .orange)
+        case .notEligible: ("Too short to scrobble", "minus.circle", .secondary)
+        case .notScrobbled: ("Not scrobbled", "circle.dashed", .secondary)
         }
     }
 }

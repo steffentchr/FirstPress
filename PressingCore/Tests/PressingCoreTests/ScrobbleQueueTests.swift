@@ -157,7 +157,7 @@ struct ScrobbleQueueTests {
         await settle()
         #expect(world.pressing.history.first?.scrobble == .pending)
 
-        world.lastFm.answers["track.scrobble"] = { call in .scrobbles(ignoredCodes: call.scrobbles.map { _ in 0 }) }
+        world.lastFm.answers["track.scrobble"] = FakeLastFm.acceptingEveryPlay
         world.scheduler.advance(by: 60 * 60)
         await settle()
         #expect(world.pressing.history.first?.scrobble == .scrobbled)
@@ -200,7 +200,7 @@ struct ScrobbleQueueTests {
         #expect(world.keychain.session == nil)
         #expect(world.pressing.history.first?.scrobble == .pending)
 
-        world.lastFm.answers["track.scrobble"] = { call in .scrobbles(ignoredCodes: call.scrobbles.map { _ in 0 }) }
+        world.lastFm.answers["track.scrobble"] = FakeLastFm.acceptingEveryPlay
         await world.pressing.connectLastFm()
         await settle()
         #expect(world.pressing.history.first?.scrobble == .scrobbled)
