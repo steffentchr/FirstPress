@@ -27,7 +27,19 @@ xcodebuild -project Pressing.xcodeproj -scheme Pressing \
   -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO
 ```
 
-Audio capture needs a real iPhone with the deck plugged in. Choose the deck's input in Settings.
+Audio capture needs a real iPhone with the deck plugged in.
+
+## The screens
+
+Pressing is an appliance with one screen at a time, and History a swipe to the left.
+
+- **Choose input.** On first launch Pressing asks for the input before it starts anything else: it asks for the microphone, which listing the inputs needs, and only looks for Sonos Rooms once an input is chosen. Choose the deck's input from the dropdown. The same screen comes back, saying the input isn't connected, whenever the chosen input disappears while no Record is playing, and goes away by itself once it is plugged back in.
+- **Waiting.** The input is ready and no Record is playing.
+- **Now Playing.** Shown by itself while a Session runs: the current Track, large. It stays through Gaps and Flips and gives way to the waiting screen when the Session ends. If the input disappears mid-Session, Now Playing stays until the Session ends.
+
+The waiting and Now Playing screens have two icons in the top right. The speaker opens the Rooms: switch each on or off and set its volume, mid-Session too. It also shows which Rooms Pressing stepped back from and which can't be reached. The gear opens Settings: the input, screen blanking and Last.fm, with Detection and Permissions in submenus. An open sheet stays open when the screen changes underneath it.
+
+The screen blanks after the time set in Settings once no Record is playing, never while one plays. A touch wakes it without pressing anything; so does a Record starting, or coming back to Pressing from another app.
 
 ### Enable ShazamKit for your App ID
 
@@ -59,13 +71,13 @@ History shows each Play's status: waiting for Last.fm (pending), scrobbled, reje
 
 ## Rooms and the stream
 
-Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. Allow local network access when asked; the shortcut is in Settings. Switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
+Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. It starts looking once an input is chosen. Allow local network access when asked; the shortcut is in Settings › Permissions. Tap the speaker icon to switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
 
 The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
 
 ## Identification
 
-Pressing searches for the Track when a Record starts, after each Gap, and every 30 s otherwise, each time on 8 s of the deck's audio. The current Track shows in the lower third (artist, title and cover) and in the Sonos app as "Artist – Title" under the station name "Pressing". It stays through quiet passages: it is cleared at a Flip, when a different Track matches, or when the search after a Gap and the following recheck both find nothing. Keep the deck's pitch at zero, or Tracks won't match.
+Pressing searches for the Track when a Record starts, after each Gap, and every 30 s otherwise, each time on 8 s of the deck's audio. The current Track shows on the Now Playing screen (cover, title, artist and album) and in the Sonos app as "Artist – Title" under the station name "Pressing". It stays through quiet passages: it is cleared at a Flip, when a different Track matches, or when the search after a Gap and the following recheck both find nothing. Keep the deck's pitch at zero, or Tracks won't match.
 
 ## Calibrate detection
 
@@ -74,8 +86,8 @@ Pressing starts a Record when the level stays above the start threshold for the 
 1. Set the deck's USB gain once, so loud passages peak well below clipping. On the Numark TT USB the gain and phono/line switches are on the underside.
 2. Keep pitch at zero.
 3. Play a Record through to the run-out groove and leave the stylus there with the platter turning.
-4. Read the noise floor (the white tick) from the level display on the main screen, and in Settings set the threshold (the orange tick) clearly above it but below the quietest music.
+4. Read the noise floor (the white tick) from the level display in Settings › Detection, and there set the threshold (the orange tick) clearly above it but below the quietest music.
 
 Changing the deck's gain means calibrating again. If the noise floor is high because of hum, try a different charger or socket first: the deck and the phone's charger may form a ground loop.
 
-The start delay (default 1.5 s), Flip threshold (default 12 s) and stop delay (default 45 s of silence, counted from when it began) are in Settings too. The stop delay must be longer than the Flip threshold.
+The start delay (default 1.5 s), Flip threshold (default 12 s) and stop delay (default 45 s of silence, counted from when it began) are in Settings › Detection too. The stop delay must be longer than the Flip threshold.
