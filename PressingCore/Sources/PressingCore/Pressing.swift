@@ -24,6 +24,7 @@ public final class Pressing {
     /// Call once at launch.
     public func start() {
         settings = store.loadSettings() ?? Settings()
+        applyDetection()
         state.input.chosenID = settings.inputID
         state.input.available = audioInput.availableInputs
         audioInput.setEventHandler { [weak self] event in
@@ -52,15 +53,33 @@ public final class Pressing {
         settings.inputID = id
         store.saveSettings(settings)
         state.input.chosenID = id
-        noiseFloor = NoiseFloor()
+        noiseFloor = NoiseFloor(threshold: settings.detection.threshold)
         state.input.noiseFloor = nil
         startCapture()
+    }
+
+    /// Intent from Settings: calibrate detection. Refuses a stop delay that
+    /// isn't longer than the Flip threshold, so a Session can't end before
+    /// the Record it contains. Takes effect from the next change in level.
+    public func setDetection(_ detection: DetectionSettings) throws(DetectionSettingsError) {
+        guard detection.stopDelay > detection.flipThreshold else {
+            throw .stopDelayNotLongerThanFlipThreshold
+        }
+        settings.detection = detection
+        store.saveSettings(settings)
+        applyDetection()
+    }
+
+    private func applyDetection() {
+        state.detection = settings.detection
+        detector.settings = settings.detection
+        noiseFloor.threshold = settings.detection.threshold
     }
 
     @ObservationIgnored private var settings = Settings()
     @ObservationIgnored private var meter = LevelMeter()
     @ObservationIgnored private var window = LevelWindow()
-    @ObservationIgnored private var noiseFloor = NoiseFloor()
+    @ObservationIgnored private var noiseFloor = NoiseFloor(threshold: DetectionSettings().threshold)
 
     private func receive(_ buffer: PCMBuffer) {
         // Only the chosen input counts, whatever the system routed to.

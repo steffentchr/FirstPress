@@ -9,11 +9,15 @@ import Foundation
 struct NoiseFloor {
     static let windowSeconds = 10.0
 
-    /// The start threshold, in dBFS. Ticket #2 makes it a setting.
-    var threshold: Double = -50
+    /// The start threshold, in dBFS, from Settings.
+    var threshold: Double
 
     private var silentLevels: [Double] = []
     private let capacity = Int(windowSeconds / LevelMeter.frameSeconds)
+
+    init(threshold: Double) {
+        self.threshold = threshold
+    }
 
     /// Adds one frame level and returns the current noise floor, if any.
     mutating func add(_ level: Double) -> Double? {

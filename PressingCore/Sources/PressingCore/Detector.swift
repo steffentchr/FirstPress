@@ -23,10 +23,7 @@ final class Detector {
     /// How long a silence within a Record lasts before it counts as a Gap.
     static let gapSeconds: TimeInterval = 1.5
 
-    var threshold: Double = -50
-    var startDelay: TimeInterval = 1.5
-    var flipThreshold: TimeInterval = 12
-    var stopDelay: TimeInterval = 45
+    var settings = DetectionSettings()
 
     private let scheduler: any Scheduler
     private let onEvent: @MainActor (Event) -> Void
@@ -45,7 +42,7 @@ final class Detector {
 
     /// The current level in dBFS.
     func level(_ dBFS: Double) {
-        let above = dBFS >= threshold
+        let above = dBFS >= settings.threshold
         guard above != isAbove else { return }
         isAbove = above
         cancelTimers()
@@ -56,11 +53,11 @@ final class Detector {
                     onEvent(.resumed)
                 }
             } else {
-                after(startDelay) { $0.startRecord() }
+                after(settings.startDelay) { $0.startRecord() }
             }
         } else if inRecord {
             after(Self.gapSeconds) { $0.enterGap() }
-            after(flipThreshold) { $0.flip() }
+            after(settings.flipThreshold) { $0.flip() }
         }
     }
 
@@ -81,7 +78,7 @@ final class Detector {
         inRecord = false
         inGap = false
         onEvent(.flip)
-        sessionTimer = scheduler.schedule(after: stopDelay) { [weak self] in
+        sessionTimer = scheduler.schedule(after: settings.stopDelay) { [weak self] in
             guard let self else { return }
             sessionTimer = nil
             onEvent(.sessionEnded)

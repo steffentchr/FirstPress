@@ -5,10 +5,13 @@ import Foundation
 public struct PressingState: Sendable, Equatable {
     public var input: InputState
     public var session: SessionState
+    /// The detection calibration in force, as set in Settings.
+    public var detection: DetectionSettings
 
-    public init(input: InputState = InputState(), session: SessionState = .idle) {
+    public init(input: InputState = InputState(), session: SessionState = .idle, detection: DetectionSettings = DetectionSettings()) {
         self.input = input
         self.session = session
+        self.detection = detection
     }
 }
 
