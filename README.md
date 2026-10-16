@@ -19,7 +19,7 @@ Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressi
 </p>
 <p align="center"><sub>Now Playing on an iPhone in kiosk mode, with a Track and before one is identified; the start screen and Settings, from the simulator.</sub></p>
 
-> **Status:** early and personal. The code is covered by about 200 tests, but much of it hasn't run on real hardware yet: capture from the deck, Sonos playback, ShazamKit and Last.fm. The on-device test pass is tracked in [#10](https://github.com/steffentchr/Pressing/issues/10). Expect rough edges.
+> **Status:** early and personal. The code is covered by about 200 tests, and it runs on an iPhone with a USB deck: capture, identification and Now Playing work, as the screens above show. The rest of the on-device test pass, including Sonos playback and Last.fm, is tracked in [#10](https://github.com/steffentchr/Pressing/issues/10). Expect rough edges.
 
 ## What it does
 
