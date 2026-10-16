@@ -5,6 +5,7 @@ extension Pressing {
     /// Intent from the main screen: switch a Room on or off in Pressing.
     public func switchRoom(_ id: RoomState.ID, on: Bool) {
         updateChoice(for: id) { $0.isOn = on }
+        roomSwitched(id, on: on)
     }
 
     /// Intent from the main screen: the volume Pressing plays this Room at.

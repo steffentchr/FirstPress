@@ -61,16 +61,20 @@ final class FakeSonos {
     }
 
     /// The commands a player received, in order: everything but reads (`Get…`).
-    func calls(to room: FakeRoom) -> [SOAPCall] {
-        requests(to: room).filter { !$0.action.hasPrefix("Get") }
+    func calls(to room: FakeRoom, since mark: Int = 0) -> [SOAPCall] {
+        requests(to: room, since: mark).filter { !$0.action.hasPrefix("Get") }
     }
 
     /// Every SOAP call a player received, reads and topology included.
-    func requests(to room: FakeRoom) -> [SOAPCall] {
+    func requests(to room: FakeRoom, since mark: Int = 0) -> [SOAPCall] {
         network.requests
+            .dropFirst(mark)
             .filter { $0.url.host == room.host }
             .compactMap(Self.parse)
     }
+
+    /// A point in the request log, for `calls(to:since:)`.
+    var mark: Int { network.requests.count }
 
     /// Every SOAP call any player received, including topology reads.
     var allCalls: [SOAPCall] { network.requests.compactMap(Self.parse) }

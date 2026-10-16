@@ -54,6 +54,48 @@ extension Pressing {
         }
     }
 
+    /// A Room switched on during a Session is taken over at once. One
+    /// switched off stops and leaves the group; if it led, the rest re-form
+    /// under a new leader. Switching off also ends a Step back from it.
+    func roomSwitched(_ id: RoomState.ID, on: Bool) {
+        // Outside a Session, the next Session's Takeover picks it up.
+        if on, case .idle = state.session { return }
+        enqueueSonos { [weak self] in
+            guard let self else { return }
+            if on {
+                await takeOver([id])
+            } else {
+                setSteppedBack(false, id)
+                await release(id)
+            }
+        }
+    }
+
+    /// Lets go of a held Room: it leaves the group, then stops.
+    private func release(_ id: RoomState.ID) async {
+        guard hold.rooms.contains(id), let host = roomHosts[id] else { return }
+        hold.rooms.remove(id)
+        // Leaving first, so a group it led plays on until it re-forms.
+        try? await send(host, .avTransport, "BecomeCoordinatorOfStandaloneGroup", ["InstanceID": "0"])
+        try? await send(host, .avTransport, "Stop", ["InstanceID": "0"])
+        if hold.leader == id {
+            await reform()
+        }
+    }
+
+    /// Chooses a new leader among the held Rooms; the rest join it.
+    func reform() async {
+        let rest = Array(hold.rooms)
+        hold.rooms = []
+        hold.leader = nil
+        await takeOver(rest)
+    }
+
+    func setSteppedBack(_ steppedBack: Bool, _ id: RoomState.ID) {
+        guard let index = state.rooms.firstIndex(where: { $0.id == id }) else { return }
+        state.rooms[index].isSteppedBack = steppedBack
+    }
+
     /// Sets a held Room's volume at once.
     func roomVolumeChanged(_ id: RoomState.ID) {
         guard let volume = state.rooms.first(where: { $0.id == id })?.volume else { return }
