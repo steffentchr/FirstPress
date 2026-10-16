@@ -5,7 +5,9 @@ import Foundation
 extension Pressing {
     func handle(_ event: Identifier.Event) {
         switch event {
-        case .playStarted(let play):
+        case .playStarted(var play):
+            // Plays made while Last.fm isn't connected are never sent later.
+            play.scrobble = isLastFmConnected ? .pending : .notScrobbled
             keep(play)
             keepCover(of: play.track)
             state.play = play
@@ -14,7 +16,12 @@ extension Pressing {
             // While a Record plays the screen never blanks anyway, so this
             // matters only if that rule is ever relaxed.
             wakeScreen()
-        case .playEnded(let play):
+            scrobblePlayStarted(play)
+        case .playEnded(let ended):
+            // The Play as kept, with what Last.fm has added since it started.
+            var play = history.first { $0.id == ended.id } ?? ended
+            play.endedAt = ended.endedAt
+            play.scrobble = scrobbleStatusAtEnd(of: play)
             keep(play)
             // The lower third fades out and Sonos shows just "Pressing",
             // unless a new Play follows at once.
@@ -45,7 +52,7 @@ extension Pressing {
 
     /// Saves the Play, new or changed, and shows it in History. A Play is
     /// kept from its start, so one cut short by the app stopping isn't lost.
-    private func keep(_ play: Play) {
+    func keep(_ play: Play) {
         store.savePlay(play)
         if let index = history.firstIndex(where: { $0.id == play.id }) {
             history[index] = play

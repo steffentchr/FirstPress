@@ -38,7 +38,8 @@ public struct Play: Sendable, Equatable, Codable, Identifiable {
 
 /// Whether a Play reached Last.fm.
 public enum ScrobbleStatus: String, Sendable, Hashable, Codable {
-    /// Qualified and queued for Last.fm, not yet accepted.
+    /// Made while Last.fm was connected and not settled yet: still playing
+    /// towards qualifying, or qualified and queued for Last.fm.
     case pending
     /// Last.fm accepted it.
     case scrobbled

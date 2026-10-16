@@ -1,6 +1,6 @@
 import Foundation
 
-/// The one snapshot the app renders. A later ticket adds the Last.fm connection.
+/// The one snapshot the app renders.
 public struct PressingState: Sendable, Equatable {
     public var input: InputState
     public var session: SessionState
@@ -12,6 +12,7 @@ public struct PressingState: Sendable, Equatable {
     /// The current Play, whose Track fills the lower third. Nil when nothing
     /// is identified: the lower third is empty but keeps its space.
     public var play: Play?
+    public var lastFm: LastFmState
 
     public init(
         input: InputState = InputState(),
@@ -19,7 +20,8 @@ public struct PressingState: Sendable, Equatable {
         rooms: [RoomState] = [],
         detection: DetectionSettings = DetectionSettings(),
         screen: ScreenState = ScreenState(),
-        play: Play? = nil
+        play: Play? = nil,
+        lastFm: LastFmState = LastFmState()
     ) {
         self.input = input
         self.session = session
@@ -27,6 +29,42 @@ public struct PressingState: Sendable, Equatable {
         self.detection = detection
         self.screen = screen
         self.play = play
+        self.lastFm = lastFm
+    }
+}
+
+/// Whether Plays go to Last.fm, as Settings shows it.
+public struct LastFmState: Sendable, Equatable {
+    public enum Connection: Sendable, Equatable {
+        /// The build has no Last.fm API key and secret.
+        case unavailable
+        /// Plays aren't sent. Those made now are never sent later.
+        case disconnected
+        /// The sign-in is under way.
+        case connecting
+        /// Plays go to this listener's Last.fm profile.
+        case connected(username: String)
+    }
+
+    /// Something the listener should know about.
+    public enum Problem: Sendable, Equatable {
+        /// Signing in failed: Last.fm couldn't be reached or refused.
+        case signInFailed
+        /// Last.fm no longer accepts the session, most likely revoked from
+        /// the listener's Last.fm settings. Plays already owed stay queued
+        /// until Last.fm is connected again.
+        case sessionRevoked
+        /// Last.fm refuses Pressing's API key or signature (its error code).
+        /// The build configuration needs fixing; scrobbles wait meanwhile.
+        case misconfigured(code: Int)
+    }
+
+    public var connection: Connection
+    public var problem: Problem?
+
+    public init(connection: Connection = .disconnected, problem: Problem? = nil) {
+        self.connection = connection
+        self.problem = problem
     }
 }
 

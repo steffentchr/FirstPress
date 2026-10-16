@@ -65,31 +65,6 @@ final class FakeArtworkDownloader: ArtworkDownloader {
     }
 }
 
-@MainActor
-final class FakeLastFmHTTP: LastFmHTTP {
-    private(set) var requests: [HTTPRequest] = []
-    var respond: @MainActor (HTTPRequest) throws -> HTTPResponse = { _ in HTTPResponse(status: 200) }
-
-    func send(_ request: HTTPRequest) async throws -> HTTPResponse {
-        requests.append(request)
-        return try respond(request)
-    }
-}
-
-@MainActor
-final class FakeWebAuth: WebAuth {
-    private(set) var openedURLs: [URL] = []
-    var callback: URL?
-
-    struct Cancelled: Error {}
-
-    func authenticate(url: URL, callbackScheme: String) async throws -> URL {
-        openedURLs.append(url)
-        guard let callback else { throw Cancelled() }
-        return callback
-    }
-}
-
 /// A Scheduler the test moves forward by hand.
 @MainActor
 final class FakeScheduler: Scheduler {

@@ -13,7 +13,8 @@ extension Pressing {
             streamSink: FakeStreamSink(),
             encoder: PassThroughEncoder(),
             recognizer: FakeRecognizer(),
-            artwork: FakeArtworkDownloader()
+            artwork: FakeArtworkDownloader(),
+            lastFm: LastFmPorts(account: .test, http: FakeLastFm(), webAuth: FakeWebAuth(), keychain: FakeKeychain())
         )
     }
 }
@@ -29,20 +30,37 @@ struct World {
     let encoder = PassThroughEncoder()
     let recognizer = FakeRecognizer()
     let artwork = FakeArtworkDownloader()
+    let lastFm = FakeLastFm()
+    let webAuth = FakeWebAuth()
+    let keychain: FakeKeychain
     let pressing: Pressing
 
-    init(settings: Settings = Settings(inputID: AudioInputDevice.deck.id), sonos: FakeSonos = FakeSonos()) {
-        store = FakeStore(settings: settings)
+    /// `lastFm` is the session in the Keychain at launch: by default Last.fm
+    /// isn't connected. A nil `account` is a build without an API key.
+    /// `answering` replaces Last.fm's answers before launch.
+    init(
+        settings: Settings = Settings(inputID: AudioInputDevice.deck.id),
+        sonos: FakeSonos = FakeSonos(),
+        store: FakeStore? = nil,
+        account: LastFmAccount? = .test,
+        lastFm session: LastFmSession? = nil,
+        keychain: FakeKeychain? = nil,
+        answering answers: [String: @MainActor (LastFmCall) -> HTTPResponse] = [:]
+    ) {
+        self.store = store ?? FakeStore(settings: settings)
+        self.keychain = keychain ?? FakeKeychain(session: session)
         self.sonos = sonos
+        lastFm.answers.merge(answers) { $1 }
         pressing = Pressing(
             audioInput: input,
-            store: store,
+            store: self.store,
             scheduler: scheduler,
             sonos: sonos.network,
             streamSink: sink,
             encoder: encoder,
             recognizer: recognizer,
-            artwork: artwork
+            artwork: artwork,
+            lastFm: LastFmPorts(account: account, http: lastFm, webAuth: webAuth, keychain: self.keychain)
         )
         pressing.start()
     }

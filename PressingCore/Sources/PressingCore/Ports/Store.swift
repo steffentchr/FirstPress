@@ -87,8 +87,8 @@ public enum DetectionSettingsError: Error, Sendable, Equatable {
 /// Port: durable storage on the phone.
 ///
 /// Settings include Room choices and volumes. Plays are kept indefinitely.
-/// A later ticket adds the scrobble queue.
-/// Credentials do not go here; they go in the Keychain.
+/// The scrobble queue survives a restart. Credentials do not go here; they
+/// go in the Keychain.
 @MainActor
 public protocol Store: AnyObject {
     func loadSettings() -> Settings?
@@ -101,4 +101,7 @@ public protocol Store: AnyObject {
     /// from. Tracks from one album share it.
     func saveCover(_ cover: Data, for artworkURL: URL)
     func loadCover(for artworkURL: URL) -> Data?
+    /// Keeps the Plays owed to Last.fm, by id, replacing the queue kept before.
+    func saveScrobbleQueue(_ queue: [Play.ID])
+    func loadScrobbleQueue() -> [Play.ID]
 }

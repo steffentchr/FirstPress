@@ -29,6 +29,9 @@ public final class Pressing {
     @ObservationIgnored var hold = Hold()
     /// The last Sonos command queued; the next waits for it.
     @ObservationIgnored var sonosQueue: Task<Void, Never>?
+    @ObservationIgnored let lastFmPorts: LastFmPorts
+    /// The Plays owed to Last.fm and how they are being sent.
+    @ObservationIgnored var scrobbling = Scrobbling()
 
     /// The port the stream is served on. Fixed, so Pressing recognises its
     /// own stream in a Room whatever the phone's IP address is now.
@@ -44,9 +47,11 @@ public final class Pressing {
         streamSink: any StreamSink,
         encoder: any MP3Encoder,
         recognizer: any Recognizer,
-        artwork: any ArtworkDownloader
+        artwork: any ArtworkDownloader,
+        lastFm: LastFmPorts
     ) {
         self.audioInput = audioInput
+        lastFmPorts = lastFm
         self.artwork = artwork
         self.store = store
         self.scheduler = scheduler
@@ -66,6 +71,7 @@ public final class Pressing {
     public func start() {
         settings = store.loadSettings() ?? Settings()
         loadHistory()
+        startLastFm()
         applyDetection()
         state.screen.blankAfter = settings.blankAfter
         wakeScreen()
