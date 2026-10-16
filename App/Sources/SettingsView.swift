@@ -38,6 +38,10 @@ struct SettingsView: View {
                     Stepper("Start delay \(Self.seconds(detection.startDelay))", value: detectionBinding(\.startDelay), in: 0.5...10, step: 0.5)
                     Stepper("Flip after \(Self.seconds(detection.flipThreshold))", value: detectionBinding(\.flipThreshold), in: 3...120, step: 1)
                     Stepper("Stop delay \(Self.seconds(detection.stopDelay))", value: detectionBinding(\.stopDelay), in: 5...600, step: 5)
+                    // Pitch-shifted playback isn't supported: Tracks stop matching.
+                    Label("Keep the deck's pitch control at zero, so Tracks are identified and reach Last.fm correctly.", systemImage: "dial.low")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 } header: {
                     Text("Detection")
                 } footer: {
