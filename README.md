@@ -75,6 +75,14 @@ Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms 
 
 The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
 
+## Phone output
+
+"This iPhone", at the top of the Rooms sheet, plays the Record through the phone's own output as well: its speaker, Bluetooth earphones, or an AirPlay speaker or TV. Choose which with the route button next to its switch. It's off on a fresh install, and the switch is remembered. Like a Room, it follows the Session: switched on, it plays from Record start until the Session ends, Gaps and Flips included, and switching it on or off mid-Session takes effect at once. Its volume is the system's: the phone's buttons, or the AirPlay receiver's own control.
+
+It plays the captured audio straight from the input, uncompressed, not the MP3 stream the Rooms get. So it runs a few seconds ahead of the Sonos Rooms, and if you can hear both they won't be in sync. That's expected.
+
+It never changes the input. Switched on, the audio session becomes play-and-record, with AirPlay and Bluetooth allowed only as outputs, never a Bluetooth headset microphone; the deck stays the input, and capture restarts once, briefly, on the same input when you flip the switch. Switched off, the audio session is record-only, exactly as without this feature. Output in measurement mode (needed so the input has no gain control) is a little quieter than other apps.
+
 ## Identification
 
 Pressing searches for the Track when a Record starts, after each Gap, and every 30 s otherwise, each time on 8 s of the deck's audio. The current Track shows on the Now Playing screen (cover, title, artist and album) and in the Sonos app as "Artist – Title" under the station name "Pressing". It stays through quiet passages: it is cleared at a Flip, when a different Track matches, or when the search after a Gap and the following recheck both find nothing. Keep the deck's pitch at zero, or Tracks won't match.
