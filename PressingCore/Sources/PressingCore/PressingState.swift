@@ -1,12 +1,14 @@
 import Foundation
 
-/// The one snapshot the app renders. Later tickets add Session and Record
-/// state, Rooms, the lower-third Track, the blanker and the Last.fm connection.
+/// The one snapshot the app renders. Later tickets add Rooms, the lower-third
+/// Track and the Last.fm connection.
 public struct PressingState: Sendable, Equatable {
     public var input: InputState
+    public var session: SessionState
 
-    public init(input: InputState = InputState()) {
+    public init(input: InputState = InputState(), session: SessionState = .idle) {
         self.input = input
+        self.session = session
     }
 }
 
@@ -57,4 +59,23 @@ public struct InputState: Sendable, Equatable {
         self.level = level
         self.noiseFloor = noiseFloor
     }
+}
+
+/// Whether a Session is running and what its current Record is doing.
+public enum SessionState: Sendable, Equatable {
+    /// No Session: nothing has started since launch or the last Session ended.
+    case idle
+    /// A Session is running. `records` counts the Records in it so far,
+    /// including the current or most recent one.
+    case running(records: Int, record: RecordState)
+}
+
+public enum RecordState: Sendable, Equatable {
+    /// A Record is playing.
+    case playing
+    /// A Record is in a Gap between two tracks.
+    case gap
+    /// The last Record ended with a Flip. The Session ends unless a new Record
+    /// starts within the stop delay.
+    case flipped
 }

@@ -6,7 +6,7 @@ import PressingCore
 struct LevelMeterTests {
     private func capturingDeck() -> (FakeAudioInput, Pressing) {
         let input = FakeAudioInput(availableInputs: [.mic, .deck])
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
         pressing.start()
         return (input, pressing)
     }
@@ -32,6 +32,16 @@ struct LevelMeterTests {
 
         let level = try #require(pressing.state.input.level)
         #expect(abs(level - (-40.0)) < 0.01)
+    }
+
+    @Test("Level is the median of the last second, so a click doesn't lift it")
+    func clickDoesNotLiftLevel() throws {
+        let (input, pressing) = capturingDeck()
+
+        input.feed(Signal.clicks(at: [0.95], over: 1, floor: 0.001, sampleRate: 44_100), sampleRate: 44_100)
+
+        let level = try #require(pressing.state.input.level)
+        #expect(abs(level - (-60.0)) < 0.01)
     }
 
     @Test("Digital silence shows the bottom of the meter rather than minus infinity")

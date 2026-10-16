@@ -22,12 +22,31 @@ enum Signal {
 }
 
 extension FakeAudioInput {
-    /// Feeds mono samples in 512-frame buffers, the way a USB input delivers them.
+    /// Feeds mono samples in 512-frame buffers, the way a USB input delivers
+    /// them, all at once: no time passes.
     func feed(_ samples: [Float], sampleRate: Double, from inputID: AudioInputDevice.ID = AudioInputDevice.deck.id) {
+        feed(samples, sampleRate: sampleRate, from: inputID) { _ in }
+    }
+
+    /// Plays mono samples in real time: each 512-frame buffer arrives once the
+    /// scheduler has moved on by that buffer's duration.
+    func play(_ samples: [Float], sampleRate: Double, on scheduler: FakeScheduler) {
+        feed(samples, sampleRate: sampleRate, from: AudioInputDevice.deck.id) { frames in
+            scheduler.advance(by: Double(frames) / sampleRate)
+        }
+    }
+
+    private func feed(
+        _ samples: [Float],
+        sampleRate: Double,
+        from inputID: AudioInputDevice.ID,
+        beforeEachBuffer: (Int) -> Void
+    ) {
         let chunk = 512
         var start = 0
         while start < samples.count {
             let end = min(start + chunk, samples.count)
+            beforeEachBuffer(end - start)
             let buffer = PCMBuffer(
                 inputID: inputID,
                 sampleRate: sampleRate,

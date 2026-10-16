@@ -9,10 +9,16 @@ public final class Pressing {
 
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored private let store: any Store
+    @ObservationIgnored private let scheduler: any Scheduler
+    @ObservationIgnored private var detector: Detector!
 
-    public init(audioInput: any AudioInput, store: any Store) {
+    public init(audioInput: any AudioInput, store: any Store, scheduler: any Scheduler) {
         self.audioInput = audioInput
         self.store = store
+        self.scheduler = scheduler
+        detector = Detector(scheduler: scheduler) { [weak self] event in
+            self?.handle(event)
+        }
     }
 
     /// Call once at launch.
@@ -35,6 +41,7 @@ public final class Pressing {
             startCapture()
         case .interruptionBegan:
             state.input.status = .interrupted
+            clearLevel()
         case .interruptionEnded, .mediaServicesReset:
             startCapture()
         }
@@ -52,6 +59,7 @@ public final class Pressing {
 
     @ObservationIgnored private var settings = Settings()
     @ObservationIgnored private var meter = LevelMeter()
+    @ObservationIgnored private var window = LevelWindow()
     @ObservationIgnored private var noiseFloor = NoiseFloor()
 
     private func receive(_ buffer: PCMBuffer) {
@@ -63,10 +71,37 @@ public final class Pressing {
             return
         }
         state.input.status = .present
-        for level in meter.add(buffer) {
+        for frame in meter.add(buffer) {
+            let level = window.add(frame)
             state.input.level = level
             state.input.noiseFloor = noiseFloor.add(level)
+            detector.level(level)
         }
+    }
+
+    private func handle(_ event: Detector.Event) {
+        switch event {
+        case .recordStarted:
+            switch state.session {
+            case .idle:
+                state.session = .running(records: 1, record: .playing)
+            case .running(let records, _):
+                state.session = .running(records: records + 1, record: .playing)
+            }
+        case .sessionEnded:
+            state.session = .idle
+        case .gap:
+            setRecord(.gap)
+        case .resumed:
+            setRecord(.playing)
+        case .flip:
+            setRecord(.flipped)
+        }
+    }
+
+    private func setRecord(_ record: RecordState) {
+        guard case .running(let records, _) = state.session else { return }
+        state.session = .running(records: records, record: record)
     }
 
     /// Capture was started from the chosen input and nothing has stopped it since.
@@ -79,7 +114,11 @@ public final class Pressing {
 
     private func clearLevel() {
         meter.reset()
+        window.reset()
         state.input.level = nil
+        // No audio is silence, so an input that disappears can still flip the
+        // Record and end the Session.
+        detector.level(InputState.minimumLevel)
     }
 
     private func startCapture() {

@@ -7,7 +7,7 @@ struct InputSelectionTests {
     @Test("With no input chosen, nothing is captured, not even the built-in mic")
     func noInputChosen() {
         let input = FakeAudioInput(availableInputs: [.mic, .deck])
-        let pressing = Pressing(audioInput: input, store: FakeStore())
+        let pressing = Pressing(audioInput: input, store: FakeStore(), scheduler: FakeScheduler())
 
         pressing.start()
 
@@ -20,7 +20,7 @@ struct InputSelectionTests {
     func chooseDeck() {
         let input = FakeAudioInput(availableInputs: [.mic, .deck])
         let store = FakeStore()
-        let pressing = Pressing(audioInput: input, store: store)
+        let pressing = Pressing(audioInput: input, store: store, scheduler: FakeScheduler())
         pressing.start()
 
         pressing.chooseInput(AudioInputDevice.deck.id)
@@ -30,7 +30,7 @@ struct InputSelectionTests {
         #expect(pressing.state.input.chosenID == "usb-deck")
 
         let relaunchedInput = FakeAudioInput(availableInputs: [.mic, .deck])
-        let relaunched = Pressing(audioInput: relaunchedInput, store: store)
+        let relaunched = Pressing(audioInput: relaunchedInput, store: store, scheduler: FakeScheduler())
         relaunched.start()
 
         #expect(relaunchedInput.startedInputs == ["usb-deck"])
@@ -40,7 +40,7 @@ struct InputSelectionTests {
     @Test("When the chosen deck isn't plugged in, the input is missing and the mic is not used instead")
     func deckMissingAtLaunch() {
         let input = FakeAudioInput(availableInputs: [.mic])
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
 
         pressing.start()
 
@@ -51,7 +51,7 @@ struct InputSelectionTests {
     @Test("The built-in mic is used when the listener chooses it")
     func micChosenOnPurpose() {
         let input = FakeAudioInput(availableInputs: [.mic, .deck])
-        let pressing = Pressing(audioInput: input, store: FakeStore())
+        let pressing = Pressing(audioInput: input, store: FakeStore(), scheduler: FakeScheduler())
         pressing.start()
 
         pressing.chooseInput(AudioInputDevice.mic.id)

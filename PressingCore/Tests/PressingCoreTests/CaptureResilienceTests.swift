@@ -6,7 +6,7 @@ import PressingCore
 struct CaptureResilienceTests {
     private func capturingDeck() -> (FakeAudioInput, Pressing) {
         let input = FakeAudioInput(availableInputs: [.mic, .deck])
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
         pressing.start()
         return (input, pressing)
     }
@@ -69,7 +69,7 @@ struct CaptureResilienceTests {
     func permissionDenied() {
         let input = FakeAudioInput(availableInputs: [.deck])
         input.startError = .permissionDenied
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
 
         pressing.start()
 
@@ -80,7 +80,7 @@ struct CaptureResilienceTests {
     func routedElsewhere() {
         let input = FakeAudioInput(availableInputs: [.deck])
         input.startError = .inputUnavailable
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
 
         pressing.start()
 

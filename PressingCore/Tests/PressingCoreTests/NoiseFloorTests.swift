@@ -8,7 +8,7 @@ struct NoiseFloorTests {
 
     private func capturingDeck() -> (FakeAudioInput, Pressing) {
         let input = FakeAudioInput(availableInputs: [.deck])
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
         pressing.start()
         return (input, pressing)
     }
@@ -49,7 +49,7 @@ struct NoiseFloorTests {
     @Test("Choosing another input starts the noise floor afresh")
     func newInputNewFloor() throws {
         let input = FakeAudioInput(availableInputs: [.deck, .mic])
-        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")))
+        let pressing = Pressing(audioInput: input, store: FakeStore(settings: Settings(inputID: "usb-deck")), scheduler: FakeScheduler())
         pressing.start()
         input.feed(Signal.square(amplitude: 0.001, seconds: 5, sampleRate: rate), sampleRate: rate)
 

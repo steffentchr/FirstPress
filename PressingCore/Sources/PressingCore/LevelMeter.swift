@@ -45,3 +45,34 @@ struct LevelMeter {
         return max(20 * log10(rms), InputState.minimumLevel)
     }
 }
+
+/// The click-robust level: the median of the last second of frame levels.
+///
+/// An isolated click lifts one ~100 ms frame and leaves the median alone, so
+/// the run-out groove's click every 1.8 s (1.33 s at 45 rpm) neither holds a
+/// Record open nor stops a Flip.
+struct LevelWindow {
+    static let seconds = 1.0
+
+    private var levels: [Double] = []
+    private let capacity = Int((seconds / LevelMeter.frameSeconds).rounded())
+
+    /// Adds one frame level and returns the median of the window so far.
+    mutating func add(_ level: Double) -> Double {
+        levels.append(level)
+        if levels.count > capacity {
+            levels.removeFirst(levels.count - capacity)
+        }
+        return Self.median(levels)
+    }
+
+    mutating func reset() {
+        levels = []
+    }
+
+    static func median(_ values: [Double]) -> Double {
+        let sorted = values.sorted()
+        let middle = sorted.count / 2
+        return sorted.count.isMultiple(of: 2) ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle]
+    }
+}
