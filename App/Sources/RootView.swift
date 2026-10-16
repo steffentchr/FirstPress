@@ -34,15 +34,19 @@ struct RootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.easeInOut(duration: 0.4), value: page)
             .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    // Before any input is chosen, no Rooms are looked for yet.
-                    if page != .chooseInput(.noneChosen) {
+                // Before any input is chosen, no Rooms are looked for yet.
+                if page != .chooseInput(.noneChosen) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
                             .tint(iconTint)
                     }
+                    .withoutGlass()
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
                         .tint(iconTint)
                 }
+                .withoutGlass()
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(pressing: pressing)
@@ -61,4 +65,17 @@ struct RootView: View {
     }
 
     private var isKiosk: Bool { pressing.state.screen.isKiosk }
+}
+
+extension ToolbarContent {
+    /// Just the icon: no Liquid Glass background behind it (iOS 26 and later;
+    /// earlier versions draw none anyway).
+    @ToolbarContentBuilder
+    func withoutGlass() -> some ToolbarContent {
+        if #available(iOS 26, *) {
+            sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
+    }
 }
