@@ -10,8 +10,9 @@ struct MainView: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 24) {
+                SessionStatusView(session: pressing.state.session)
                 InputStatusView(input: input)
-                LevelMeterView(level: input.level, noiseFloor: input.noiseFloor)
+                LevelMeterView(level: input.level, noiseFloor: input.noiseFloor, threshold: pressing.state.detection.threshold)
                 Spacer()
             }
             .padding()
@@ -21,7 +22,41 @@ struct MainView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsView(pressing: pressing)
+                    .screenBlanker(pressing)
             }
+        }
+        .screenBlanker(pressing)
+    }
+}
+
+/// Whether a Session is running and what its Record is doing.
+struct SessionStatusView: View {
+    let session: SessionState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).font(.title2.bold())
+            Text(detail).foregroundStyle(.secondary)
+        }
+    }
+
+    private var title: String {
+        switch session {
+        case .idle: "No Session"
+        case .running: "Session"
+        }
+    }
+
+    private var detail: String {
+        switch session {
+        case .idle:
+            "Drop the needle to start."
+        case .running(let records, .playing):
+            "Record \(records) playing"
+        case .running(let records, .gap):
+            "Record \(records), between tracks"
+        case .running(let records, .flipped):
+            "Record \(records) ended. Waiting for the next one."
         }
     }
 }
@@ -62,10 +97,12 @@ struct InputStatusView: View {
     }
 }
 
-/// Horizontal meter from −80 to 0 dBFS with a tick at the noise floor.
+/// Horizontal meter from −80 to 0 dBFS with ticks at the noise floor (white) and the start threshold (orange).
 struct LevelMeterView: View {
     let level: Double?
     let noiseFloor: Double?
+    /// The start threshold from Settings, marked so it can be set above the noise floor.
+    let threshold: Double
 
     private static let range = -80.0...0.0
 
@@ -83,6 +120,10 @@ struct LevelMeterView: View {
                             .frame(width: 2)
                             .offset(x: geometry.size.width * Self.fraction(noiseFloor))
                     }
+                    Rectangle()
+                        .fill(.orange)
+                        .frame(width: 2)
+                        .offset(x: geometry.size.width * Self.fraction(threshold))
                 }
             }
             .frame(height: 16)

@@ -6,6 +6,7 @@ struct SettingsView: View {
     let pressing: Pressing
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @State private var refusal: String?
 
     private var input: InputState { pressing.state.input }
 
@@ -32,6 +33,33 @@ struct SettingsView: View {
                     Text("Pressing only listens to the input chosen here. It never switches to the built-in microphone on its own.")
                 }
 
+                Section {
+                    Stepper("Threshold \(Int(detection.threshold)) dBFS", value: detectionBinding(\.threshold), in: -80...(-20), step: 1)
+                    Stepper("Start delay \(Self.seconds(detection.startDelay))", value: detectionBinding(\.startDelay), in: 0.5...10, step: 0.5)
+                    Stepper("Flip after \(Self.seconds(detection.flipThreshold))", value: detectionBinding(\.flipThreshold), in: 3...120, step: 1)
+                    Stepper("Stop delay \(Self.seconds(detection.stopDelay))", value: detectionBinding(\.stopDelay), in: 5...600, step: 5)
+                } header: {
+                    Text("Detection")
+                } footer: {
+                    if let refusal {
+                        Text(refusal).foregroundStyle(.orange)
+                    } else {
+                        Text("Set the threshold clearly above the noise floor and below the quietest music. A Record starts once the level stays above it for the start delay, and ends with a Flip after that long below it. The Session ends if no new Record starts within the stop delay after a Flip.")
+                    }
+                }
+
+                Section {
+                    Picker("Blank screen", selection: blankAfter) {
+                        ForEach(Self.blankAfterChoices, id: \.self) { choice in
+                            Text(Self.label(choice)).tag(choice)
+                        }
+                    }
+                } header: {
+                    Text("Screen")
+                } footer: {
+                    Text("A blank screen protects the display. Touch it, or start a Record, to wake it.")
+                }
+
                 Section("Permissions") {
                     Button("Microphone access") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -54,6 +82,44 @@ struct SettingsView: View {
                 if let id { pressing.chooseInput(id) }
             }
         )
+    }
+
+    private var detection: DetectionSettings { pressing.state.detection }
+
+    private func detectionBinding(_ keyPath: WritableKeyPath<DetectionSettings, Double>) -> Binding<Double> {
+        Binding(
+            get: { detection[keyPath: keyPath] },
+            set: { value in
+                var changed = detection
+                changed[keyPath: keyPath] = value
+                do {
+                    try pressing.setDetection(changed)
+                    refusal = nil
+                } catch {
+                    refusal = "The stop delay must be longer than the Flip threshold, or a Session could end before its Record."
+                }
+            }
+        )
+    }
+
+    private var blankAfter: Binding<BlankAfter> {
+        Binding(
+            get: { pressing.state.screen.blankAfter },
+            set: { pressing.setBlankAfter($0) }
+        )
+    }
+
+    private static let blankAfterChoices: [BlankAfter] = [.after(60), .after(2 * 60), .after(5 * 60), .after(10 * 60), .after(30 * 60), .never]
+
+    private static func label(_ blankAfter: BlankAfter) -> String {
+        switch blankAfter {
+        case .never: "Never"
+        case .after(let seconds): "After \(Int(seconds / 60)) min"
+        }
+    }
+
+    private static func seconds(_ value: TimeInterval) -> String {
+        value.rounded() == value ? "\(Int(value)) s" : String(format: "%.1f s", value)
     }
 
     private static func label(_ device: AudioInputDevice) -> String {
