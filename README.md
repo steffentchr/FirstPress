@@ -18,6 +18,8 @@ Runs on macOS; no simulator needed.
 2. Copy `Config/Signing.xcconfig.example` to `Config/Signing.xcconfig` and fill in your bundle ID and team ID. The copy is git-ignored. Without it, the app still builds for the simulator with a placeholder bundle ID.
 3. Generate the project with `xcodegen generate`, then open `Pressing.xcodeproj`. The project is generated from `project.yml` and not checked in. Run `xcodegen generate` again after pulling changes to it.
 
+   The first `xcodegen generate` also builds the MP3 encoder: `scripts/build-lame.sh` downloads LAME 3.100, checks its SHA-256, and cross-compiles it into `Vendor/LAME.xcframework` (iOS device, simulator and macOS). This takes about a minute and needs the network once. The framework is git-ignored. To rebuild it, run `scripts/build-lame.sh` yourself.
+
 To build for the simulator from the command line:
 
 ```sh
@@ -26,6 +28,12 @@ xcodebuild -project Pressing.xcodeproj -scheme Pressing \
 ```
 
 Audio capture needs a real iPhone with the deck plugged in. Choose the deck's input in Settings.
+
+## Rooms and the stream
+
+Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. Allow local network access when asked; the shortcut is in Settings. Switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
+
+The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
 
 ## Calibrate detection
 

@@ -13,6 +13,7 @@ struct MainView: View {
                 SessionStatusView(session: pressing.state.session)
                 InputStatusView(input: input)
                 LevelMeterView(level: input.level, noiseFloor: input.noiseFloor, threshold: pressing.state.detection.threshold)
+                RoomsView(pressing: pressing)
                 Spacer()
             }
             .padding()

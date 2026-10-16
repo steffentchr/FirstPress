@@ -60,18 +60,26 @@ struct SettingsView: View {
                     Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it.")
                 }
 
-                Section("Permissions") {
-                    Button("Microphone access") {
-                        if let url = URL(string: UIApplication.openSettingsURLString) {
-                            openURL(url)
-                        }
-                    }
+                Section {
+                    // Both switches are on Pressing's own page in the Settings app.
+                    Button("Microphone access") { openAppSettings() }
+                    Button("Local network access") { openAppSettings() }
+                } header: {
+                    Text("Permissions")
+                } footer: {
+                    Text("Pressing needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
                 }
             }
             .navigationTitle("Settings")
             .toolbar {
                 Button("Done") { dismiss() }
             }
+        }
+    }
+
+    private func openAppSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            openURL(url)
         }
     }
 

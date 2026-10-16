@@ -7,7 +7,10 @@ struct PressingApp: App {
     @State private var pressing = Pressing(
         audioInput: AVAudioSessionInput(),
         store: UserDefaultsStore(),
-        scheduler: MainQueueScheduler()
+        scheduler: MainQueueScheduler(),
+        sonos: BonjourSonosNetwork(),
+        streamSink: NetworkStreamServer(),
+        encoder: LAMEEncoder()
     )
 
     var body: some Scene {
