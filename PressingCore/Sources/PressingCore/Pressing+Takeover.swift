@@ -77,6 +77,30 @@ extension Pressing {
         }
     }
 
+    /// During a Session, takes over switched-on Rooms that aren't held yet:
+    /// found late, or back on the network.
+    func takeOverMissingRooms() {
+        guard case .running = state.session else { return }
+        enqueueSonos { [weak self] in
+            guard let self, case .running = state.session else { return }
+            await takeOver(state.rooms.filter(\.isOn).map(\.id))
+        }
+    }
+
+    /// A held Room gone from the network is let go without a Step back, so
+    /// it rejoins when it returns. If it led, the rest re-form.
+    func roomLost(at host: String) {
+        enqueueSonos { [weak self] in
+            guard let self, let id = roomHosts.first(where: { $0.value == host })?.key,
+                  hold.rooms.contains(id)
+            else { return }
+            hold.rooms.remove(id)
+            if hold.leader == id {
+                await reform()
+            }
+        }
+    }
+
     /// Lets go of a held Room: it leaves the group, then stops.
     private func release(_ id: RoomState.ID) async {
         guard hold.rooms.contains(id), let host = roomHosts[id] else { return }
@@ -120,7 +144,7 @@ extension Pressing {
         await refreshTopology(from: ids + hold.rooms)
         // In name order, as the main screen lists them.
         var candidates = state.rooms
-            .filter { ids.contains($0.id) && $0.isReachable && roomHosts[$0.id] != nil && !hold.rooms.contains($0.id) }
+            .filter { ids.contains($0.id) && $0.isReachable && !$0.isSteppedBack && roomHosts[$0.id] != nil && !hold.rooms.contains($0.id) }
             .map(\.id)
         let ours = Set(candidates).union(hold.rooms)
         if hold.leader == nil {

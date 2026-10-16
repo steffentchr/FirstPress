@@ -25,6 +25,7 @@ extension Pressing {
     private func handle(_ event: SonosDiscoveryEvent) {
         switch event {
         case .found(let device):
+            setReachable(true, host: device.host)
             // Any one player knows the whole household (ADR-0003). Bonjour
             // reports players in a burst; one read covers the burst, and
             // players found later read it again to pick up new Rooms.
@@ -33,10 +34,13 @@ extension Pressing {
             Task {
                 await readTopology(from: device.host)
                 isReadingTopology = false
+                // Rooms found or back during a Session join it.
+                takeOverMissingRooms()
             }
-        case .lost:
+        case .lost(let device):
             // The topology from the next player found replaces the list.
-            break
+            setReachable(false, host: device.host)
+            roomLost(at: device.host)
         }
     }
 
