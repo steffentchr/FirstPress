@@ -24,6 +24,7 @@ public struct PressingState: Sendable, Equatable {
 
 /// The screen blanker. Blanking is Pressing's own: the app keeps the system
 /// idle timer disabled and covers the screen in black while `isBlanked`.
+/// It never blanks while a Record is playing, Gaps included.
 public struct ScreenState: Sendable, Equatable {
     public var isBlanked: Bool
     /// As set in Settings.
@@ -99,6 +100,6 @@ public enum RecordState: Sendable, Equatable {
     /// A Record is in a Gap between two tracks.
     case gap
     /// The last Record ended with a Flip. The Session ends unless a new Record
-    /// starts within the stop delay.
+    /// starts before the silence reaches the stop delay.
     case flipped
 }
