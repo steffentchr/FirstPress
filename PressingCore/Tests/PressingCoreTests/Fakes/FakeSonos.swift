@@ -39,6 +39,8 @@ final class FakeSonos {
     var groups: [[FakeRoom]]
     /// Hosts that refuse connections.
     var unreachable: Set<String> = []
+    /// Hosts that answer every state-changing action with this UPnP fault code.
+    var faults: [String: Int] = [:]
     /// Every request that broke the SOAP rules (wrong port, header or envelope).
     private(set) var malformed: [String] = []
 
@@ -70,6 +72,9 @@ final class FakeSonos {
         guard let host = request.url.host, !unreachable.contains(host) else { throw Unreachable() }
         check(request)
         guard let call = Self.parse(request) else { return HTTPResponse(status: 500) }
+        if let code = faults[host], call.action != "GetZoneGroupState" {
+            return Self.fault(code)
+        }
         switch call.action {
         case "GetZoneGroupState":
             return Self.response("ZoneGroupTopology", "GetZoneGroupState", body: "<ZoneGroupState>\(Self.escape(topologyXML))</ZoneGroupState>")
@@ -114,6 +119,11 @@ final class FakeSonos {
     private static func response(_ service: String, _ action: String, body: String) -> HTTPResponse {
         let xml = #"<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><u:\#(action)Response xmlns:u="urn:schemas-upnp-org:service:\#(service):1">\#(body)</u:\#(action)Response></s:Body></s:Envelope>"#
         return HTTPResponse(status: 200, headers: ["Connection": "close"], body: Data(xml.utf8))
+    }
+
+    private static func fault(_ code: Int) -> HTTPResponse {
+        let xml = #"<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><s:Body><s:Fault><faultcode>s:Client</faultcode><faultstring>UPnPError</faultstring><detail><UPnPError xmlns="urn:schemas-upnp-org:control-1-0"><errorCode>\#(code)</errorCode></UPnPError></detail></s:Fault></s:Body></s:Envelope>"#
+        return HTTPResponse(status: 500, headers: ["Connection": "close"], body: Data(xml.utf8))
     }
 
     private static func escape(_ text: String) -> String {

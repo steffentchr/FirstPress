@@ -11,6 +11,7 @@ extension Pressing {
     public func setVolume(_ volume: Int, for id: RoomState.ID) {
         let volume = min(max(volume, 0), 100)
         updateChoice(for: id) { $0.volume = volume }
+        roomVolumeChanged(id)
     }
 
     func startDiscovery() {

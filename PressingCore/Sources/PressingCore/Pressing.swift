@@ -9,9 +9,9 @@ public final class Pressing {
 
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored let store: any Store
+    @ObservationIgnored let streamSink: any StreamSink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored let sonos: any SonosNetwork
-    @ObservationIgnored private let streamSink: any StreamSink
     @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored private var detector: Detector!
     @ObservationIgnored private let stream: StreamServer
@@ -20,6 +20,10 @@ public final class Pressing {
     @ObservationIgnored var roomHosts: [String: String] = [:]
     /// A topology read is under way, so further players found join it.
     @ObservationIgnored var isReadingTopology = false
+    /// Rooms taken over in this Session, by RINCON id.
+    @ObservationIgnored var heldRooms: Set<String> = []
+    /// The last Sonos command queued; the next waits for it.
+    @ObservationIgnored var sonosQueue: Task<Void, Never>?
 
     /// The port the stream is served on. Fixed, so Pressing recognises its
     /// own stream in a Room whatever the phone's IP address is now.
@@ -176,12 +180,14 @@ public final class Pressing {
             switch state.session {
             case .idle:
                 state.session = .running(records: 1, record: .playing)
+                takeOverRooms()
             case .running(let records, _):
                 state.session = .running(records: records + 1, record: .playing)
             }
             wakeScreen()
         case .sessionEnded:
             state.session = .idle
+            stopRooms()
         case .gap:
             setRecord(.gap)
         case .resumed:
