@@ -6,6 +6,8 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  # LAME is a build output, not checked in: build it the first time (ADR-0002).
+  preGenCommand: scripts/build-lame.sh --if-missing
 
 packages:
   PressingCore:
@@ -22,6 +24,8 @@ targets:
       Release: Config/Base.xcconfig
     dependencies:
       - package: PressingCore
+      - framework: Vendor/LAME.xcframework
+        embed: false
     scheme: {}
     settings:
       base:
@@ -32,8 +36,11 @@ targets:
         MARKETING_VERSION: "0.1"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
+        # Merged into the generated Info.plist: only keys INFOPLIST_KEY_ can't express.
+        INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Pressing
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Pressing listens to your record deck's USB input so it can play the Record in your Sonos Rooms. It only uses the input you choose in Settings."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Pressing finds your Sonos Rooms and plays your Record to them over your home network."
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
