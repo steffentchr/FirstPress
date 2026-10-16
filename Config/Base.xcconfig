@@ -1,0 +1,13 @@
+// Shared build settings for the Pressing app target.
+//
+// Signing is per developer: copy Signing.xcconfig.example to Signing.xcconfig
+// (git-ignored) and fill in your own bundle ID and team. Without it the app
+// still builds for the simulator with a placeholder bundle ID.
+
+PRESSING_BUNDLE_ID = invalid.pressing.set-in-signing-xcconfig
+PRESSING_DEVELOPMENT_TEAM =
+
+#include? "Signing.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER = $(PRESSING_BUNDLE_ID)
+DEVELOPMENT_TEAM = $(PRESSING_DEVELOPMENT_TEAM)

@@ -1,0 +1,39 @@
+# Xcode project definition. Generate Pressing.xcodeproj with `xcodegen generate`;
+# the .xcodeproj itself is not checked in.
+name: Pressing
+
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+packages:
+  PressingCore:
+    path: PressingCore
+
+targets:
+  Pressing:
+    type: application
+    platform: iOS
+    sources:
+      - App/Sources
+    configFiles:
+      Debug: Config/Base.xcconfig
+      Release: Config/Base.xcconfig
+    dependencies:
+      - package: PressingCore
+    scheme: {}
+    settings:
+      base:
+        # Bundle ID and team come from Config/Signing.xcconfig, never from here.
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Pressing
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Pressing listens to your record deck's USB input so it can play the Record in your Sonos Rooms. It only uses the input you choose in Settings."
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
