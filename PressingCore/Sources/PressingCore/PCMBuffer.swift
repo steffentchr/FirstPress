@@ -12,7 +12,12 @@ public struct PCMBuffer: Sendable, Equatable {
     /// Builds a stereo buffer from deinterleaved channels. A mono input is
     /// duplicated to both sides; channels beyond the second are dropped.
     public init(inputID: AudioInputDevice.ID, sampleRate: Double, time: TimeInterval, channels: [[Float]]) {
-        fatalError("not implemented")
+        self.inputID = inputID
+        self.sampleRate = sampleRate
+        self.time = time
+        let left = channels.first ?? []
+        self.left = left
+        self.right = channels.count > 1 ? channels[1] : left
     }
 
     public var frameCount: Int { left.count }

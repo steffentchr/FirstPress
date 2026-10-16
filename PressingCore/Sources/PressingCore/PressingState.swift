@@ -28,6 +28,12 @@ public struct InputState: Sendable, Equatable {
         case failed(String)
     }
 
+    /// The bottom of the meter. Digital silence reads as this, not minus infinity.
+    public static let minimumLevel: Double = -100
+
+    /// Sample rates Pressing takes from an input.
+    public static let supportedSampleRates: Set<Double> = [44_100, 48_000]
+
     public var status: Status
     /// Inputs to offer in Settings.
     public var available: [AudioInputDevice]

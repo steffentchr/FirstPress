@@ -28,8 +28,8 @@ public final class Pressing {
 
     private func handle(_ event: AudioInputEvent) {
         switch event {
-        case .buffer:
-            break
+        case .buffer(let buffer):
+            receive(buffer)
         case .routeChanged:
             state.input.available = audioInput.availableInputs
             startCapture()
@@ -45,12 +45,45 @@ public final class Pressing {
         settings.inputID = id
         store.saveSettings(settings)
         state.input.chosenID = id
+        noiseFloor = NoiseFloor()
+        state.input.noiseFloor = nil
         startCapture()
     }
 
     @ObservationIgnored private var settings = Settings()
+    @ObservationIgnored private var meter = LevelMeter()
+    @ObservationIgnored private var noiseFloor = NoiseFloor()
+
+    private func receive(_ buffer: PCMBuffer) {
+        // Only the chosen input counts, whatever the system routed to.
+        guard isCapturing, buffer.inputID == settings.inputID else { return }
+        guard InputState.supportedSampleRates.contains(buffer.sampleRate) else {
+            state.input.status = .unsupportedSampleRate(buffer.sampleRate)
+            clearLevel()
+            return
+        }
+        state.input.status = .present
+        for level in meter.add(buffer) {
+            state.input.level = level
+            state.input.noiseFloor = noiseFloor.add(level)
+        }
+    }
+
+    /// Capture was started from the chosen input and nothing has stopped it since.
+    private var isCapturing: Bool {
+        switch state.input.status {
+        case .present, .unsupportedSampleRate: true
+        default: false
+        }
+    }
+
+    private func clearLevel() {
+        meter.reset()
+        state.input.level = nil
+    }
 
     private func startCapture() {
+        clearLevel()
         guard let chosen = settings.inputID else {
             state.input.status = .notChosen
             return
