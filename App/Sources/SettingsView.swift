@@ -60,6 +60,8 @@ struct SettingsView: View {
                     Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it.")
                 }
 
+                LastFmSection(pressing: pressing)
+
                 Section {
                     // Both switches are on Pressing's own page in the Settings app.
                     Button("Microphone access") { openAppSettings() }

@@ -32,6 +32,10 @@ final class PlayDatabase {
                 play BLOB NOT NULL
             );
             CREATE INDEX IF NOT EXISTS plays_started_at ON plays (started_at);
+            CREATE TABLE IF NOT EXISTS scrobble_queue (
+                position INTEGER PRIMARY KEY NOT NULL,
+                play_id TEXT NOT NULL
+            );
             """)
     }
 
@@ -68,6 +72,42 @@ final class PlayDatabase {
                 }
             }
             return plays
+        }
+    }
+
+    /// Replaces the scrobble queue, in one transaction so a crash keeps
+    /// either the old queue or the new one.
+    func saveScrobbleQueue(_ queue: [UUID]) throws {
+        try execute("BEGIN IMMEDIATE")
+        do {
+            try execute("DELETE FROM scrobble_queue")
+            for (position, id) in queue.enumerated() {
+                try withStatement("INSERT INTO scrobble_queue (position, play_id) VALUES (?, ?)") { statement in
+                    sqlite3_bind_int64(statement, 1, Int64(position))
+                    sqlite3_bind_text(statement, 2, id.uuidString, -1, Self.transient)
+                    guard sqlite3_step(statement) == SQLITE_DONE else { throw lastError() }
+                }
+            }
+            try execute("COMMIT")
+        } catch {
+            try? execute("ROLLBACK")
+            throw error
+        }
+    }
+
+    /// The scrobble queue, in order.
+    func scrobbleQueue() throws -> [UUID] {
+        try withStatement("SELECT play_id FROM scrobble_queue ORDER BY position") { statement in
+            var queue: [UUID] = []
+            while true {
+                let step = sqlite3_step(statement)
+                if step == SQLITE_DONE { break }
+                guard step == SQLITE_ROW else { throw lastError() }
+                if let text = sqlite3_column_text(statement, 0), let id = UUID(uuidString: String(cString: text)) {
+                    queue.append(id)
+                }
+            }
+            return queue
         }
     }
 

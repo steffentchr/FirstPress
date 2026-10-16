@@ -39,6 +39,24 @@ Pressing identifies Tracks against the Shazam catalog, which only answers apps w
 
 No entitlement or Info.plist key is needed for the Shazam catalog. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit). Identification also needs the phone online, since Shazam matches on Apple's servers.
 
+### Set up the Last.fm API account
+
+Pressing scrobbles to Last.fm with its own API account. The key and secret are build configuration and are never committed:
+
+1. Sign in at Last.fm and create an API account at [last.fm/api/account/create](https://www.last.fm/api/account/create). Name the application "Pressing". The callback URL can stay empty: Pressing passes its own callback, `pressing://lastfm-auth`, when it opens the sign-in page.
+2. Copy `Config/LastFm.xcconfig.example` to `Config/LastFm.xcconfig` and fill in the API key and shared secret from [last.fm/api/accounts](https://www.last.fm/api/accounts). The copy is git-ignored.
+3. Build again. The values reach the app through `App/Info.plist` (`LastFmAPIKey`, `LastFmAPISecret`).
+
+Without `Config/LastFm.xcconfig` the app still builds, and Settings says Last.fm isn't available in this build. The secret ends up inside the built app, as it does for any app that signs Last.fm calls on the phone; keep builds to your own devices.
+
+## Last.fm
+
+Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve Pressing, close it: Pressing then finishes connecting. Disconnect in Settings to stop scrobbling.
+
+When a Play starts while Last.fm is connected, Pressing sends "now playing" and asks Last.fm for the Track's length and album; the album fills in the Play, since Shazam gives none. The Play is scrobbled once it qualifies: the Track is longer than 30 s and has played for half its length or 4 minutes, whichever comes first. If Last.fm doesn't know the length, it qualifies at 4 minutes, or at its end if it ran at least 30 s. Scrobbles wait in a queue that survives a restart, go in batches of up to 50, and are retried with backoff and as soon as the network returns.
+
+History shows each Play's status: waiting for Last.fm (pending), scrobbled, rejected by Last.fm, too short to scrobble, or not scrobbled. Plays made while Last.fm isn't connected are never sent later, and nor are those still waiting when you disconnect. If Last.fm stops accepting the session (revoked from your Last.fm settings), Settings says so; connect again and the Plays still waiting are sent.
+
 ## Rooms and the stream
 
 Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. Allow local network access when asked; the shortcut is in Settings. Switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.

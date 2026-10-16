@@ -4,9 +4,10 @@ import os
 import PressingCore
 
 /// Production Store. Settings are one small JSON value in UserDefaults; Plays
-/// go in a SQLite database (`PlayDatabase`), since History is kept
-/// indefinitely and each Play is saved several times as it changes; covers
-/// are files beside it. Credentials never go here.
+/// and the scrobble queue go in a SQLite database (`PlayDatabase`), since
+/// History is kept indefinitely and each Play is saved several times as it
+/// changes; covers are files beside it. Credentials never go here; they go
+/// in the Keychain (`KeychainCredentials`).
 @MainActor
 final class PhoneStore: Store {
     private let defaults: UserDefaults
@@ -59,6 +60,23 @@ final class PhoneStore: Store {
             return try plays?.all() ?? []
         } catch {
             log.error("History can't be read: \(error)")
+            return []
+        }
+    }
+
+    func saveScrobbleQueue(_ queue: [Play.ID]) {
+        do {
+            try plays?.saveScrobbleQueue(queue)
+        } catch {
+            log.error("The scrobble queue can't be saved: \(error)")
+        }
+    }
+
+    func loadScrobbleQueue() -> [Play.ID] {
+        do {
+            return try plays?.scrobbleQueue() ?? []
+        } catch {
+            log.error("The scrobble queue can't be read: \(error)")
             return []
         }
     }

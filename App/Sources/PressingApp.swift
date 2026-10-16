@@ -12,8 +12,15 @@ struct PressingApp: App {
         streamSink: NetworkStreamServer(),
         encoder: LAMEEncoder(),
         recognizer: ShazamRecognizer(),
-        artwork: URLSessionArtworkDownloader()
+        artwork: URLSessionArtworkDownloader(),
+        lastFm: LastFmPorts(
+            account: .fromBundle,
+            http: URLSessionLastFmHTTP(),
+            webAuth: WebAuthenticationSession(),
+            keychain: KeychainCredentials()
+        )
     )
+    @State private var networkReturn = NetworkReturnMonitor()
 
     var body: some Scene {
         WindowGroup {
@@ -28,6 +35,7 @@ struct PressingApp: App {
                 // iOS must never lock the phone; blanking is Pressing's own.
                 UIApplication.shared.isIdleTimerDisabled = true
                 pressing.start()
+                networkReturn.start { [pressing] in pressing.networkBecameAvailable() }
             }
             .preferredColorScheme(.dark)
         }

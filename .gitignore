@@ -4,6 +4,9 @@
 # Per-developer signing (copy Config/Signing.xcconfig.example)
 Config/Signing.xcconfig
 
+# Last.fm API key and secret (copy Config/LastFm.xcconfig.example)
+Config/LastFm.xcconfig
+
 # Build output
 .build/
 .swiftpm/

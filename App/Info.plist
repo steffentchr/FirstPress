@@ -4,6 +4,12 @@
 <dict>
 	<!-- Merged with the Info.plist Xcode generates from project.yml. Only keys
 	     that INFOPLIST_KEY_ build settings can't express go here. -->
+	<!-- Pressing's Last.fm API account, from Config/LastFm.xcconfig (git-ignored).
+	     Empty when the build has none: Last.fm can't be connected then. -->
+	<key>LastFmAPIKey</key>
+	<string>$(PRESSING_LASTFM_API_KEY)</string>
+	<key>LastFmAPISecret</key>
+	<string>$(PRESSING_LASTFM_API_SECRET)</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sonos._tcp</string>

@@ -9,5 +9,13 @@ PRESSING_DEVELOPMENT_TEAM =
 
 #include? "Signing.xcconfig"
 
+// Last.fm's API key and secret are per developer too and never committed:
+// copy LastFm.xcconfig.example to LastFm.xcconfig (git-ignored). Without it
+// the app builds, and Settings says Last.fm isn't available in this build.
+PRESSING_LASTFM_API_KEY =
+PRESSING_LASTFM_API_SECRET =
+
+#include? "LastFm.xcconfig"
+
 PRODUCT_BUNDLE_IDENTIFIER = $(PRESSING_BUNDLE_ID)
 DEVELOPMENT_TEAM = $(PRESSING_DEVELOPMENT_TEAM)
