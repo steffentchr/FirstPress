@@ -17,6 +17,9 @@ public final class Pressing {
     @ObservationIgnored let scheduler: any Scheduler
     @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let encoder: any MP3Encoder
+    @ObservationIgnored let phoneOutput: any PhoneOutput
+    /// The Phone output was started and not stopped since.
+    @ObservationIgnored var isPhoneOutputPlaying = false
     @ObservationIgnored var detector: Detector!
     @ObservationIgnored var identifier: Identifier!
     @ObservationIgnored let stream: StreamServer
@@ -46,11 +49,13 @@ public final class Pressing {
         sonos: any SonosNetwork,
         streamSink: any StreamSink,
         encoder: any MP3Encoder,
+        phoneOutput: any PhoneOutput,
         recognizer: any Recognizer,
         artwork: any ArtworkDownloader,
         lastFm: LastFmPorts
     ) {
         self.audioInput = audioInput
+        self.phoneOutput = phoneOutput
         lastFmPorts = lastFm
         self.artwork = artwork
         self.store = store
@@ -76,6 +81,7 @@ public final class Pressing {
         applyDetection()
         state.screen.blankAfter = settings.blankAfter
         wakeScreen()
+        applyPhoneOutputSwitch()
         state.input.chosenID = settings.inputID
         state.input.available = audioInput.availableInputs
         audioInput.setEventHandler { [weak self] event in
@@ -202,6 +208,7 @@ public final class Pressing {
         if case .running(_, .playing) = state.session {
             identifier.add(buffer)
         }
+        playOnPhone(buffer)
         encode(buffer)
     }
 
@@ -222,6 +229,7 @@ public final class Pressing {
             case .idle:
                 state.session = .running(records: 1, record: .playing)
                 takeOverRooms()
+                updatePhoneOutput()
             case .running(let records, _):
                 state.session = .running(records: records + 1, record: .playing)
             }
@@ -231,6 +239,7 @@ public final class Pressing {
         case .sessionEnded:
             state.session = .idle
             stopRooms()
+            updatePhoneOutput()
         case .gap:
             setRecord(.gap)
             identifier.gap(silenceBegan: scheduler.now.addingTimeInterval(-Detector.gapSeconds))

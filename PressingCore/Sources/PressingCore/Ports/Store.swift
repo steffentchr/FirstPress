@@ -11,17 +11,21 @@ public struct Settings: Sendable, Equatable, Codable {
     public var blankAfter: BlankAfter
     /// The listener's choice for each Room they have touched, by RINCON id.
     public var rooms: [String: RoomChoice]
+    /// The Phone output is switched on. Off on a fresh install.
+    public var phoneOutput: Bool
 
     public init(
         inputID: AudioInputDevice.ID? = nil,
         detection: DetectionSettings = DetectionSettings(),
         blankAfter: BlankAfter = .default,
-        rooms: [String: RoomChoice] = [:]
+        rooms: [String: RoomChoice] = [:],
+        phoneOutput: Bool = false
     ) {
         self.inputID = inputID
         self.detection = detection
         self.blankAfter = blankAfter
         self.rooms = rooms
+        self.phoneOutput = phoneOutput
     }
 
     // Settings saved before a field existed decode with that field's default.
@@ -31,6 +35,7 @@ public struct Settings: Sendable, Equatable, Codable {
         detection = try container.decodeIfPresent(DetectionSettings.self, forKey: .detection) ?? DetectionSettings()
         blankAfter = try container.decodeIfPresent(BlankAfter.self, forKey: .blankAfter) ?? .default
         rooms = try container.decodeIfPresent([String: RoomChoice].self, forKey: .rooms) ?? [:]
+        phoneOutput = try container.decodeIfPresent(Bool.self, forKey: .phoneOutput) ?? false
     }
 }
 

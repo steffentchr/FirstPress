@@ -12,6 +12,7 @@ extension Pressing {
             sonos: FakeSonosNetwork(),
             streamSink: FakeStreamSink(),
             encoder: PassThroughEncoder(),
+            phoneOutput: FakePhoneOutput(),
             recognizer: FakeRecognizer(),
             artwork: FakeArtworkDownloader(),
             lastFm: LastFmPorts(account: .test, http: FakeLastFm(), webAuth: FakeWebAuth(), keychain: FakeKeychain())
@@ -28,6 +29,7 @@ struct World {
     let sonos: FakeSonos
     let sink = FakeStreamSink()
     let encoder = PassThroughEncoder()
+    let phoneOutput = FakePhoneOutput()
     let recognizer = FakeRecognizer()
     let artwork = FakeArtworkDownloader()
     let lastFm = FakeLastFm()
@@ -58,6 +60,7 @@ struct World {
             sonos: sonos.network,
             streamSink: sink,
             encoder: encoder,
+            phoneOutput: phoneOutput,
             recognizer: recognizer,
             artwork: artwork,
             lastFm: LastFmPorts(account: account, http: lastFm, webAuth: webAuth, keychain: self.keychain)

@@ -13,6 +13,8 @@ public struct PressingState: Sendable, Equatable {
     /// is identified: Now Playing keeps the Track's space empty.
     public var play: Play?
     public var lastFm: LastFmState
+    /// The iPhone's own output, as the Rooms sheet shows it.
+    public var phoneOutput = PhoneOutputState()
 
     public init(
         input: InputState = InputState(),
@@ -175,6 +177,16 @@ public enum RecordState: Sendable, Equatable {
     /// The last Record ended with a Flip. The Session ends unless a new Record
     /// starts before the silence reaches the stop delay.
     case flipped
+}
+
+/// The Phone output: "This iPhone" in the Rooms sheet.
+public struct PhoneOutputState: Sendable, Equatable {
+    /// Switched on: the Record plays on the phone while a Session runs.
+    public var isOn: Bool
+
+    public init(isOn: Bool = false) {
+        self.isOn = isOn
+    }
 }
 
 /// A Sonos Room as the Rooms sheet lists it.
