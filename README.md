@@ -72,13 +72,13 @@ Each Play is kept with its scrobble status (waiting for Last.fm, scrobbled, reje
 
 ## Rooms and the stream
 
-Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. It starts looking once an input is chosen. Allow local network access when asked; the shortcut is in Settings › Permissions. Tap the speaker icon to switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
+Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. It starts looking once an input is chosen. Allow local network access when asked; the shortcut is in Settings › Permissions. Tap the speaker icon and tick the Rooms that should play: a ticked Room is switched on at once, with nothing to apply, and shows a volume bar while it's on. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
 
 The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
 
 ## Phone output
 
-"This iPhone", at the top of the Rooms sheet, plays the Record through the phone's own output as well: its speaker, Bluetooth earphones, or an AirPlay speaker or TV. Choose which with the route button next to its switch. It's off on a fresh install, and the switch is remembered. Like a Room, it follows the Session: switched on, it plays from Record start until the Session ends, Gaps and Flips included, and switching it on or off mid-Session takes effect at once. Its volume is the system's: the phone's buttons, or the AirPlay receiver's own control.
+"This iPhone", at the top of the Rooms sheet, plays the Record through the phone's own output as well: its speaker, Bluetooth earphones, or an AirPlay speaker or TV. Tick it, then choose which with the route button that appears under it. It's off on a fresh install, and the switch is remembered. Like a Room, it follows the Session: switched on, it plays from Record start until the Session ends, Gaps and Flips included, and switching it on or off mid-Session takes effect at once. Its volume is the system's: the phone's buttons, or the AirPlay receiver's own control.
 
 It plays the captured audio straight from the input, uncompressed, not the MP3 stream the Rooms get. So it runs a few seconds ahead of the Sonos Rooms, and if you can hear both they won't be in sync. That's expected.
 

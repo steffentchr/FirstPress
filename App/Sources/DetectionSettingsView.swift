@@ -38,7 +38,7 @@ struct DetectionSettingsView: View {
                 }
             }
         }
-        .navigationTitle("Detection")
+        .sheetPage("Detection")
     }
 
     private func detectionBinding(_ keyPath: WritableKeyPath<DetectionSettings, Double>) -> Binding<Double> {

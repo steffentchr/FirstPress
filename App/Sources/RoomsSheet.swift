@@ -3,62 +3,89 @@ import SwiftUI
 import PressingCore
 
 /// Opened from the speaker icon: "This iPhone" (the Phone output), then the
-/// Sonos Rooms, each with an on/off switch and a volume, and why a Room may
-/// be quiet. Works mid-Session too.
+/// Sonos Rooms. Ticking a Room's checkbox switches it on at once (there's
+/// nothing to apply), and only a switched-on Room shows its volume bar.
+/// Works mid-Session too.
 struct RoomsSheet: View {
     let pressing: Pressing
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        PressingSheet(title: "Rooms") {
             List {
-                Section {
-                    PhoneOutputRow(pressing: pressing)
+                PhoneOutputRow(pressing: pressing)
+                if pressing.state.rooms.isEmpty {
+                    Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
+                        .foregroundStyle(.secondary)
+                        .listRowBackground(Color.clear)
                 }
-                Section {
-                    if pressing.state.rooms.isEmpty {
-                        Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
-                            .foregroundStyle(.secondary)
-                    }
-                    ForEach(pressing.state.rooms) { room in
-                        RoomRow(room: room, pressing: pressing)
-                    }
+                ForEach(pressing.state.rooms) { room in
+                    RoomRow(room: room, pressing: pressing)
                 }
-            }
-            .navigationTitle("Rooms")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                Button("Done") { dismiss() }
             }
         }
     }
 }
 
-/// The Phone output: on or off, and where the phone plays (its speaker,
-/// earphones or AirPlay), chosen with the system route picker. The volume is
-/// the system's, so there is no slider.
+/// One place the Record can play: its name, a line under it (the volume bar
+/// while switched on), and a checkbox on the right. Tapping the name or the
+/// checkbox switches it.
+private struct OutputRow<Detail: View>: View {
+    let name: String
+    let isOn: Bool
+    let toggle: () -> Void
+    @ViewBuilder let detail: Detail
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                Button(action: toggle) {
+                    Text(name)
+                        .font(.title3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                detail
+            }
+            Button(action: toggle) {
+                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
+                    .font(.title)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(isOn ? Color.primary : Color.secondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(isOn ? "On" : "Off")
+        }
+        .padding(.vertical, 6)
+        .listRowBackground(Color.clear)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+}
+
+/// The Phone output: where the phone plays (its speaker, earphones or
+/// AirPlay), chosen with the system route picker while it's on. The volume is
+/// the system's, so there is no bar.
 struct PhoneOutputRow: View {
     let pressing: Pressing
 
     var body: some View {
         let isOn = pressing.state.phoneOutput.isOn
-        HStack {
-            Toggle(isOn: Binding(
-                get: { isOn },
-                set: { pressing.switchPhoneOutput(on: $0) }
-            )) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("This iPhone")
-                    Text("Its speaker, earphones or AirPlay. Plays ahead of the Rooms.")
+        OutputRow(name: "This iPhone", isOn: isOn, toggle: { pressing.switchPhoneOutput(on: !isOn) }) {
+            if isOn {
+                HStack(spacing: 8) {
+                    RoutePickerButton()
+                        .frame(width: 28, height: 28)
+                        .accessibilityLabel("Where This iPhone plays")
+                    Text("Speaker, earphones or AirPlay. Plays ahead of the Rooms.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
+            } else {
+                Text("Its speaker, earphones or AirPlay")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
-            RoutePickerButton()
-                .frame(width: 32, height: 32)
-                .opacity(isOn ? 1 : 0.4)
-                .allowsHitTesting(isOn)
-                .accessibilityLabel("Where This iPhone plays")
         }
     }
 }
@@ -81,35 +108,32 @@ struct RoomRow: View {
     let pressing: Pressing
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Toggle(isOn: Binding(
-                get: { room.isOn },
-                set: { pressing.switchRoom(room.id, on: $0) }
-            )) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(room.name)
-                    if let marker {
-                        Label(marker.text, systemImage: marker.symbol)
-                            .font(.footnote)
-                            .foregroundStyle(.orange)
-                    }
+        OutputRow(name: room.name, isOn: room.isOn, toggle: { pressing.switchRoom(room.id, on: !room.isOn) }) {
+            if let marker {
+                Label(marker.text, systemImage: marker.symbol)
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+            }
+            if room.isOn {
+                HStack(spacing: 10) {
+                    Image(systemName: room.volume == 0 ? "speaker.slash.fill" : "speaker.fill")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                    Slider(
+                        value: Binding(
+                            get: { Double(room.volume) },
+                            set: { pressing.setVolume(Int($0.rounded()), for: room.id) }
+                        ),
+                        in: 0...100,
+                        step: 1
+                    )
+                    .accessibilityLabel("Volume")
+                    Text("\(room.volume)")
+                        .font(.footnote.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, alignment: .trailing)
                 }
             }
-            HStack {
-                Image(systemName: "speaker.fill").foregroundStyle(.secondary)
-                Slider(
-                    value: Binding(
-                        get: { Double(room.volume) },
-                        set: { pressing.setVolume(Int($0.rounded()), for: room.id) }
-                    ),
-                    in: 0...100,
-                    step: 1
-                )
-                Text("\(room.volume)")
-                    .font(.footnote.monospacedDigit())
-                    .frame(width: 32, alignment: .trailing)
-            }
-            .opacity(room.isOn ? 1 : 0.4)
         }
     }
 

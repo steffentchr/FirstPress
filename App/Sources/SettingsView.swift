@@ -6,10 +6,9 @@ import PressingCore
 /// Permissions, rarely touched once set, in submenus.
 struct SettingsView: View {
     let pressing: Pressing
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        PressingSheet(title: "Settings") {
             Form {
                 Section {
                     InputPicker(pressing: pressing)
@@ -36,10 +35,6 @@ struct SettingsView: View {
                     NavigationLink("Detection") { DetectionSettingsView(pressing: pressing) }
                     NavigationLink("Permissions") { PermissionsView() }
                 }
-            }
-            .navigationTitle("Settings")
-            .toolbar {
-                Button("Done") { dismiss() }
             }
         }
     }
@@ -83,7 +78,7 @@ struct PermissionsView: View {
                 Text("Pressing needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
             }
         }
-        .navigationTitle("Permissions")
+        .sheetPage("Permissions")
     }
 
     private func openAppSettings() {
