@@ -118,11 +118,18 @@ public struct RoomState: Sendable, Equatable, Identifiable {
     public var isOn: Bool
     /// The volume Pressing sets when it takes the Room over, 0 to 100.
     public var volume: Int
+    /// False once the Room stopped answering, until it answers again.
+    public var isReachable: Bool
+    /// Someone took the Room over from the Sonos app, so Pressing leaves it
+    /// alone until the next Session or until it is switched off and on.
+    public var isSteppedBack: Bool
 
-    public init(id: String, name: String, isOn: Bool, volume: Int) {
+    public init(id: String, name: String, isOn: Bool, volume: Int, isReachable: Bool = true, isSteppedBack: Bool = false) {
         self.id = id
         self.name = name
         self.isOn = isOn
         self.volume = volume
+        self.isReachable = isReachable
+        self.isSteppedBack = isSteppedBack
     }
 }

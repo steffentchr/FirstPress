@@ -32,11 +32,20 @@ struct SOAPCall: Equatable, CustomStringConvertible {
 
 /// A Sonos household at the HTTP level. Each player answers SOAP on
 /// `<host>:1400` and records what it was asked; the test checks those calls.
+///
+/// It behaves like the real thing as far as Pressing can see: joining with
+/// `x-rincon:` moves a player into another group, `BecomeCoordinatorOfStandaloneGroup`
+/// takes it out and hands the rest of its group to the next member, transport
+/// commands sent to a group member fail with 800, and `GetTransportInfo` on a
+/// member always says PLAYING.
 @MainActor
 final class FakeSonos {
     let network = FakeSonosNetwork()
     /// Zone groups, each led by its first player.
-    var groups: [[FakeRoom]]
+    private(set) var groups: [[FakeRoom]]
+    /// What each group's coordinator plays, by the coordinator's RINCON id.
+    private var sources: [String: (uri: String, state: String)] = [:]
+    private var volumes: [String: Int] = [:]
     /// Hosts that refuse connections.
     var unreachable: Set<String> = []
     /// Hosts that answer every state-changing action with this UPnP fault code.
@@ -51,12 +60,16 @@ final class FakeSonos {
         network.respond = { [unowned self] request in try self.answer(request) }
     }
 
-    /// The SOAP calls a player received, in order, excluding topology reads.
+    /// The commands a player received, in order: everything but reads (`Get…`).
     func calls(to room: FakeRoom) -> [SOAPCall] {
+        requests(to: room).filter { !$0.action.hasPrefix("Get") }
+    }
+
+    /// Every SOAP call a player received, reads and topology included.
+    func requests(to room: FakeRoom) -> [SOAPCall] {
         network.requests
             .filter { $0.url.host == room.host }
             .compactMap(Self.parse)
-            .filter { $0.action != "GetZoneGroupState" }
     }
 
     /// Every SOAP call any player received, including topology reads.
@@ -66,21 +79,125 @@ final class FakeSonos {
         network.discover(.found(SonosDevice(host: room.host)))
     }
 
+    func lose(_ room: FakeRoom) {
+        network.discover(.lost(SonosDevice(host: room.host)))
+    }
+
+    // MARK: - The household, as the Sonos app and the speakers see it
+
+    /// The players grouped with this one, led by its coordinator.
+    func group(of room: FakeRoom) -> [FakeRoom] {
+        groups.first { $0.contains { $0.uuid == room.uuid } } ?? []
+    }
+
+    /// What the Room's group plays.
+    func source(of room: FakeRoom) -> String { sources[coordinator(of: room).uuid]?.uri ?? "" }
+
+    /// The transport state of the Room's group, as its coordinator reports it.
+    func transportState(of room: FakeRoom) -> String { sources[coordinator(of: room).uuid]?.state ?? "STOPPED" }
+
+    func volume(of room: FakeRoom) -> Int { volumes[room.uuid] ?? 20 }
+
+    /// Someone plays something on the Room's group from the Sonos app.
+    func play(_ uri: String, on room: FakeRoom, state: String = "PLAYING") {
+        sources[coordinator(of: room).uuid] = (uri, state)
+    }
+
+    /// The Room's group stops, pauses or drops out without Pressing asking.
+    func setTransportState(_ state: String, of room: FakeRoom) {
+        sources[coordinator(of: room).uuid, default: ("", "STOPPED")].state = state
+    }
+
+    /// Someone pulls the Room out of its group in the Sonos app.
+    func ungroup(_ room: FakeRoom) {
+        leaveGroup(room)
+    }
+
+    /// Someone turns the Room up or down in the Sonos app or with its buttons.
+    func pressVolume(_ volume: Int, on room: FakeRoom) {
+        volumes[room.uuid] = volume
+    }
+
+    private func coordinator(of room: FakeRoom) -> FakeRoom { group(of: room).first ?? room }
+
+    private func room(at host: String) -> FakeRoom? {
+        groups.joined().first { $0.host == host }
+    }
+
+    private func room(withID uuid: String) -> FakeRoom? {
+        groups.joined().first { $0.uuid == uuid }
+    }
+
+    /// Takes the player out of its group. The rest of the group carries on
+    /// under its next member; the player is left alone with nothing playing.
+    private func leaveGroup(_ room: FakeRoom) {
+        guard let index = groups.firstIndex(where: { $0.contains { $0.uuid == room.uuid } }) else { return }
+        var group = groups[index]
+        let wasCoordinator = group.first?.uuid == room.uuid
+        group.removeAll { $0.uuid == room.uuid }
+        let source = sources.removeValue(forKey: room.uuid)
+        if group.isEmpty {
+            groups.remove(at: index)
+        } else {
+            groups[index] = group
+            if wasCoordinator, let source { sources[group[0].uuid] = source }
+        }
+        groups.append([room])
+        sources[room.uuid] = ("", "STOPPED")
+    }
+
     // MARK: - Answering
 
     private func answer(_ request: HTTPRequest) throws -> HTTPResponse {
         guard let host = request.url.host, !unreachable.contains(host) else { throw Unreachable() }
         check(request)
-        guard let call = Self.parse(request) else { return HTTPResponse(status: 500) }
-        if let code = faults[host], call.action != "GetZoneGroupState" {
+        guard let call = Self.parse(request), let player = room(at: host) else { return HTTPResponse(status: 500) }
+        if let code = faults[host], !call.action.hasPrefix("Get") {
             return Self.fault(code)
         }
+        let service = Self.service(of: call.action)
+        let isCoordinator = coordinator(of: player).uuid == player.uuid
         switch call.action {
         case "GetZoneGroupState":
-            return Self.response("ZoneGroupTopology", "GetZoneGroupState", body: "<ZoneGroupState>\(Self.escape(topologyXML))</ZoneGroupState>")
+            return Self.response(service, call.action, body: "<ZoneGroupState>\(Self.escape(topologyXML))</ZoneGroupState>")
+        case "GetMediaInfo":
+            let uri = isCoordinator ? source(of: player) : "x-rincon:\(coordinator(of: player).uuid)"
+            return Self.response(service, call.action, body: "<NrTracks>1</NrTracks><MediaDuration>NOT_IMPLEMENTED</MediaDuration><CurrentURI>\(Self.escape(uri))</CurrentURI><CurrentURIMetaData></CurrentURIMetaData><NextURI></NextURI><NextURIMetaData></NextURIMetaData><PlayMedium>NETWORK</PlayMedium><RecordMedium>NOT_IMPLEMENTED</RecordMedium><WriteStatus>NOT_IMPLEMENTED</WriteStatus>")
+        case "GetTransportInfo":
+            // A group member always says PLAYING, whatever its group does.
+            let state = isCoordinator ? transportState(of: player) : "PLAYING"
+            return Self.response(service, call.action, body: "<CurrentTransportState>\(state)</CurrentTransportState><CurrentTransportStatus>OK</CurrentTransportStatus><CurrentSpeed>1</CurrentSpeed>")
+        case "GetVolume":
+            return Self.response(service, call.action, body: "<CurrentVolume>\(volume(of: player))</CurrentVolume>")
+        case "SetVolume":
+            volumes[player.uuid] = Int(call.args["DesiredVolume"] ?? "") ?? volume(of: player)
+        case "SetAVTransportURI":
+            let uri = call.args["CurrentURI"] ?? ""
+            if uri.hasPrefix("x-rincon:") {
+                guard let leader = room(withID: String(uri.dropFirst("x-rincon:".count))) else { return Self.fault(701) }
+                leaveGroup(player)
+                groups.removeAll { $0 == [player] }
+                sources.removeValue(forKey: player.uuid)
+                if let index = groups.firstIndex(where: { $0.first?.uuid == leader.uuid }) {
+                    groups[index].append(player)
+                }
+            } else {
+                guard isCoordinator else { return Self.fault(800) }
+                sources[player.uuid] = (uri, "STOPPED")
+            }
+        case "Play":
+            guard isCoordinator else { return Self.fault(800) }
+            guard !source(of: player).isEmpty else { return Self.fault(701) }
+            setTransportState("PLAYING", of: player)
+        case "Stop":
+            guard isCoordinator else { return Self.fault(800) }
+            setTransportState("STOPPED", of: player)
+        case "BecomeCoordinatorOfStandaloneGroup":
+            leaveGroup(player)
         default:
-            return Self.response(Self.service(of: call.action), call.action, body: "")
+            return Self.fault(401)
         }
+        return Self.response(service, call.action, body: "")
     }
 
     private func check(_ request: HTTPRequest) {
@@ -169,5 +286,5 @@ final class FakeSonos {
 /// Lets the core's pending Sonos requests run to completion.
 @MainActor
 func settle() async {
-    for _ in 0..<200 { await Task.yield() }
+    for _ in 0..<2_000 { await Task.yield() }
 }

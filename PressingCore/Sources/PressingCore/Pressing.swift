@@ -10,7 +10,7 @@ public final class Pressing {
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored let store: any Store
     @ObservationIgnored let streamSink: any StreamSink
-    @ObservationIgnored private let scheduler: any Scheduler
+    @ObservationIgnored let scheduler: any Scheduler
     @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored private var detector: Detector!
@@ -20,8 +20,8 @@ public final class Pressing {
     @ObservationIgnored var roomHosts: [String: String] = [:]
     /// A topology read is under way, so further players found join it.
     @ObservationIgnored var isReadingTopology = false
-    /// Rooms taken over in this Session, by RINCON id.
-    @ObservationIgnored var heldRooms: Set<String> = []
+    /// The Rooms Pressing holds, and how it watches them.
+    @ObservationIgnored var hold = Hold()
     /// The last Sonos command queued; the next waits for it.
     @ObservationIgnored var sonosQueue: Task<Void, Never>?
 

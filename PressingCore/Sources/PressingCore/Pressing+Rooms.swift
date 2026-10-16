@@ -44,12 +44,21 @@ extension Pressing {
         guard let response = try? await sonos.send(request),
               let xml = try? SOAP.outArguments(of: response)["ZoneGroupState"]
         else { return }
-        let rooms = ZoneGroupState.rooms(in: xml)
+        applyTopology(ZoneGroupState.rooms(in: xml))
+    }
+
+    /// Lists the household's Rooms, keeping what Pressing knows about each.
+    func applyTopology(_ rooms: [TopologyRoom]) {
+        hold.topology = rooms
         roomHosts = Dictionary(rooms.map { ($0.id, $0.host) }, uniquingKeysWith: { first, _ in first })
+        let known = Dictionary(state.rooms.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         state.rooms = rooms
             .map { room in
                 let choice = settings.rooms[room.id] ?? .default
-                return RoomState(id: room.id, name: room.name, isOn: choice.isOn, volume: choice.volume)
+                var state = RoomState(id: room.id, name: room.name, isOn: choice.isOn, volume: choice.volume)
+                state.isReachable = known[room.id]?.isReachable ?? true
+                state.isSteppedBack = known[room.id]?.isSteppedBack ?? false
+                return state
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
