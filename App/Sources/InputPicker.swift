@@ -79,9 +79,8 @@ struct InputNameMenu: View {
             VStack(spacing: 2) {
                 Label(input.chosenName ?? "The input", systemImage: "chevron.up.chevron.down")
                     .labelStyle(TrailingIcon())
-                Text("Not connected")
-                    .font(.footnote)
-                    .foregroundStyle(.orange)
+                Label("Not connected", systemImage: "exclamationmark.triangle")
+                    .font(.footnote.weight(.semibold))
             }
         } else {
             Label(input.chosenName ?? "Input", systemImage: "chevron.up.chevron.down")

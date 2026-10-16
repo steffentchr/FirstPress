@@ -10,6 +10,17 @@
 	<string>$(PRESSING_LASTFM_API_KEY)</string>
 	<key>LastFmAPISecret</key>
 	<string>$(PRESSING_LASTFM_API_SECRET)</string>
+	<!-- The launch screen is the start screen's artwork at its natural size,
+	     centred, so launching flows straight into WaitingView without a jump. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIImageName</key>
+		<string>StartScreen</string>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<false/>
+	</dict>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sonos._tcp</string>

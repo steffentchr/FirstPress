@@ -44,6 +44,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Pressing
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Pressing listens to your record deck's USB input so it can play the Record in your Sonos Rooms. It only uses the input you choose in Settings."
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Pressing finds your Sonos Rooms and plays your Record to them over your home network."
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # The launch screen is defined in App/Info.plist (the start screen's artwork).
+        INFOPLIST_KEY_UILaunchScreen_Generation: NO
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait

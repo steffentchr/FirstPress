@@ -16,6 +16,9 @@ struct RootView: View {
 
     private var page: Page { pressing.state.page }
 
+    /// White over the start screen's orange; the system tint on Now Playing.
+    private var iconTint: Color? { page == .nowPlaying ? nil : .white }
+
     var body: some View {
         NavigationStack {
             Group {
@@ -35,8 +38,10 @@ struct RootView: View {
                     // Before any input is chosen, no Rooms are looked for yet.
                     if page != .chooseInput(.noneChosen) {
                         Button("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
+                            .tint(iconTint)
                     }
                     Button("Settings", systemImage: "gearshape") { showingSettings = true }
+                        .tint(iconTint)
                 }
             }
             .sheet(isPresented: $showingSettings) {

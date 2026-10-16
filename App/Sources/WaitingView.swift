@@ -14,15 +14,21 @@ struct WaitingView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            Spacer()
             if let chooseInput {
                 choosing(chooseInput)
             } else {
                 waiting
             }
-            Spacer()
         }
-        .padding()
+        // The record fills the lower part of the artwork, so the words sit in
+        // the orange above it.
+        .padding(.horizontal, 32)
+        .padding(.top, 48)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .foregroundStyle(.white)
+        .tint(.white)
+        .background { StartScreenArtwork() }
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .task(id: chooseInput) {
             // Listing the inputs needs the microphone, so ask here and not before.
             if chooseInput != nil { await audioInput.requestPermission() }
@@ -31,16 +37,15 @@ struct WaitingView: View {
 
     private func choosing(_ reason: Page.Reason) -> some View {
         VStack(spacing: 16) {
-            Image(systemName: "cable.connector")
+            Image(systemName: reason == .notConnected ? "cable.connector.slash" : "cable.connector")
                 .font(.system(size: 56))
-                .foregroundStyle(reason == .notConnected ? Color.orange : Color.secondary)
             Text(reason == .noneChosen ? "Choose the input" : "The input isn't connected")
                 .font(.title2.bold())
             Text(reason == .noneChosen
                  ? "Choose the record deck's input. Pressing only listens to the input chosen here."
                  : "Check the cable, or choose another input.")
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.85))
             InputNameMenu(pressing: pressing)
                 .buttonStyle(.bordered)
             if audioInput.isPermissionDenied {
@@ -53,18 +58,31 @@ struct WaitingView: View {
 
     private var waiting: some View {
         VStack(spacing: 16) {
-            Image(systemName: "opticaldisc")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
             Text("Drop the needle to start.")
-                .foregroundStyle(.secondary)
+                .font(.title2.bold())
             InputNameMenu(pressing: pressing)
                 .font(.subheadline)
             // Only a problem is worth a word here; a ready input says nothing.
             if pressing.state.input.status != .present {
                 InputStatusView(input: pressing.state.input)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.black.opacity(0.3), in: Capsule())
             }
         }
+    }
+}
+
+/// The start screen's artwork (Design/StartScreen.svg) at its natural size,
+/// centred and cropped to the screen: the same image and placement as the
+/// launch screen in App/Info.plist, so launching doesn't jump.
+struct StartScreenArtwork: View {
+    var body: some View {
+        Color("LaunchBackground")
+            .overlay { Image("StartScreen") }
+            .clipped()
+            .ignoresSafeArea()
     }
 }
 
@@ -75,7 +93,6 @@ struct InputStatusView: View {
     var body: some View {
         Label(message, systemImage: "exclamationmark.triangle")
             .font(.footnote)
-            .foregroundStyle(.orange)
             .multilineTextAlignment(.center)
     }
 
