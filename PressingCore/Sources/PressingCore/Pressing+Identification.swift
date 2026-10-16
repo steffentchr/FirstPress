@@ -1,6 +1,6 @@
 import Foundation
 
-/// What the Identifier finds: the lower third, the stream's title and the
+/// What the Identifier finds: Now Playing, the stream's title and the
 /// Plays kept in History.
 extension Pressing {
     func handle(_ event: Identifier.Event) {
@@ -23,7 +23,7 @@ extension Pressing {
             play.endedAt = ended.endedAt
             play.scrobble = scrobbleStatusAtEnd(of: play)
             keep(play)
-            // The lower third fades out and Sonos shows just "Pressing",
+            // Now Playing's Track fades out and Sonos shows just "Pressing",
             // unless a new Play follows at once.
             state.play = nil
             stream.title = ""

@@ -9,8 +9,8 @@ public struct PressingState: Sendable, Equatable {
     /// The detection calibration in force, as set in Settings.
     public var detection: DetectionSettings
     public var screen: ScreenState
-    /// The current Play, whose Track fills the lower third. Nil when nothing
-    /// is identified: the lower third is empty but keeps its space.
+    /// The current Play, whose Track fills Now Playing. Nil when nothing
+    /// is identified: Now Playing keeps the Track's space empty.
     public var play: Play?
     public var lastFm: LastFmState
 
@@ -31,6 +31,33 @@ public struct PressingState: Sendable, Equatable {
         self.play = play
         self.lastFm = lastFm
     }
+
+    /// The page the app shows, following the Session and the input.
+    /// A running Session wins over a missing input: the Session ends by
+    /// itself once the silence reaches the stop delay.
+    public var page: Page {
+        if case .running = session { return .nowPlaying }
+        if input.chosenID == nil { return .chooseInput(.noneChosen) }
+        if input.status == .missing { return .chooseInput(.notConnected) }
+        return .waiting
+    }
+}
+
+/// The app's root page. Which one shows is decided here, not in the app.
+public enum Page: Sendable, Equatable {
+    public enum Reason: Sendable, Equatable {
+        /// No input has ever been chosen.
+        case noneChosen
+        /// The chosen input isn't connected.
+        case notConnected
+    }
+
+    /// Pressing needs an input before anything else.
+    case chooseInput(Reason)
+    /// The input is ready and no Session is running.
+    case waiting
+    /// A Session is running: the current Track shows.
+    case nowPlaying
 }
 
 /// Whether Plays go to Last.fm, as Settings shows it.
@@ -150,7 +177,7 @@ public enum RecordState: Sendable, Equatable {
     case flipped
 }
 
-/// A Sonos Room as the main screen lists it.
+/// A Sonos Room as the Rooms sheet lists it.
 public struct RoomState: Sendable, Equatable, Identifiable {
     /// The RINCON id of the Room's visible player.
     public var id: String

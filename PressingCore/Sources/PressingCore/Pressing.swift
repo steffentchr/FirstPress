@@ -67,7 +67,8 @@ public final class Pressing {
         }
     }
 
-    /// Call once at launch.
+    /// Call once at launch. Until an input is chosen, only the screen,
+    /// History and Last.fm start.
     public func start() {
         settings = store.loadSettings() ?? Settings()
         loadHistory()
@@ -80,9 +81,21 @@ public final class Pressing {
         audioInput.setEventHandler { [weak self] event in
             self?.handle(event)
         }
+        // Before an input is chosen, nothing starts: the first launch asks
+        // one thing at a time, and the local network prompt waits.
+        if settings.inputID != nil { startServices() }
+        startCapture()
+    }
+
+    @ObservationIgnored private var servicesStarted = false
+
+    /// The stream server and Sonos discovery. Once started they keep running,
+    /// even when the input disappears, so Rooms stay known.
+    private func startServices() {
+        guard !servicesStarted else { return }
+        servicesStarted = true
         stream.start(port: Self.streamPort)
         startDiscovery()
-        startCapture()
     }
 
     private func handle(_ event: AudioInputEvent) {
@@ -107,6 +120,7 @@ public final class Pressing {
         state.input.chosenID = id
         noiseFloor = NoiseFloor(threshold: settings.detection.threshold)
         state.input.noiseFloor = nil
+        startServices()
         startCapture()
     }
 
@@ -137,6 +151,12 @@ public final class Pressing {
         let wasBlanked = state.screen.isBlanked
         wakeScreen()
         return wasBlanked
+    }
+
+    /// The app came to the foreground. Wakes the screen and restarts the
+    /// blank-after time, as a touch does, but there is no touch to swallow.
+    public func cameToForeground() {
+        wakeScreen()
     }
 
     @ObservationIgnored private var blankTimer: (any ScheduledWork)?

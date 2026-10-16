@@ -148,7 +148,7 @@ extension Pressing {
         guard let address = streamSink.localAddress else { return }
         let uri = "x-rincon-mp3radio://\(address):\(Self.streamPort)\(Self.streamPath)"
         await refreshTopology(from: ids + hold.rooms)
-        // In name order, as the main screen lists them.
+        // In name order, as the Rooms sheet lists them.
         var candidates = state.rooms
             .filter { ids.contains($0.id) && $0.isReachable && !$0.isSteppedBack && roomHosts[$0.id] != nil && !hold.rooms.contains($0.id) }
             .map(\.id)

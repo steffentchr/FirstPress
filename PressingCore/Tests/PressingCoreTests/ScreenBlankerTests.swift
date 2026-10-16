@@ -64,6 +64,36 @@ struct ScreenBlankerTests {
         #expect(pressing.state.screen.isBlanked == true)
     }
 
+    @Test("Coming to the foreground wakes a blank screen and restarts the blank-after time, like a touch")
+    func foregroundWakes() {
+        let (_, scheduler, pressing) = pressing(blankAfter: .after(60))
+        scheduler.advance(by: 60)
+        #expect(pressing.state.screen.isBlanked == true)
+
+        pressing.cameToForeground()
+        #expect(pressing.state.screen.isBlanked == false)
+
+        scheduler.advance(by: 59)
+        #expect(pressing.state.screen.isBlanked == false)
+        // The first touch after waking is a normal touch: nothing swallows it.
+        #expect(pressing.screenTouched() == false)
+        scheduler.advance(by: 60)
+        #expect(pressing.state.screen.isBlanked == true)
+    }
+
+    @Test("Coming to the foreground before the screen blanked restarts the blank-after time")
+    func foregroundRestartsTimer() {
+        let (_, scheduler, pressing) = pressing(blankAfter: .after(60))
+        scheduler.advance(by: 50)
+
+        pressing.cameToForeground()
+        scheduler.advance(by: 50)
+        #expect(pressing.state.screen.isBlanked == false)
+
+        scheduler.advance(by: 10)
+        #expect(pressing.state.screen.isBlanked == true)
+    }
+
     @Test("A Record starting wakes the screen")
     func recordStartWakes() {
         let (input, scheduler, pressing) = pressing(blankAfter: .after(60))

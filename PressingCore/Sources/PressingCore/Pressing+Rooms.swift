@@ -2,13 +2,13 @@ import Foundation
 
 /// Room discovery and the listener's Room choices.
 extension Pressing {
-    /// Intent from the main screen: switch a Room on or off in Pressing.
+    /// Intent from the Rooms sheet: switch a Room on or off in Pressing.
     public func switchRoom(_ id: RoomState.ID, on: Bool) {
         updateChoice(for: id) { $0.isOn = on }
         roomSwitched(id, on: on)
     }
 
-    /// Intent from the main screen: the volume Pressing plays this Room at.
+    /// Intent from the Rooms sheet: the volume Pressing plays this Room at.
     public func setVolume(_ volume: Int, for id: RoomState.ID) {
         let volume = min(max(volume, 0), 100)
         updateChoice(for: id) { $0.volume = volume }
