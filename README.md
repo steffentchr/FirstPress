@@ -9,10 +9,15 @@
 Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressing on the deck, and the phone streams it to the Sonos Rooms you've chosen. It also shows what's playing and keeps a history, and it can scrobble every Track to Last.fm. You don't have to touch the phone.
 
 <p align="center">
-  <img src="docs/images/start-screen.png" width="270" alt="The start screen: an orange background with a record and brush at the bottom, asking you to choose the input">
-  &nbsp;&nbsp;
-  <img src="docs/images/settings-sheet.png" width="270" alt="The Settings sheet in Liquid Glass over the start screen">
+  <img src="docs/images/now-playing.png" width="200" alt="Now Playing on an iPhone in kiosk mode: the current Track's cover, title, artist and album, with the two most recent Tracks below">
+  &nbsp;
+  <img src="docs/images/now-playing-no-track.png" width="200" alt="Now Playing before a Track is identified: the app's artwork in grey, with History below and the speaker and gear icons top right">
+  &nbsp;
+  <img src="docs/images/start-screen.png" width="200" alt="The start screen: an orange background with a record and brush at the bottom, asking you to choose the input">
+  &nbsp;
+  <img src="docs/images/settings-sheet.png" width="200" alt="The Settings sheet in Liquid Glass over the start screen">
 </p>
+<p align="center"><sub>Now Playing on an iPhone in kiosk mode, with a Track and before one is identified; the start screen and Settings, from the simulator.</sub></p>
 
 > **Status:** early and personal. The code is covered by about 200 tests, but much of it hasn't run on real hardware yet: capture from the deck, Sonos playback, ShazamKit and Last.fm. The on-device test pass is tracked in [#10](https://github.com/steffentchr/Pressing/issues/10). Expect rough edges.
 
