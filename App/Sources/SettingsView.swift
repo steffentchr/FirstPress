@@ -44,7 +44,7 @@ struct SettingsView: View {
                     if let refusal {
                         Text(refusal).foregroundStyle(.orange)
                     } else {
-                        Text("Set the threshold clearly above the noise floor and below the quietest music. A Record starts once the level stays above it for the start delay, and ends with a Flip after that long below it. The Session ends if no new Record starts within the stop delay after a Flip.")
+                        Text("Set the threshold clearly above the noise floor and below the quietest music. A Record starts once the level stays above it for the start delay, and ends with a Flip after that long below it. The Session ends once the silence reaches the stop delay, counted from when it began, unless a new Record starts.")
                     }
                 }
 
@@ -57,7 +57,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Screen")
                 } footer: {
-                    Text("A blank screen protects the display. Touch it, or start a Record, to wake it.")
+                    Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it.")
                 }
 
                 Section("Permissions") {
@@ -114,7 +114,8 @@ struct SettingsView: View {
     private static func label(_ blankAfter: BlankAfter) -> String {
         switch blankAfter {
         case .never: "Never"
-        case .after(let seconds): "After \(Int(seconds / 60)) min"
+        case .after(let seconds):
+            Int(seconds / 60) == 1 ? "After 1 minute of silence" : "After \(Int(seconds / 60)) minutes of silence"
         }
     }
 
