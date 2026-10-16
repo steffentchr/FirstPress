@@ -13,8 +13,9 @@ struct MainView: View {
                 SessionStatusView(session: pressing.state.session)
                 InputStatusView(input: input)
                 LevelMeterView(level: input.level, noiseFloor: input.noiseFloor, threshold: pressing.state.detection.threshold)
+                // Takes the rest of the screen and scrolls within it.
                 RoomsView(pressing: pressing)
-                Spacer()
+                    .frame(maxHeight: .infinity, alignment: .top)
             }
             .padding()
             .navigationTitle("Pressing")
