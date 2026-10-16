@@ -192,7 +192,8 @@ public final class Pressing {
             case .running(let records, _):
                 state.session = .running(records: records + 1, record: .playing)
             }
-            identifier.recordStarted()
+            // The level had to stay up for the start delay: the music began then.
+            identifier.recordStarted(at: scheduler.now.addingTimeInterval(-settings.detection.startDelay))
             wakeScreen()
         case .sessionEnded:
             state.session = .idle

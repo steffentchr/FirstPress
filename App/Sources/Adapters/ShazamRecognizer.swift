@@ -49,7 +49,11 @@ final class ShazamRecognizer: Recognizer {
                 album: nil,
                 artworkURL: item.artworkURL
             )
-            return .match(track, offset: item.predictedCurrentMatchOffset)
+            // `matchOffset` is where the signature's start falls in the Track.
+            // The port wants where the audio handed in starts, so add back
+            // any audio trimmed off its front.
+            let trimmed = Double(samples.count - audio.count) / sampleRate
+            return .match(track, offset: item.matchOffset - trimmed)
         case .noMatch:
             return .noMatch
         case .error(let error, _):

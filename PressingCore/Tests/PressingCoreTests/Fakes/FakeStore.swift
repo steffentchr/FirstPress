@@ -16,4 +16,6 @@ final class FakeStore: Store {
     /// Ended Plays, in the order they were saved.
     private(set) var plays: [Play] = []
     func savePlay(_ play: Play) { plays.append(play) }
+    /// Plays that have ended, in the order they were saved.
+    var endedPlays: [Play] { plays.filter { $0.endedAt != nil } }
 }

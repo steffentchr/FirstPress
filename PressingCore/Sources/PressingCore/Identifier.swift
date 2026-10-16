@@ -35,11 +35,17 @@ final class Identifier {
     private let onEvent: @MainActor (Event) -> Void
 
     private(set) var play: Play?
+    /// When the current Record started: no Play in it starts earlier.
+    private var recordStart: Date?
+    /// When the last Play ended: the next one starts no earlier.
+    private var previousEnd: Date?
 
     /// The search collecting audio, if any.
     private var collecting: Trigger?
     private var samples: [Float] = []
     private var sampleRate: Double = 0
+    /// When the audio collected for the search began.
+    private var samplesStart: Date?
     private var recheckTimer: (any ScheduledWork)?
     /// The search after a Gap missed while a Play was current: when that
     /// Gap's silence began. One more miss ends the Play as of then.
@@ -54,7 +60,9 @@ final class Identifier {
         self.onEvent = onEvent
     }
 
-    func recordStarted() {
+    /// A Record started; its music began at `at`.
+    func recordStarted(at start: Date) {
+        recordStart = start
         startSearch(.recordStart)
     }
 
@@ -81,26 +89,42 @@ final class Identifier {
             samples = []
             sampleRate = buffer.sampleRate
         }
+        if samples.isEmpty {
+            // A buffer arrives once its audio has been captured.
+            samplesStart = scheduler.now.addingTimeInterval(-Double(buffer.frameCount) / buffer.sampleRate)
+        }
         samples += zip(buffer.left, buffer.right).map { ($0 + $1) / 2 }
         guard Double(samples.count) >= Self.searchSeconds * sampleRate else { return }
         let audio = samples, rate = sampleRate, generation = generation
+        let audioStart = samplesStart ?? scheduler.now
         collecting = nil
         samples = []
         Task { [weak self, recognizer] in
             // A failure (no network, Shazam's servers) is neither a match nor a miss.
             let answer = try? await recognizer.recognize(audio, sampleRate: rate)
             guard let self, generation == self.generation, let answer else { return }
-            answered(answer, trigger: trigger)
+            answered(answer, trigger: trigger, audioStart: audioStart)
         }
     }
 
-    private func answered(_ answer: Recognition, trigger: Trigger) {
+    private func answered(_ answer: Recognition, trigger: Trigger, audioStart: Date) {
         switch answer {
-        case .match(let track, _):
+        case .match(let track, let offset):
             missedAfterGap = nil
             if let play, play.track.isSame(as: track) { return }
-            endPlay(at: scheduler.now)
-            let play = Play(track: track, startedAt: scheduler.now)
+            // The latest of: worked back from the match, the Record start,
+            // and the end of the previous Play.
+            var start = max(audioStart.addingTimeInterval(-offset), recordStart ?? .distantPast, previousEnd ?? .distantPast)
+            if let current = play {
+                // The current Play gives way to this one: at the Gap the search
+                // followed, or else where this one starts.
+                if case .gap(let silenceBegan) = trigger {
+                    start = max(start, silenceBegan)
+                }
+                start = max(start, current.startedAt)
+                endPlay(at: start)
+            }
+            let play = Play(track: track, startedAt: start)
             self.play = play
             onEvent(.playStarted(play))
         case .noMatch:
@@ -117,6 +141,7 @@ final class Identifier {
         guard var play else { return }
         self.play = nil
         play.endedAt = max(time, play.startedAt)
+        previousEnd = play.endedAt
         onEvent(.playEnded(play))
     }
 
