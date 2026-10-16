@@ -23,6 +23,10 @@ final class FakeStore: Store {
         }
     }
     func loadPlays() -> [Play] { plays }
+
+    private(set) var covers: [URL: Data] = [:]
+    func saveCover(_ cover: Data, for artworkURL: URL) { covers[artworkURL] = cover }
+    func loadCover(for artworkURL: URL) -> Data? { covers[artworkURL] }
     /// Plays that have ended, in the order they were saved.
     var endedPlays: [Play] { plays.filter { $0.endedAt != nil } }
 }

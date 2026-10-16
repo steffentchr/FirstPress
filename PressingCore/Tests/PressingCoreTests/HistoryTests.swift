@@ -58,6 +58,45 @@ struct HistoryTests {
         #expect(restarted.history.allSatisfy { $0.endedAt != nil })
     }
 
+    @Test("A Play's cover is downloaded once and kept on the phone")
+    func coverKept() async throws {
+        let world = World()
+        let artwork = try #require(Track.ballad.artworkURL)
+        world.artwork.covers[artwork] = Data("ballad cover".utf8)
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        #expect(world.pressing.history.count == 2)
+        #expect(world.artwork.downloads == [artwork])
+        #expect(world.pressing.cover(for: .ballad) == Data("ballad cover".utf8))
+
+        let restarted = Pressing(audioInput: FakeAudioInput(), store: world.store, scheduler: FakeScheduler())
+        restarted.start()
+        #expect(restarted.cover(for: .ballad) == Data("ballad cover".utf8))
+    }
+
+    @Test("A Track with no artwork, or whose download fails, has no cover")
+    func noCover() async throws {
+        let world = World()
+        world.recognizer.answers = [.match(.rocker, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        // The fake has no cover for the ballad's URL, so its download fails.
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        #expect(world.artwork.downloads == [Track.ballad.artworkURL])
+        #expect(world.pressing.cover(for: .rocker) == nil)
+        #expect(world.pressing.cover(for: .ballad) == nil)
+    }
+
     @Test("History has a header per day in the listener's time zone, newest day first")
     func dayHeaders() throws {
         var calendar = Calendar(identifier: .gregorian)

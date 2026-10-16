@@ -9,6 +9,7 @@ public final class Pressing {
     /// Every Play kept on the phone, newest first, the current one included.
     /// Apart from `state` so the level meter's updates don't redraw History.
     public internal(set) var history: [Play] = []
+    @ObservationIgnored let artwork: any ArtworkDownloader
 
     @ObservationIgnored private let audioInput: any AudioInput
     @ObservationIgnored let store: any Store
@@ -42,9 +43,11 @@ public final class Pressing {
         sonos: any SonosNetwork,
         streamSink: any StreamSink,
         encoder: any MP3Encoder,
-        recognizer: any Recognizer
+        recognizer: any Recognizer,
+        artwork: any ArtworkDownloader
     ) {
         self.audioInput = audioInput
+        self.artwork = artwork
         self.store = store
         self.scheduler = scheduler
         self.sonos = sonos

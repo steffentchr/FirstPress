@@ -12,7 +12,8 @@ extension Pressing {
             sonos: FakeSonosNetwork(),
             streamSink: FakeStreamSink(),
             encoder: PassThroughEncoder(),
-            recognizer: FakeRecognizer()
+            recognizer: FakeRecognizer(),
+            artwork: FakeArtworkDownloader()
         )
     }
 }
@@ -27,6 +28,7 @@ struct World {
     let sink = FakeStreamSink()
     let encoder = PassThroughEncoder()
     let recognizer = FakeRecognizer()
+    let artwork = FakeArtworkDownloader()
     let pressing: Pressing
 
     init(settings: Settings = Settings(inputID: AudioInputDevice.deck.id), sonos: FakeSonos = FakeSonos()) {
@@ -39,7 +41,8 @@ struct World {
             sonos: sonos.network,
             streamSink: sink,
             encoder: encoder,
-            recognizer: recognizer
+            recognizer: recognizer,
+            artwork: artwork
         )
         pressing.start()
     }

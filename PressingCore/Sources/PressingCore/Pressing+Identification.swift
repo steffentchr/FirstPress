@@ -7,6 +7,7 @@ extension Pressing {
         switch event {
         case .playStarted(let play):
             keep(play)
+            keepCover(of: play.track)
             state.play = play
             stream.title = "\(play.track.artist) – \(play.track.title)"
             // A new Track wakes the screen and restarts the blank-after time.
@@ -19,6 +20,22 @@ extension Pressing {
             // unless a new Play follows at once.
             state.play = nil
             stream.title = ""
+        }
+    }
+
+    /// The Track's cover as kept on the phone: image data, nil if the Track
+    /// has no artwork or its download hasn't succeeded yet.
+    public func cover(for track: Track) -> Data? {
+        track.artworkURL.flatMap { store.loadCover(for: $0) }
+    }
+
+    /// Downloads the cover unless it is already kept. A failed download is
+    /// tried again the next time a Play of a Track with that artwork starts.
+    private func keepCover(of track: Track) {
+        guard let url = track.artworkURL, store.loadCover(for: url) == nil else { return }
+        Task { [artwork, store] in
+            guard let cover = try? await artwork.download(url) else { return }
+            store.saveCover(cover, for: url)
         }
     }
 

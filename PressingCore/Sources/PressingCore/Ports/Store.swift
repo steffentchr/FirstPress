@@ -97,4 +97,8 @@ public protocol Store: AnyObject {
     func savePlay(_ play: Play)
     /// Every Play kept, in any order.
     func loadPlays() -> [Play]
+    /// Keeps a cover, image data as downloaded, by the artwork URL it came
+    /// from. Tracks from one album share it.
+    func saveCover(_ cover: Data, for artworkURL: URL)
+    func loadCover(for artworkURL: URL) -> Data?
 }

@@ -49,6 +49,22 @@ final class FakeRecognizer: Recognizer {
     }
 }
 
+/// Covers by artwork URL. A URL with no cover fails, as an unreachable server does.
+@MainActor
+final class FakeArtworkDownloader: ArtworkDownloader {
+    struct NotFound: Error {}
+
+    var covers: [URL: Data] = [:]
+    /// Every download, in order.
+    private(set) var downloads: [URL] = []
+
+    func download(_ url: URL) async throws -> Data {
+        downloads.append(url)
+        guard let cover = covers[url] else { throw NotFound() }
+        return cover
+    }
+}
+
 @MainActor
 final class FakeLastFmHTTP: LastFmHTTP {
     private(set) var requests: [HTTPRequest] = []
