@@ -9,7 +9,7 @@ One side of an LP played through, from the needle dropping to the run-out groove
 _Avoid_: Spin, side (as the playback term)
 
 **Session**:
-One or more Records played back to back while Pressing holds the Rooms. It ends when no new Record starts within the stop delay after a Flip.
+One or more Records played back to back while Pressing holds the Rooms. It ends when the silence after the last Record lasts longer than the stop delay.
 _Avoid_: Stream, listening
 
 **Track**:

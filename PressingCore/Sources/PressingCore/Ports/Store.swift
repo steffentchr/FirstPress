@@ -7,7 +7,7 @@ public struct Settings: Sendable, Equatable, Codable {
     public var inputID: AudioInputDevice.ID?
     /// How Records and Sessions are detected.
     public var detection: DetectionSettings
-    /// How long the screen stays on without a touch or a Record starting.
+    /// How long the screen stays on once no Record is playing.
     public var blankAfter: BlankAfter
     /// The listener's choice for each Room they have touched, by RINCON id.
     public var rooms: [String: RoomChoice]
@@ -52,7 +52,7 @@ public struct RoomChoice: Sendable, Equatable, Codable {
 /// When the screen blanks to protect the OLED panel.
 public enum BlankAfter: Sendable, Hashable, Codable {
     case never
-    /// Seconds without a touch or a Record starting.
+    /// Seconds of silence with no Record playing, restarted by a touch.
     case after(TimeInterval)
 
     public static let `default` = BlankAfter.after(5 * 60)
@@ -67,8 +67,8 @@ public struct DetectionSettings: Sendable, Equatable, Codable {
     public var startDelay: TimeInterval
     /// Seconds of silence that end a Record with a Flip.
     public var flipThreshold: TimeInterval
-    /// Seconds after a Flip within which a new Record keeps the Session going.
-    /// Must be longer than the Flip threshold.
+    /// Seconds of silence, counted from when it began, that end the Session
+    /// unless a new Record starts. Must be longer than the Flip threshold.
     public var stopDelay: TimeInterval
 
     public init(threshold: Double = -50, startDelay: TimeInterval = 1.5, flipThreshold: TimeInterval = 12, stopDelay: TimeInterval = 45) {

@@ -119,12 +119,13 @@ public final class Pressing {
 
     @ObservationIgnored private var blankTimer: (any ScheduledWork)?
 
-    /// Wakes the screen and starts the blank-after time again.
+    /// Wakes the screen and starts the blank-after time again. The time only
+    /// runs while no Record is playing: the screen never blanks during one.
     private func wakeScreen() {
         state.screen.isBlanked = false
         blankTimer?.cancel()
         blankTimer = nil
-        guard case .after(let seconds) = settings.blankAfter else { return }
+        guard !isRecordPlaying, case .after(let seconds) = settings.blankAfter else { return }
         blankTimer = scheduler.schedule(after: seconds) { [weak self] in
             self?.state.screen.isBlanked = true
         }
@@ -172,13 +173,13 @@ public final class Pressing {
     private func handle(_ event: Detector.Event) {
         switch event {
         case .recordStarted:
-            wakeScreen()
             switch state.session {
             case .idle:
                 state.session = .running(records: 1, record: .playing)
             case .running(let records, _):
                 state.session = .running(records: records + 1, record: .playing)
             }
+            wakeScreen()
         case .sessionEnded:
             state.session = .idle
         case .gap:
@@ -187,12 +188,22 @@ public final class Pressing {
             setRecord(.playing)
         case .flip:
             setRecord(.flipped)
+            // No Record is playing any more: the blank-after time starts.
+            wakeScreen()
         }
     }
 
     private func setRecord(_ record: RecordState) {
         guard case .running(let records, _) = state.session else { return }
         state.session = .running(records: records, record: record)
+    }
+
+    /// A Record is playing, in a Gap or not.
+    private var isRecordPlaying: Bool {
+        switch state.session {
+        case .running(_, .playing), .running(_, .gap): true
+        default: false
+        }
     }
 
     /// Capture was started from the chosen input and nothing has stopped it since.

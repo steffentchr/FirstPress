@@ -53,10 +53,10 @@ struct DetectionSettingsTests {
         input.play(Signal.square(amplitude: 0.001, seconds: 10, sampleRate: rate), sampleRate: rate, on: scheduler)
         #expect(pressing.state.session == .running(records: 1, record: .flipped))
 
-        // Flip at about 20.5 s into the silence; the Session ends 60 s after that.
-        input.play(Signal.square(amplitude: 0.001, seconds: 50, sampleRate: rate), sampleRate: rate, on: scheduler)
+        // The Session ends about 60.5 s into the silence, counted from when it began.
+        input.play(Signal.square(amplitude: 0.001, seconds: 34, sampleRate: rate), sampleRate: rate, on: scheduler)
         #expect(pressing.state.session == .running(records: 1, record: .flipped))
-        input.play(Signal.square(amplitude: 0.001, seconds: 10, sampleRate: rate), sampleRate: rate, on: scheduler)
+        input.play(Signal.square(amplitude: 0.001, seconds: 2, sampleRate: rate), sampleRate: rate, on: scheduler)
         #expect(pressing.state.session == .idle)
     }
 

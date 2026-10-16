@@ -89,13 +89,13 @@ struct DetectionTests {
         #expect(pressing.state.session == .running(records: 2, record: .playing))
     }
 
-    @Test("With no new Record within the stop delay after a Flip, the Session ends")
+    @Test("With no new Record, the Session ends once the silence reaches the stop delay, counted from when it began")
     func sessionEnds() {
         let (input, scheduler, pressing) = deck()
         input.play(Signal.square(amplitude: music, seconds: 5, sampleRate: rate), sampleRate: rate, on: scheduler)
 
-        // Flip 12 s into the silence; the Session ends 45 s after that.
-        input.play(Signal.square(amplitude: floor, seconds: 56, sampleRate: rate), sampleRate: rate, on: scheduler)
+        // Flip 12 s into the silence; the Session ends 45 s into it, not 45 s after the Flip.
+        input.play(Signal.square(amplitude: floor, seconds: 44, sampleRate: rate), sampleRate: rate, on: scheduler)
         #expect(pressing.state.session == .running(records: 1, record: .flipped))
 
         input.play(Signal.square(amplitude: floor, seconds: 2, sampleRate: rate), sampleRate: rate, on: scheduler)
@@ -158,10 +158,12 @@ struct DetectionTests {
         input.play(Signal.square(amplitude: music, seconds: 5, sampleRate: rate), sampleRate: rate, on: scheduler)
 
         input.unplug(AudioInputDevice.deck.id)
-        scheduler.advance(by: 13)
+        scheduler.advance(by: 12)
         #expect(pressing.state.session == .running(records: 1, record: .flipped))
 
-        scheduler.advance(by: 45)
+        scheduler.advance(by: 32)
+        #expect(pressing.state.session == .running(records: 1, record: .flipped))
+        scheduler.advance(by: 1)
         #expect(pressing.state.session == .idle)
     }
 
