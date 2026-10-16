@@ -29,11 +29,25 @@ xcodebuild -project Pressing.xcodeproj -scheme Pressing \
 
 Audio capture needs a real iPhone with the deck plugged in. Choose the deck's input in Settings.
 
+### Enable ShazamKit for your App ID
+
+Pressing identifies Tracks against the Shazam catalog, which only answers apps whose App ID has the ShazamKit App Service. Without it, nothing is identified. Do this once for the bundle ID you put in `Config/Signing.xcconfig`:
+
+1. Sign in at [developer.apple.com/account](https://developer.apple.com/account) and open **Certificates, IDs & Profiles → Identifiers**.
+2. Select the App ID for your bundle ID (create it if Xcode hasn't yet).
+3. Open the **App Services** tab, tick **ShazamKit**, and save.
+
+No entitlement or Info.plist key is needed for the Shazam catalog. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit). Identification also needs the phone online, since Shazam matches on Apple's servers.
+
 ## Rooms and the stream
 
 Pressing finds Sonos players with Bonjour (`_sonos._tcp`) and lists their Rooms from ZoneGroupTopology. Allow local network access when asked; the shortcut is in Settings. Switch on the Rooms that should play and set each one's volume. When a Record starts a Session, each switched-on Room is pointed at the phone's stream, `x-rincon-mp3radio://<phone-ip>:8020/pressing/turntable.mp3`, at its volume. When the Session ends, they are stopped.
 
 The phone and the speakers must be on the same network, and the phone's IP address must stay the same during a Session.
+
+## Identification
+
+Pressing searches for the Track when a Record starts, after each Gap, and every 30 s otherwise, each time on 8 s of the deck's audio. The current Track shows in the lower third (artist, title and cover) and in the Sonos app as "Artist – Title" under the station name "Pressing". It stays through quiet passages: it is cleared at a Flip, when a different Track matches, or when the search after a Gap and the following recheck both find nothing. Keep the deck's pitch at zero, or Tracks won't match.
 
 ## Calibrate detection
 

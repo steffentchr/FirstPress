@@ -15,6 +15,7 @@ struct MainView: View {
                 LevelMeterView(level: input.level, noiseFloor: input.noiseFloor, threshold: pressing.state.detection.threshold)
                 RoomsView(pressing: pressing)
                 Spacer()
+                LowerThirdView(play: pressing.state.play)
             }
             .padding()
             .navigationTitle("Pressing")

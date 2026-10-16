@@ -10,7 +10,8 @@ struct PressingApp: App {
         scheduler: MainQueueScheduler(),
         sonos: BonjourSonosNetwork(),
         streamSink: NetworkStreamServer(),
-        encoder: LAMEEncoder()
+        encoder: LAMEEncoder(),
+        recognizer: ShazamRecognizer()
     )
 
     var body: some Scene {
