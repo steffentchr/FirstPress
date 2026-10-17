@@ -130,7 +130,9 @@ Pressing shows one screen at a time:
 
 Two icons sit in the top right:
 - **The speaker** opens the Rooms sheet. Tick a Room to switch it on at once, and a volume bar appears. The sheet also shows Rooms that can't be reached or that Pressing stepped back from. "This iPhone" at the top plays on the phone's own output; once it's ticked, its AirPlay button chooses where.
-- **The gear** opens Settings: the input, screen blanking, kiosk mode and Last.fm, with Detection and Permissions in submenus.
+- **The gear** opens Settings: the input, the appearance, screen blanking, kiosk mode and Last.fm, with Detection and Permissions in submenus.
+
+Pressing is dark unless you choose otherwise. Settings › Appearance offers System (follows iOS), Light and Dark, and applies to Now Playing, History, Settings and the Rooms sheet. The orange start screen and the blank screen look the same in every appearance.
 
 ### Identification and Last.fm
 
