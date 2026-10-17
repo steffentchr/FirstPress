@@ -244,7 +244,9 @@ public final class FirstPress {
     /// Shows Now Playing's icons, and in kiosk mode starts the time after
     /// which they hide again.
     func showControls() {
-        state.screen.controlsIdle = false
+        // Every write to the state redraws the screen, an unchanged one too,
+        // and a redraw while a touch ends cancels a segmented control's tap.
+        if state.screen.controlsIdle { state.screen.controlsIdle = false }
         controlsTimer?.cancel()
         controlsTimer = nil
         guard settings.kiosk else { return }
@@ -256,7 +258,8 @@ public final class FirstPress {
     /// Wakes the screen and starts the blank-after time again. The time only
     /// runs while no Record is playing: the screen never blanks during one.
     func wakeScreen() {
-        state.screen.isBlanked = false
+        // Only when blank, for the same reason as in showControls.
+        if state.screen.isBlanked { state.screen.isBlanked = false }
         blankTimer?.cancel()
         blankTimer = nil
         guard !isRecordPlaying, case .after(let seconds) = settings.blankAfter else { return }

@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import Testing
 import FirstPressCore
 
@@ -255,4 +256,28 @@ struct ScreenBlankerTests {
         scheduler.advance(by: 300)
         #expect(firstPress.state.screen.isBlanked == true)
     }
+
+    /// Every change to the state redraws the screen, and a redraw while a
+    /// touch is still on its way cancels a segmented control's tap: the
+    /// Appearance control in Settings ignored every tap.
+    @Test("A touch on an awake screen, its icons showing, leaves the state as it is", arguments: [false, true])
+    func touchOnAwakeScreenChangesNothing(kiosk: Bool) {
+        let (_, _, firstPress) = firstPress(blankAfter: .after(60))
+        firstPress.setKiosk(kiosk)
+        let changed = Flag()
+        withObservationTracking {
+            _ = firstPress.state
+        } onChange: {
+            changed.isSet = true
+        }
+
+        firstPress.screenTouched()
+
+        #expect(changed.isSet == false)
+    }
+}
+
+/// Set from an observation's onChange, which may be called off the main actor.
+private final class Flag: @unchecked Sendable {
+    var isSet = false
 }
