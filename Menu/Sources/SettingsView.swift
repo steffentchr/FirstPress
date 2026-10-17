@@ -61,9 +61,9 @@ struct SettingsView: View {
                         }
                     }
                     SettingsRow("Find songs in", detail: "Right-click the song in the panel.") {
-                        Picker("Find songs in", selection: $settings.findSongsIn) {
-                            Text("Spotify").tag(SongService.spotify)
-                            Text("Apple Music").tag(SongService.appleMusic)
+                        Picker("Find songs in", selection: $settings.findTracksIn) {
+                            Text("Spotify").tag(TrackSearchService.spotify)
+                            Text("Apple Music").tag(TrackSearchService.appleMusic)
                         }
                         .pickerStyle(.segmented)
                         .labelsHidden()

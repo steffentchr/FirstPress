@@ -61,9 +61,9 @@ private struct HeaderView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
-            .onRightClick { find(track, in: settings.findSongsIn) }
+            .onRightClick { find(track, in: settings.findTracksIn) }
             .accessibilityElement(children: .combine)
-            .accessibilityAction(named: "Find in \(settings.findSongsIn.name)") { find(track, in: settings.findSongsIn) }
+            .accessibilityAction(named: "Find in \(settings.findTracksIn.name)") { find(track, in: settings.findTracksIn) }
         case .lookingForPressing:
             message("Looking for Pressing…")
         case .cantBeReached:
@@ -117,9 +117,9 @@ private struct HistoryList: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())
-                .onRightClick { find(track, in: settings.findSongsIn) }
+                .onRightClick { find(track, in: settings.findTracksIn) }
                 .accessibilityElement(children: .combine)
-                .accessibilityAction(named: "Find in \(settings.findSongsIn.name)") { find(track, in: settings.findSongsIn) }
+                .accessibilityAction(named: "Find in \(settings.findTracksIn.name)") { find(track, in: settings.findTracksIn) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -175,11 +175,11 @@ private struct FooterView: View {
 /// Right-clicking a Track opens the chosen service's search for it straight
 /// away, with no menu.
 @MainActor
-private func find(_ track: Track, in service: SongService) {
+private func find(_ track: Track, in service: TrackSearchService) {
     NSWorkspace.shared.open(service.searchURL(for: track))
 }
 
-extension SongService {
+extension TrackSearchService {
     var name: String {
         switch self {
         case .spotify: "Spotify"
