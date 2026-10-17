@@ -1,0 +1,1 @@
+vinyl,turntable,record player,LP,hifi,scrobble,now playing,USB audio,multiroom,phono,deck,album,spin

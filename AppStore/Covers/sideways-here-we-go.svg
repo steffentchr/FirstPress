@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <!-- Smiths-single formula in blue: a profile, cropped tight. -->
+  <defs>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <radialGradient id="light" cx=".7" cy=".4" r=".8"><stop offset="0" stop-color="#a9bfd6"/><stop offset=".6" stop-color="#5c7896"/><stop offset="1" stop-color="#25344a"/></radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#light)"/>
+  <path fill="#1d2a3b" d="M0 1000 L0 380 C60 300 160 250 260 250 C380 250 470 320 500 420 C520 480 515 520 540 560 C560 595 590 610 575 640 C560 660 530 660 525 690 C530 720 545 740 520 770 C500 790 470 790 460 820 C450 860 470 920 430 1000 Z"/>
+  <rect width="1000" height="1000" filter="url(#grain)"/>
+  <text x="930" y="120" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="72" fill="#ffffff" letter-spacing="2">THE JONESES</text>
+  <text x="930" y="185" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="44" fill="#e3edf7" letter-spacing="2">SIDEWAYS, HERE WE GO</text>
+</svg>

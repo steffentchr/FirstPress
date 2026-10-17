@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000">
+  <!-- Nod to The Queen Is Dead: a green-tinted still of a figure lying on his back, band name in white, title beneath. -->
+  <defs>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .35 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+    <radialGradient id="light" cx=".35" cy=".55" r=".75"><stop offset="0" stop-color="#9cb59a"/><stop offset=".6" stop-color="#5f7c63"/><stop offset="1" stop-color="#2c3d2f"/></radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2c21"/><stop offset="1" stop-color="#34483a"/></linearGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="url(#light)"/>
+  <!-- close crop of a man lying on his back, face turned up, shoulders running out of frame -->
+  <g fill="url(#body)" transform="translate(-200 1300) rotate(-90) scale(1.3)">
+    <path d="M0 1000 L0 380 C60 300 160 250 260 250 C380 250 470 320 500 420 C520 480 515 520 540 560 C560 595 590 610 575 640 C560 660 530 660 525 690 C530 720 545 740 520 770 C500 790 470 790 460 820 C450 860 470 920 430 1000 Z"/>
+  </g>
+  <rect width="1000" height="1000" filter="url(#grain)"/>
+  <text x="70" y="130" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="88" fill="#ffffff" letter-spacing="2">THE JONESES</text>
+  <text x="70" y="205" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="54" fill="#f3d6dc" letter-spacing="2">THE KING IS ASLEEP</text>
+</svg>
