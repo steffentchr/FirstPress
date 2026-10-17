@@ -74,8 +74,8 @@ struct RoomRow: View {
 
     var body: some View {
         CheckboxRow(name: room.name, isOn: room.isOn, toggle: { pressing.switchRoom(room.id, on: !room.isOn) }) {
-            if let marker {
-                Label(marker.text, systemImage: marker.symbol)
+            if let marker = room.marker {
+                Label(marker.text, systemImage: marker.symbolName)
                     .font(.footnote)
                     .foregroundStyle(.orange)
             }
@@ -100,16 +100,5 @@ struct RoomRow: View {
                 }
             }
         }
-    }
-
-    /// Why a switched-on Room may be quiet.
-    private var marker: (text: String, symbol: String)? {
-        if !room.isReachable {
-            return ("Can't be reached", "wifi.exclamationmark")
-        }
-        if room.isSteppedBack {
-            return ("Taken over in the Sonos app. Switch off and on to take it back.", "hand.raised")
-        }
-        return nil
     }
 }

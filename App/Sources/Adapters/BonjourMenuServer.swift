@@ -11,8 +11,6 @@ import PressingCore
 /// started again after a short wait.
 @MainActor
 final class BonjourMenuServer: MenuServer {
-    static let serviceType = "_pressing._tcp"
-
     private var listener: NWListener?
     private var isStarted = false
     private var handler: (@MainActor (MenuServerEvent) -> Void)?
@@ -35,31 +33,26 @@ final class BonjourMenuServer: MenuServer {
         for id in Array(connections.keys) { disconnect(id) }
     }
 
-    func send(_ message: Data, to client: MenuClientID) {
-        guard let connection = connections[client.rawValue] else { return }
-        let metadata = NWProtocolWebSocket.Metadata(opcode: .text)
-        let context = NWConnection.ContentContext(identifier: "pressing", metadata: [metadata])
-        connection.send(content: message, contentContext: context, isComplete: true, completion: .contentProcessed { error in
+    func send(_ message: Data, to connection: MenuConnectionID) {
+        guard let socket = connections[connection.rawValue] else { return }
+        MenuNetwork.send(message, on: socket) { error in
+            // The connection runs on the main queue, and so does this.
             MainActor.assumeIsolated {
-                if error != nil { self.disconnect(client.rawValue) }
+                if error != nil { self.disconnect(connection.rawValue) }
             }
-        })
+        }
     }
 
     // MARK: - Listener
 
     private func listen() {
         guard isStarted, listener == nil else { return }
-        let parameters = NWParameters.tcp
-        let webSocket = NWProtocolWebSocket.Options()
-        webSocket.autoReplyPing = true
-        parameters.defaultProtocolStack.applicationProtocols.insert(webSocket, at: 0)
-        guard let listener = try? NWListener(using: parameters) else {
+        guard let listener = try? NWListener(using: MenuNetwork.webSocketParameters()) else {
             listenAgainSoon()
             return
         }
         // No name: Bonjour uses the phone's name.
-        listener.service = NWListener.Service(type: Self.serviceType)
+        listener.service = NWListener.Service(type: MenuNetwork.serviceType)
         listener.newConnectionHandler = { connection in
             MainActor.assumeIsolated { self.accept(connection) }
         }
@@ -91,7 +84,7 @@ final class BonjourMenuServer: MenuServer {
             MainActor.assumeIsolated {
                 switch state {
                 case .ready:
-                    self.handler?(.connected(MenuClientID(id)))
+                    self.handler?(.connected(MenuConnectionID(id)))
                 case .failed, .cancelled:
                     self.disconnect(id)
                 default:
@@ -114,7 +107,7 @@ final class BonjourMenuServer: MenuServer {
                     return
                 }
                 if let data, !data.isEmpty, metadata?.opcode == .text || metadata?.opcode == .binary {
-                    self.handler?(.received(data, from: MenuClientID(id)))
+                    self.handler?(.received(data, from: MenuConnectionID(id)))
                 }
                 self.receive(id)
             }
@@ -124,6 +117,6 @@ final class BonjourMenuServer: MenuServer {
     private func disconnect(_ id: Int) {
         guard let connection = connections.removeValue(forKey: id) else { return }
         connection.cancel()
-        handler?(.disconnected(MenuClientID(id)))
+        handler?(.disconnected(MenuConnectionID(id)))
     }
 }

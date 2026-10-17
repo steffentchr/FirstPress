@@ -13,16 +13,16 @@ extension Pressing {
 
     private func handle(_ event: MenuServerEvent) {
         switch event {
-        case .connected(let client):
-            menuClients.insert(client)
+        case .connected(let connection):
+            menuConnections.insert(connection)
             let snapshot = menuSnapshot
             lastMenuSnapshot = snapshot
-            menuServer.send(MenuWire.encode(snapshot), to: client)
+            menuServer.send(MenuWire.encode(snapshot), to: connection)
         case .received(let message, _):
             guard let command = MenuWire.decodeCommand(message) else { return }
             perform(command)
-        case .disconnected(let client):
-            menuClients.remove(client)
+        case .disconnected(let connection):
+            menuConnections.remove(connection)
         }
     }
 
@@ -55,7 +55,7 @@ extension Pressing {
         case .running(_, .gap): .gap
         case .running(_, .flipped): .flipped
         }
-        let recent = Self.recentPlays(in: history, excluding: state.play?.id, limit: MenuSnapshot.recentPlaysLimit)
+        let recent = Self.recentPlays(in: history, excluding: state.play?.id, limit: MenuSnapshot.panelHistoryLimit)
         return MenuSnapshot(
             page: page,
             record: record,
@@ -64,18 +64,19 @@ extension Pressing {
             rooms: state.rooms.map {
                 MenuSnapshot.Room(id: $0.id, name: $0.name, isOn: $0.isOn, volume: $0.volume, isReachable: $0.isReachable, isSteppedBack: $0.isSteppedBack)
             },
-            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route)
+            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route),
+            lastTrack: record == .flipped ? sessionLastTrack : nil
         )
     }
 
     /// Called whenever `state` or `history` changes: sends a snapshot to every
     /// Pressing Menu if, and only if, it differs from the last one sent.
     func menuMayHaveChanged() {
-        guard !menuClients.isEmpty else { return }
+        guard !menuConnections.isEmpty else { return }
         let snapshot = menuSnapshot
         guard snapshot != lastMenuSnapshot else { return }
         lastMenuSnapshot = snapshot
         let message = MenuWire.encode(snapshot)
-        for client in menuClients { menuServer.send(message, to: client) }
+        for connection in menuConnections { menuServer.send(message, to: connection) }
     }
 }

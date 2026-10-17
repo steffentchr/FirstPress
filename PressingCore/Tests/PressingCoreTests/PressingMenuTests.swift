@@ -23,6 +23,25 @@ struct PressingMenuTests {
         #expect(menu.header == .track(.rocker))
     }
 
+    @Test("The header's Track gains its album when Last.fm names it a moment later, and keeps it after a drop-out")
+    func albumArrivesLater() async throws {
+        let world = World(lastFm: .listener)
+        let (menu, _) = world.pressingMenu()
+        world.lastFm.knows(.ballad, durationMilliseconds: 268_000, album: "The Kick Inside")
+
+        try await world.identify(.ballad)
+
+        guard case .track(let track) = menu.header else {
+            Issue.record("Expected a Track, got \(menu.header)")
+            return
+        }
+        #expect(track.title == "Wuthering Heights")
+        #expect(track.album == "The Kick Inside")
+
+        world.menuServer.stop()
+        #expect(menu.header == .track(track))
+    }
+
     @Test("With no Session running, Pressing Menu says Pressing is waiting for a Record")
     func waiting() {
         let world = World()
@@ -32,7 +51,7 @@ struct PressingMenuTests {
         #expect(menu.header == .waitingForRecord)
     }
 
-    @Test("A Record playing that isn't identified yet says so, and after its Flip Pressing is waiting again")
+    @Test("A Record playing that isn't identified yet says so, and after its Flip no Record is playing")
     func recordNotIdentified() async {
         let world = World()
         let (menu, _) = world.pressingMenu()
@@ -44,8 +63,73 @@ struct PressingMenuTests {
 
         world.silence(seconds: 15)
         await settle()
-        #expect(menu.header == .waitingForRecord)
+        #expect(menu.header == .betweenSides(lastTrack: nil))
         #expect(!menu.isRecordPlaying)
+    }
+
+    @Test("After a Flip the header says Between sides, with the last Track beneath, until the next Record starts")
+    func betweenSides() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        world.silence(seconds: 15)
+        await settle()
+        #expect(world.pressing.state.session == .running(records: 1, record: .flipped))
+        #expect(menu.header == .betweenSides(lastTrack: .ballad))
+
+        world.music(seconds: 5)
+        await settle()
+        #expect(menu.header == .recordNotIdentified)
+    }
+
+    @Test("Between sides ends with the Session: then Pressing is waiting for a Record")
+    func betweenSidesUntilSessionEnds() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: .ballad))
+
+        world.silence(seconds: 40)
+        await settle()
+        #expect(world.pressing.state.session == .idle)
+        #expect(menu.header == .waitingForRecord)
+    }
+
+    @Test("Between sides names no Track when none was identified in the Session, not even one from an earlier Session")
+    func betweenSidesWithoutTrack() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 60)
+        await settle()
+        #expect(world.pressing.state.session == .idle)
+
+        world.recognizer.answers = []
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: nil))
+    }
+
+    @Test("A phone that doesn't send the last Track still shows Between sides after a Flip")
+    func betweenSidesFromOlderPhone() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "flipped", "recentPlays": []}"#)
+
+        #expect(menu.header == .betweenSides(lastTrack: nil))
     }
 
     @Test("The phone's input pages show as waiting for a Record")
@@ -61,8 +145,8 @@ struct PressingMenuTests {
         #expect(menu.header == .waitingForRecord)
     }
 
-    @Test("Pressing Menu is looking for Pressing until it finds it, and says the iPhone can't be reached after a while")
-    func lookingThenCantBeReached() {
+    @Test("Pressing Menu says it's looking for Pressing until it finds it, however long that takes")
+    func lookingUntilFound() {
         // No input chosen yet: the phone hasn't started its services, so
         // nothing is advertised on the network.
         let world = World(settings: Settings())
@@ -70,13 +154,32 @@ struct PressingMenuTests {
         #expect(menu.connection == .looking)
         #expect(menu.header == .lookingForPressing)
 
-        world.scheduler.advance(by: PressingMenu.lookingFor)
-        #expect(menu.connection == .cantBeReached)
-        #expect(menu.header == .cantBeReached)
+        world.scheduler.advance(by: 600)
+        #expect(menu.connection == .looking)
+        #expect(menu.header == .lookingForPressing)
+        #expect(!menu.showsLookingLine)
 
         world.pressing.chooseInput(AudioInputDevice.deck.id)
         #expect(menu.connection == .connected)
         #expect(menu.header == .waitingForRecord)
+    }
+
+    @Test("Connecting that fails before Pressing was ever reached keeps Pressing Menu looking, and it tries again")
+    func failedFirstAttemptKeepsLooking() {
+        let world = World()
+        world.menuServer.refusesConnections = true
+        let (menu, link) = world.pressingMenu()
+        #expect(link.connectAttempts == 1)
+        #expect(menu.connection == .looking)
+        #expect(menu.header == .lookingForPressing)
+
+        world.scheduler.advance(by: 1)
+        #expect(link.connectAttempts == 2)
+        #expect(menu.connection == .looking)
+
+        world.menuServer.refusesConnections = false
+        world.scheduler.advance(by: 2)
+        #expect(menu.connection == .connected)
     }
 
     @Test("Pressing Menu lists the last 10 different Tracks, newest first, outside a Session too")
@@ -152,14 +255,56 @@ struct PressingMenuTests {
         #expect(menu.header == .track(.ballad))
     }
 
-    @Test("While Pressing isn't running Pressing Menu says the iPhone can't be reached, and finds it again when it is")
+    @Test("After a drop-out with a Track kept on screen, a small line beneath the greyed Track says Pressing Menu is looking for Pressing")
+    func lookingBeneathKeptTrack() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(!menu.showsLookingLine)
+
+        world.menuServer.stop()
+        #expect(menu.header == .track(.ballad))
+        #expect(menu.showsLookingLine)
+
+        world.menuServer.start()
+        world.scheduler.advance(by: 1)
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .track(.ballad))
+        #expect(!menu.showsLookingLine)
+    }
+
+    @Test("After a drop-out with no Track kept, the header says only that Pressing Menu is looking for Pressing, and no line repeats it")
+    func lookingInHeaderOnly() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        #expect(menu.header == .waitingForRecord)
+
+        world.menuServer.stop()
+        #expect(menu.header == .lookingForPressing)
+        #expect(!menu.showsLookingLine)
+
+        // Between sides isn't kept either: only a Track is.
+        world.menuServer.start()
+        world.scheduler.advance(by: 1)
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: nil))
+        world.menuServer.stop()
+        #expect(menu.header == .lookingForPressing)
+    }
+
+    @Test("While Pressing isn't running Pressing Menu says it's looking for Pressing, and finds it again when it is")
     func phoneGoneAndBack() {
         let world = World()
         let (menu, _) = world.pressingMenu()
 
         world.menuServer.stop()
         #expect(menu.connection == .cantBeReached)
-        #expect(menu.header == .cantBeReached)
+        #expect(menu.header == .lookingForPressing)
 
         world.scheduler.advance(by: 60)
         #expect(menu.connection == .cantBeReached)

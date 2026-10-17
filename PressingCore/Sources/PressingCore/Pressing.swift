@@ -57,7 +57,10 @@ public final class Pressing {
     @ObservationIgnored let phoneOutput: any PhoneOutput
     @ObservationIgnored let menuServer: any MenuServer
     /// The Pressing Menus connected now.
-    @ObservationIgnored var menuClients: Set<MenuClientID> = []
+    @ObservationIgnored var menuConnections: Set<MenuConnectionID> = []
+    /// The last Track identified in the current Session, nil if none was
+    /// yet: Pressing Menu names it between sides.
+    @ObservationIgnored var sessionLastTrack: Track?
     /// The snapshot Pressing Menus were last sent.
     @ObservationIgnored var lastMenuSnapshot: MenuSnapshot?
     /// The Phone output was started and not stopped since.
@@ -302,6 +305,7 @@ public final class Pressing {
         case .recordStarted:
             switch state.session {
             case .idle:
+                sessionLastTrack = nil
                 state.session = .running(records: 1, record: .playing)
                 takeOverRooms()
                 updatePhoneOutput()

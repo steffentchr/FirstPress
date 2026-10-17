@@ -10,7 +10,7 @@ There is no pairing or authentication. Anyone on the home network can already co
 
 - The wire contract is versioned additively. The phone only adds fields, never removes or reinterprets one, and carries a major version bumped only for a breaking change. Pressing Menu ignores fields it doesn't know, and asks to be updated only when the phone's major version is newer. The two apps ship apart: the phone through TestFlight, Pressing Menu through the Mac App Store.
 - The snapshot encoding, and Pressing Menu's connection states and view model, live in the PressingCore package, so the whole contract is tested without a network. The adapters on each side only move messages.
-- Pressing Menu reaches the phone only while Pressing runs. When iOS suspends it, Pressing Menu says the iPhone can't be reached and keeps trying.
+- Pressing Menu reaches the phone only while Pressing runs. When iOS suspends it, Pressing Menu says it's looking for Pressing on the iPhone and keeps trying.
 - Any device on the home network can read what's playing and, once commands arrive, switch Rooms. If that ever matters, pairing is the fallback.
 
 ## Considered Options

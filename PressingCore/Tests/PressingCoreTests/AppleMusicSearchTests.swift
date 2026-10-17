@@ -22,13 +22,13 @@ struct AppleMusicSearchTests {
 }
 
 @Suite("Find songs in")
-struct FindSongsInTests {
+struct FindTracksInTests {
     @Test("Pressing Menu searches the service chosen in Settings, Spotify by default")
     func chosenService() {
         let track = Track(artist: "Kate Bush", title: "Wuthering Heights")
 
-        #expect(SongService.default == .spotify)
-        #expect(SongService.spotify.searchURL(for: track).absoluteString == "https://open.spotify.com/search/Kate%20Bush%20Wuthering%20Heights")
-        #expect(SongService.appleMusic.searchURL(for: track).absoluteString == "https://music.apple.com/search?term=Kate%20Bush%20Wuthering%20Heights")
+        #expect(TrackSearchService.default == .spotify)
+        #expect(TrackSearchService.spotify.searchURL(for: track).absoluteString == "https://open.spotify.com/search/Kate%20Bush%20Wuthering%20Heights")
+        #expect(TrackSearchService.appleMusic.searchURL(for: track).absoluteString == "https://music.apple.com/search?term=Kate%20Bush%20Wuthering%20Heights")
     }
 }

@@ -1,5 +1,4 @@
 import AppKit
-import Observation
 @preconcurrency import UserNotifications
 import PressingCore
 import PressingMenuCore
@@ -8,20 +7,22 @@ import PressingMenuCore
 /// Pressing Menu's model picks. The title is the heading, the artist (and
 /// the album, if known by then) below, with the cover attached once its
 /// artwork loads. Clicking it opens the panel.
+///
+/// Whether macOS allows notifications is read here and handed to the model
+/// through `onDeniedChange`; the model decides whether to post at all.
 @MainActor
-@Observable
 final class UserNotifications: NSObject, TrackNotifier {
-    /// The listener turned notifications off for Pressing Menu in System
-    /// Settings: Settings shows the switch off, with a link there.
-    private(set) var isDenied = false
     /// Opens the panel: called when the listener clicks a notification.
-    @ObservationIgnored var onOpen: (() -> Void)?
+    var onOpen: (() -> Void)?
+    /// Called with whether the listener turned notifications off for
+    /// Pressing Menu in System Settings, each time it's read.
+    var onDeniedChange: ((Bool) -> Void)?
 
     /// How long a cover may take to load before the notification goes
     /// without it.
     private nonisolated static let artworkTimeout: TimeInterval = 4
 
-    @ObservationIgnored private let center = UNUserNotificationCenter.current()
+    private let center = UNUserNotificationCenter.current()
 
     override init() {
         super.init()
@@ -40,7 +41,7 @@ final class UserNotifications: NSObject, TrackNotifier {
     /// Reads back whether notifications are allowed, which the listener can
     /// change in System Settings at any time.
     func refresh() async {
-        isDenied = await center.notificationSettings().authorizationStatus == .denied
+        onDeniedChange?(await center.notificationSettings().authorizationStatus == .denied)
     }
 
     /// System Settings › Notifications, at Pressing Menu.

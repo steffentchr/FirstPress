@@ -1,16 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-<!-- Pressing Menu's menu-bar icon while it looks for Pressing, or the iPhone
-     can't be reached: MenuBarIcon.svg with the record dashed and hollow. -->
-<defs>
-  <mask id="cut">
-    <rect width="18" height="18" fill="#fff"/>
-    <!-- Clear space around the brush. -->
-    <rect x="2.3" y="3.5" width="11.9" height="5.2" rx="2.4" transform="rotate(-20 8.25 6.1)" fill="#000"/>
-  </mask>
-</defs>
-<g mask="url(#cut)" fill="none" stroke="#000">
-  <circle cx="10" cy="10.5" r="6.6" stroke-width="1.5" stroke-dasharray="2.6 1.85"/>
-  <circle cx="10" cy="10.5" r="2.2" stroke-width="1.2"/>
+<!-- Pressing Menu's menu-bar icon while no phone is connected: MenuBarIcon.svg
+     with the rim dashed (twelve even dashes), no groove, and the label
+     hollow. -->
+<g fill="none" stroke="#000">
+  <circle cx="9" cy="9" r="7.25" stroke-width="1.5" stroke-dasharray="2.3 1.496"/>
+  <circle cx="9" cy="9" r="2.3" stroke-width="1.2"/>
 </g>
-<rect x="3.4" y="4.6" width="9.7" height="3" rx="1.3" transform="rotate(-20 8.25 6.1)" fill="#000"/>
 </svg>

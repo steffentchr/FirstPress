@@ -17,6 +17,7 @@ struct PressingMenuApp: App {
         let menu = PressingMenu(link: BonjourMenuLink(), scheduler: MainQueueScheduler(), notifier: notifications)
         let settings = MenuSettings(menu: menu)
         notifications.onOpen = { PanelWindow.open() }
+        notifications.onDeniedChange = { menu.notificationsAreDenied = $0 }
         // Asked at first launch; macOS only shows the prompt once.
         notifications.requestPermission()
         menu.start()
@@ -35,7 +36,7 @@ struct PressingMenuApp: App {
         .menuBarExtraStyle(.window)
 
         Window("Pressing Menu Settings", id: SettingsView.windowID) {
-            SettingsView(settings: settings, loginItem: loginItem, notifications: notifications)
+            SettingsView(menu: menu, settings: settings, loginItem: loginItem, notifications: notifications)
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)
@@ -46,9 +47,9 @@ extension SettingsView {
     static let windowID = "settings"
 }
 
-/// An icon only, no text: a template image of the app icon's record and
-/// brush. It's dashed while the iPhone can't be reached, and fills in while
-/// a Record plays.
+/// An icon only, no text: a template image of a stylised record, with no
+/// brush. It's dashed while no phone is connected, and fills in while a
+/// Record plays.
 struct MenuBarIcon: View {
     let menu: PressingMenu
 

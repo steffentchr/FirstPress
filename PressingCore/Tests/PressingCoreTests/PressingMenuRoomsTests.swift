@@ -77,6 +77,14 @@ struct PressingMenuRoomsTests {
         #expect(menu.room(FakeRoom.kitchen.uuid)?.marker == .takenOverInSonosApp)
         #expect(menu.room(FakeRoom.livingRoom.uuid)?.marker == .cantBeReached)
         #expect(menu.room(FakeRoom.bathroom.uuid)?.marker == nil)
+
+        // The phone's Rooms sheet marks them the same, in the same words.
+        let phoneRooms = world.pressing.state.rooms
+        #expect(phoneRooms.first { $0.id == FakeRoom.kitchen.uuid }?.marker == .takenOverInSonosApp)
+        #expect(phoneRooms.first { $0.id == FakeRoom.livingRoom.uuid }?.marker == .cantBeReached)
+        #expect(phoneRooms.first { $0.id == FakeRoom.bathroom.uuid }?.marker == nil)
+        #expect(RoomMarker.cantBeReached.text == "Can't be reached")
+        #expect(RoomMarker.takenOverInSonosApp.text == "Taken over in the Sonos app. Switch off and on to take it back.")
     }
 
     @Test("Switching This iPhone on and off from Pressing Menu switches the Phone output")
@@ -152,11 +160,13 @@ struct PressingMenuRoomsTests {
         #expect(menu.roomsSummary == "This iPhone")
     }
 
-    @Test("Before the first snapshot, the Rooms summary says No Rooms")
-    func roomsSummaryWhileLooking() {
+    @Test("With no phone connected, the footer shows no Rooms summary")
+    func noRoomsSummaryWithoutPhone() {
         let world = World(settings: Settings())
         let (menu, _) = world.pressingMenu()
+        #expect(menu.roomsSummary == nil)
 
+        world.pressing.chooseInput(AudioInputDevice.deck.id)
         #expect(menu.roomsSummary == "No Rooms")
     }
 
@@ -169,7 +179,7 @@ struct PressingMenuRoomsTests {
 
         #expect(!menu.canControl)
         #expect(menu.room(FakeRoom.kitchen.uuid)?.isOn == true)
-        #expect(menu.roomsSummary == "Kitchen")
+        #expect(menu.roomsSummary == nil)
 
         world.scheduler.advance(by: 1)
         #expect(menu.canControl)
