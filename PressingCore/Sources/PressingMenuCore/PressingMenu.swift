@@ -8,12 +8,13 @@ import PressingCore
 @Observable
 public final class PressingMenu {
     public enum Connection: Sendable, Equatable {
-        /// Looking for Pressing on the network, not found yet.
+        /// Looking for Pressing on the network, not reached yet: from launch
+        /// until the first link is up, however long that takes.
         case looking
         /// Linked to Pressing on the iPhone.
         case connected
-        /// Pressing isn't running, the phone is off the network, or the
-        /// link dropped. The last snapshot stays on screen, greyed, while
+        /// A live link dropped: Pressing stopped running, or the phone left
+        /// the network. The last snapshot stays on screen, greyed, while
         /// Pressing Menu keeps trying.
         case cantBeReached
         /// The phone speaks a newer major version of the wire contract than
@@ -25,7 +26,10 @@ public final class PressingMenu {
     public enum Header: Sendable, Equatable {
         /// The current Track: its title large, the artist beneath.
         case track(Track)
+        /// From launch until Pressing is first reached, however long that
+        /// takes.
         case lookingForPressing
+        /// A live link dropped and nothing from the phone is kept to show.
         case cantBeReached
         /// No Session is running, or the phone asks for its input.
         case waitingForRecord
@@ -35,9 +39,6 @@ public final class PressingMenu {
         case updatePressingMenu
     }
 
-    /// How long Pressing Menu says it's looking before it says the iPhone
-    /// can't be reached. It goes on looking after that.
-    public static let lookingFor: TimeInterval = 5
     /// How long Pressing Menu waits before trying again: doubling from 1 s
     /// after each failed attempt, to at most 30 s.
     static let retryDelays: [TimeInterval] = [1, 2, 4, 8, 16, 30]
@@ -184,7 +185,6 @@ public final class PressingMenu {
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored private let notifier: (any TrackNotifier)?
-    @ObservationIgnored private var lookingTimer: (any ScheduledWork)?
     @ObservationIgnored private var retryTimer: (any ScheduledWork)?
     /// Failed attempts since the link was last up.
     @ObservationIgnored private var failures = 0
@@ -203,23 +203,19 @@ public final class PressingMenu {
         link.setEventHandler { [weak self] event in
             self?.handle(event)
         }
-        lookingTimer = scheduler.schedule(after: Self.lookingFor) { [weak self] in
-            guard let self, connection == .looking else { return }
-            connection = .cantBeReached
-        }
         link.connect()
     }
 
     private func handle(_ event: MenuLinkEvent) {
         switch event {
         case .connected:
-            lookingTimer?.cancel()
-            lookingTimer = nil
             failures = 0
             awaitingFirstSnapshot = true
             connection = .connected
         case .disconnected:
-            connection = .cantBeReached
+            // Until Pressing has been reached once, a failed attempt is
+            // still looking.
+            if connection != .looking { connection = .cantBeReached }
             retry()
         case .received(let data):
             switch MenuWire.decode(data) {

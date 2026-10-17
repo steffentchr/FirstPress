@@ -61,8 +61,8 @@ struct PressingMenuTests {
         #expect(menu.header == .waitingForRecord)
     }
 
-    @Test("Pressing Menu is looking for Pressing until it finds it, and says the iPhone can't be reached after a while")
-    func lookingThenCantBeReached() {
+    @Test("Pressing Menu says it's looking for Pressing until it finds it, however long that takes")
+    func lookingUntilFound() {
         // No input chosen yet: the phone hasn't started its services, so
         // nothing is advertised on the network.
         let world = World(settings: Settings())
@@ -70,13 +70,32 @@ struct PressingMenuTests {
         #expect(menu.connection == .looking)
         #expect(menu.header == .lookingForPressing)
 
-        world.scheduler.advance(by: PressingMenu.lookingFor)
-        #expect(menu.connection == .cantBeReached)
-        #expect(menu.header == .cantBeReached)
+        world.scheduler.advance(by: 600)
+        #expect(menu.connection == .looking)
+        #expect(menu.header == .lookingForPressing)
+        #expect(!menu.showsCantBeReachedLine)
 
         world.pressing.chooseInput(AudioInputDevice.deck.id)
         #expect(menu.connection == .connected)
         #expect(menu.header == .waitingForRecord)
+    }
+
+    @Test("Connecting that fails before Pressing was ever reached keeps Pressing Menu looking, and it tries again")
+    func failedFirstAttemptKeepsLooking() {
+        let world = World()
+        world.menuServer.refusesConnections = true
+        let (menu, link) = world.pressingMenu()
+        #expect(link.connectAttempts == 1)
+        #expect(menu.connection == .looking)
+        #expect(menu.header == .lookingForPressing)
+
+        world.scheduler.advance(by: 1)
+        #expect(link.connectAttempts == 2)
+        #expect(menu.connection == .looking)
+
+        world.menuServer.refusesConnections = false
+        world.scheduler.advance(by: 2)
+        #expect(menu.connection == .connected)
     }
 
     @Test("Pressing Menu lists the last 10 different Tracks, newest first, outside a Session too")
