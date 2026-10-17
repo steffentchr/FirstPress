@@ -11,6 +11,7 @@ Everything for Pressing's App Store listing: screenshots, the sample music in th
 | `Screenshots/raw/` | The simulator's shots, 1320 × 2868. |
 | `Screenshots/6.9-inch/` | The framed shots to upload, 1320 × 2868, no alpha. |
 | `Metadata/en-US/` | The store text, one field per file, in fastlane `deliver`'s layout. |
+| `listing.md` | Promotional Text, Description and Keywords from `Metadata/en-US/`, ready to paste into App Store Connect. |
 | `review-notes.md` | The notes for App Review. |
 | `privacy-policy.md` | The privacy policy the store listing links to. |
 
