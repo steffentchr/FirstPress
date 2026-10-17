@@ -128,6 +128,7 @@ public final class Pressing {
         applyDetection()
         state.screen.blankAfter = settings.blankAfter
         state.screen.isKiosk = settings.kiosk
+        state.screen.appearance = settings.appearance
         wakeScreen()
         showControls()
         applyPhoneOutputSwitch()
@@ -208,6 +209,13 @@ public final class Pressing {
         store.saveSettings(settings)
         state.screen.isKiosk = on
         showControls()
+    }
+
+    /// Intent from Settings: look Light, Dark, or follow iOS.
+    public func setAppearance(_ appearance: Appearance) {
+        settings.appearance = appearance
+        store.saveSettings(settings)
+        state.screen.appearance = appearance
     }
 
     /// Any touch on the screen. Returns true when the touch only woke a blank

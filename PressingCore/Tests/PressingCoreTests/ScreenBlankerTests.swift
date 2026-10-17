@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import PressingCore
 
@@ -180,6 +181,32 @@ struct ScreenBlankerTests {
 
         let (_, _, relaunched) = self.pressing(blankAfter: .after(60), store: store)
         #expect(relaunched.state.screen.isKiosk == true)
+    }
+
+    @Test("The appearance is Dark on a fresh install, and the choice is remembered across a restart")
+    func appearance() {
+        let store = FakeStore(settings: Settings(inputID: "usb-deck"))
+        let (_, _, pressing) = pressing(blankAfter: .after(60), store: store)
+        #expect(pressing.state.screen.appearance == .dark)
+
+        pressing.setAppearance(.light)
+        #expect(pressing.state.screen.appearance == .light)
+
+        let (_, _, relaunched) = self.pressing(blankAfter: .after(60), store: store)
+        #expect(relaunched.state.screen.appearance == .light)
+
+        relaunched.setAppearance(.system)
+        #expect(relaunched.state.screen.appearance == .system)
+    }
+
+    @Test("Settings saved before the appearance could be chosen load as Dark, the look they had")
+    func oldSettingsLoadDark() throws {
+        let saved = Data(#"{"inputID":"usb-deck","rooms":{},"kiosk":true}"#.utf8)
+
+        let settings = try JSONDecoder().decode(Settings.self, from: saved)
+
+        #expect(settings.appearance == .dark)
+        #expect(settings.kiosk == true)
     }
 
     @Test("In kiosk mode, Now Playing's icons hide after 30 s without a touch and come back on a touch")
