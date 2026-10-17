@@ -63,4 +63,71 @@ struct PressingMenuRoomsTests {
         await settle()
         #expect(menu.room(FakeRoom.kitchen.uuid)?.volume == 44)
     }
+
+    @Test("Pressing Menu shows the phone's markers: a Room that can't be reached, and one taken over in the Sonos app")
+    func markers() async {
+        let (world, menu, _) = await session()
+        #expect(menu.rooms.allSatisfy { $0.marker == nil })
+
+        world.sonos.play("x-sonos-spotify:track", on: .kitchen)
+        world.sonos.lose(.livingRoom)
+        world.music(seconds: 6)
+        await settle()
+
+        #expect(menu.room(FakeRoom.kitchen.uuid)?.marker == .takenOverInSonosApp)
+        #expect(menu.room(FakeRoom.livingRoom.uuid)?.marker == .cantBeReached)
+        #expect(menu.room(FakeRoom.bathroom.uuid)?.marker == nil)
+    }
+
+    @Test("A command for a Room the phone doesn't know is ignored")
+    func unknownRoomIgnored() async {
+        let (world, menu, link) = await session()
+        let settings = world.store.settings
+        let sent = world.menuServer.sentCount
+        let mark = world.sonos.mark
+
+        // From a Pressing Menu whose list is stale.
+        link.send(Data(#"{"type": "switchRoom", "major": 1, "id": "RINCON_GONE01400", "on": true}"#.utf8))
+        link.send(Data(#"{"type": "setVolume", "major": 1, "id": "RINCON_GONE01400", "volume": 80}"#.utf8))
+        await settle()
+
+        #expect(world.store.settings == settings)
+        #expect(world.menuServer.sentCount == sent)
+        #expect(world.sonos.requests(to: .kitchen, since: mark).allSatisfy { $0.action.hasPrefix("Get") })
+        #expect(menu.rooms.map(\.id).contains("RINCON_GONE01400") == false)
+    }
+
+    @Test("A command from Pressing Menu doesn't wake a blank phone screen or restart its blank-after time")
+    func screenStaysBlank() async {
+        let world = World(settings: Settings(inputID: AudioInputDevice.deck.id, blankAfter: .after(60)))
+        world.sonos.discover(.kitchen)
+        await settle()
+        let (menu, _) = world.pressingMenu()
+
+        world.scheduler.advance(by: 50)
+        menu.switchRoom(FakeRoom.kitchen.uuid, on: true)
+        world.scheduler.advance(by: 10)
+        #expect(world.pressing.state.screen.isBlanked)
+
+        menu.setVolume(30, for: FakeRoom.kitchen.uuid)
+        menu.switchRoom(FakeRoom.kitchen.uuid, on: false)
+        #expect(world.pressing.state.screen.isBlanked)
+        #expect(world.room(.kitchen)?.volume == 30)
+    }
+
+    @Test("A command from Pressing Menu doesn't bring back kiosk mode's icons")
+    func kioskIconsStayHidden() async {
+        let world = World(settings: Settings(inputID: AudioInputDevice.deck.id, kiosk: true))
+        world.sonos.discover(.kitchen)
+        await settle()
+        let (menu, _) = world.pressingMenu()
+        world.music(seconds: 35)
+        #expect(world.pressing.state.hidesControls)
+
+        menu.switchRoom(FakeRoom.kitchen.uuid, on: true)
+        await settle()
+
+        #expect(world.room(.kitchen)?.isOn == true)
+        #expect(world.pressing.state.hidesControls)
+    }
 }

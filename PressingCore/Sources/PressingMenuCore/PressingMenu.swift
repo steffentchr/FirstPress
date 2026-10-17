@@ -159,3 +159,21 @@ public final class PressingMenu {
         }
     }
 }
+
+/// Why a switched-on Room may be quiet, as the phone's Rooms sheet marks it.
+public enum RoomMarker: Sendable, Equatable {
+    /// The Room stopped answering.
+    case cantBeReached
+    /// Someone took it over in the Sonos app, so Pressing stepped back:
+    /// switching it off and on takes it back.
+    case takenOverInSonosApp
+}
+
+extension MenuSnapshot.Room {
+    /// The marker the Rooms view shows, as the phone shows it.
+    public var marker: RoomMarker? {
+        if !isReachable { return .cantBeReached }
+        if isSteppedBack { return .takenOverInSonosApp }
+        return nil
+    }
+}
