@@ -106,6 +106,34 @@ struct PressingMenuTests {
         #expect(menu.history.map(\.title) == ["Track 5", "Track 11", "Track 10", "Track 9", "Track 8", "Track 7", "Track 6", "Track 4", "Track 3", "Track 2"])
     }
 
+    @Test("Level meter updates send Pressing Menu no snapshot")
+    func levelUpdatesSendNothing() {
+        let world = World()
+        _ = world.pressingMenu()
+        let sentOnConnect = world.menuServer.sentCount
+        #expect(sentOnConnect == 1)
+
+        // Quiet hiss from the deck: the level moves, nothing else does.
+        world.play(Signal.square(amplitude: 0.002, seconds: 3, sampleRate: 44_100))
+
+        #expect(world.pressing.state.input.level != nil)
+        #expect(world.menuServer.sentCount == sentOnConnect)
+    }
+
+    @Test("Two Pressing Menus connected at once both get snapshots")
+    func twoPressingMenus() async {
+        let world = World()
+        let (first, _) = world.pressingMenu()
+        let (second, _) = world.pressingMenu()
+
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        #expect(first.header == .track(.ballad))
+        #expect(second.header == .track(.ballad))
+    }
+
     /// Plays from last night, saved oldest first: "Track 0" to "Track \(count - 1)".
     private func lastNight(_ count: Int) -> [Play] {
         let start = Date(timeIntervalSince1970: 1_699_900_000)

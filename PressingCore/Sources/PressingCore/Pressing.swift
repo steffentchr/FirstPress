@@ -6,7 +6,11 @@ import Observation
 @Observable
 public final class Pressing {
     public internal(set) var state = PressingState() {
-        didSet { menuMayHaveChanged() }
+        didSet {
+            // Cheap enough for every level meter update: most change none of these.
+            guard state.page != oldValue.page || state.session != oldValue.session || state.play != oldValue.play else { return }
+            menuMayHaveChanged()
+        }
     }
     /// Every Play kept on the phone, newest first, the current one included.
     /// Apart from `state` so the level meter's updates don't redraw History.
