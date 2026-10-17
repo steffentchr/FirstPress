@@ -27,7 +27,7 @@ swift test --package-path PressingCore
   | `Scheduler` | Time and timers |
   | `MenuServer` | Pressing Menus connected over the network: snapshots out, commands (Rooms, volumes, This iPhone) in |
 
-- **`PressingMenuCore`** is a second library product: Pressing Menu's model (`PressingMenu`), for the Mac app. It reaches the phone only through its `MenuLink` port, posts notifications through its `TrackNotifier` port, and shares the wire types (`MenuSnapshot`, `MenuWire`) with the core. Like the core, it imports only Foundation and Observation. See ADR-0004.
+- **`PressingMenuCore`** is a second library product: Pressing Menu's model (`PressingMenu`), for Pressing Menu. It reaches the phone only through its `MenuLink` port, posts notifications through its `TrackNotifier` port, and shares the wire types (`MenuSnapshot`, `MenuWire`) with the core. Like the core, it imports only Foundation and Observation. See ADR-0004.
 - **Protocol logic lives here, not in the adapters.** That covers the SOAP envelopes, ICY stream framing, Last.fm request signing, detection, resampling and Pressing Menu's wire contract. The adapters only move bytes and call system APIs, so the logic is tested.
 
 ## Tests

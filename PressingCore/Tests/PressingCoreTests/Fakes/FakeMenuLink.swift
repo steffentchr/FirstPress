@@ -14,8 +14,8 @@ final class FakeMenuServer: MenuServer {
     /// attempt fails at once.
     var refusesConnections = false
     /// Every message the phone sent, per Pressing Menu.
-    private(set) var sent: [MenuClientID: [Data]] = [:]
-    private var links: [MenuClientID: FakeMenuLink] = [:]
+    private(set) var sent: [MenuConnectionID: [Data]] = [:]
+    private var links: [MenuConnectionID: FakeMenuLink] = [:]
     /// Pressing Menus looking for the phone while it isn't advertised.
     private var looking: [FakeMenuLink] = []
     private var nextID = 1
@@ -34,9 +34,9 @@ final class FakeMenuServer: MenuServer {
         for link in Array(links.values) { link.drop() }
     }
 
-    func send(_ message: Data, to client: MenuClientID) {
-        sent[client, default: []].append(message)
-        links[client]?.deliver(message)
+    func send(_ message: Data, to connection: MenuConnectionID) {
+        sent[connection, default: []].append(message)
+        links[connection]?.deliver(message)
     }
 
     /// How many messages went to every Pressing Menu, all told.
@@ -46,30 +46,30 @@ final class FakeMenuServer: MenuServer {
 
     /// A Pressing Menu looks for the phone: it connects at once while the
     /// phone is advertised, and as soon as it is otherwise.
-    func accept(_ link: FakeMenuLink) -> MenuClientID? {
+    func accept(_ link: FakeMenuLink) -> MenuConnectionID? {
         guard isAdvertising else {
             if !looking.contains(where: { $0 === link }) { looking.append(link) }
             return nil
         }
-        let id = MenuClientID(nextID)
+        let id = MenuConnectionID(nextID)
         nextID += 1
         links[id] = link
         return id
     }
 
-    func announce(_ client: MenuClientID) { handler?(.connected(client)) }
+    func announce(_ connection: MenuConnectionID) { handler?(.connected(connection)) }
 
     /// Every message the phone received from any Pressing Menu, in order.
     private(set) var received: [Data] = []
 
-    func receive(_ message: Data, from client: MenuClientID) {
+    func receive(_ message: Data, from connection: MenuConnectionID) {
         received.append(message)
-        handler?(.received(message, from: client))
+        handler?(.received(message, from: connection))
     }
 
-    func forget(_ client: MenuClientID) {
-        guard links.removeValue(forKey: client) != nil else { return }
-        handler?(.disconnected(client))
+    func forget(_ connection: MenuConnectionID) {
+        guard links.removeValue(forKey: connection) != nil else { return }
+        handler?(.disconnected(connection))
     }
 }
 
@@ -78,7 +78,7 @@ final class FakeMenuServer: MenuServer {
 final class FakeMenuLink: MenuLink {
     let server: FakeMenuServer
     private(set) var connectAttempts = 0
-    private(set) var client: MenuClientID?
+    private(set) var connection: MenuConnectionID?
     private var handler: (@MainActor (MenuLinkEvent) -> Void)?
 
     init(server: FakeMenuServer) { self.server = server }
@@ -92,23 +92,23 @@ final class FakeMenuLink: MenuLink {
 
     /// The phone is advertised: connect to it, unless connected already.
     func phoneFound() {
-        guard client == nil else { return }
+        guard connection == nil else { return }
         if server.refusesConnections && server.isAdvertising {
             handler?(.disconnected)
             return
         }
         guard let id = server.accept(self) else { return }
-        client = id
+        connection = id
         handler?(.connected)
         server.announce(id)
     }
 
     func send(_ message: Data) {
-        guard let client else { return }
-        server.receive(message, from: client)
+        guard let connection else { return }
+        server.receive(message, from: connection)
     }
 
-    var isConnected: Bool { client != nil }
+    var isConnected: Bool { connection != nil }
 
     /// A message as the phone would send it, raw.
     func deliver(_ message: Data) { handler?(.received(message)) }
@@ -116,8 +116,8 @@ final class FakeMenuLink: MenuLink {
 
     /// The link goes down: Wi-Fi dropped, or the phone went to sleep.
     func drop() {
-        guard let id = client else { return }
-        client = nil
+        guard let id = connection else { return }
+        connection = nil
         server.forget(id)
         handler?(.disconnected)
     }

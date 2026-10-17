@@ -3,7 +3,7 @@ import Observation
 import PressingCore
 
 /// Pressing Menu's model: the link to Pressing on the iPhone, and what the
-/// panel and the menu-bar icon show. The Mac app renders it.
+/// panel and the menu-bar icon show. Pressing Menu's views render it.
 @MainActor
 @Observable
 public final class PressingMenu {
@@ -47,7 +47,7 @@ public final class PressingMenu {
     /// The panel is showing. No Track gets a notification meanwhile: the
     /// listener can see it already.
     @ObservationIgnored public var isPanelOpen = false
-    /// The "Notify on new Track" setting, on by default. The Mac app keeps
+    /// The "Notify on new Track" setting, on by default. Pressing Menu keeps
     /// it in its user defaults and sets it here.
     @ObservationIgnored public var notifiesOnNewTrack = true
     /// The last snapshot from the phone, kept while it can't be reached.

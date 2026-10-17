@@ -35,13 +35,13 @@ final class BonjourMenuServer: MenuServer {
         for id in Array(connections.keys) { disconnect(id) }
     }
 
-    func send(_ message: Data, to client: MenuClientID) {
-        guard let connection = connections[client.rawValue] else { return }
+    func send(_ message: Data, to connection: MenuConnectionID) {
+        guard let socket = connections[connection.rawValue] else { return }
         let metadata = NWProtocolWebSocket.Metadata(opcode: .text)
         let context = NWConnection.ContentContext(identifier: "pressing", metadata: [metadata])
-        connection.send(content: message, contentContext: context, isComplete: true, completion: .contentProcessed { error in
+        socket.send(content: message, contentContext: context, isComplete: true, completion: .contentProcessed { error in
             MainActor.assumeIsolated {
-                if error != nil { self.disconnect(client.rawValue) }
+                if error != nil { self.disconnect(connection.rawValue) }
             }
         })
     }
@@ -91,7 +91,7 @@ final class BonjourMenuServer: MenuServer {
             MainActor.assumeIsolated {
                 switch state {
                 case .ready:
-                    self.handler?(.connected(MenuClientID(id)))
+                    self.handler?(.connected(MenuConnectionID(id)))
                 case .failed, .cancelled:
                     self.disconnect(id)
                 default:
@@ -114,7 +114,7 @@ final class BonjourMenuServer: MenuServer {
                     return
                 }
                 if let data, !data.isEmpty, metadata?.opcode == .text || metadata?.opcode == .binary {
-                    self.handler?(.received(data, from: MenuClientID(id)))
+                    self.handler?(.received(data, from: MenuConnectionID(id)))
                 }
                 self.receive(id)
             }
@@ -124,6 +124,6 @@ final class BonjourMenuServer: MenuServer {
     private func disconnect(_ id: Int) {
         guard let connection = connections.removeValue(forKey: id) else { return }
         connection.cancel()
-        handler?(.disconnected(MenuClientID(id)))
+        handler?(.disconnected(MenuConnectionID(id)))
     }
 }

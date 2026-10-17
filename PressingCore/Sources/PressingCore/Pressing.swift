@@ -57,7 +57,7 @@ public final class Pressing {
     @ObservationIgnored let phoneOutput: any PhoneOutput
     @ObservationIgnored let menuServer: any MenuServer
     /// The Pressing Menus connected now.
-    @ObservationIgnored var menuClients: Set<MenuClientID> = []
+    @ObservationIgnored var menuConnections: Set<MenuConnectionID> = []
     /// The snapshot Pressing Menus were last sent.
     @ObservationIgnored var lastMenuSnapshot: MenuSnapshot?
     /// The Phone output was started and not stopped since.

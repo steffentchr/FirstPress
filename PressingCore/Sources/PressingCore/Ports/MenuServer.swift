@@ -1,18 +1,18 @@
 import Foundation
 
-/// One Pressing Menu connected to the phone.
-public struct MenuClientID: Sendable, Hashable {
+/// One Pressing Menu's connection to the phone.
+public struct MenuConnectionID: Sendable, Hashable {
     public let rawValue: Int
     public init(_ rawValue: Int) { self.rawValue = rawValue }
 }
 
 public enum MenuServerEvent: Sendable, Equatable {
     /// A Pressing Menu connected.
-    case connected(MenuClientID)
+    case connected(MenuConnectionID)
     /// A message arrived from a Pressing Menu.
-    case received(Data, from: MenuClientID)
+    case received(Data, from: MenuConnectionID)
     /// A Pressing Menu went away.
-    case disconnected(MenuClientID)
+    case disconnected(MenuConnectionID)
 }
 
 /// Port: the phone's side of the link to Pressing Menus. The core builds
@@ -25,5 +25,5 @@ public protocol MenuServer: AnyObject {
     func start()
     func stop()
     /// Sends one message to one Pressing Menu.
-    func send(_ message: Data, to client: MenuClientID)
+    func send(_ message: Data, to connection: MenuConnectionID)
 }
