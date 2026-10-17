@@ -111,6 +111,30 @@ struct PressingMenuNotificationTests {
         #expect(notifier.notified.isEmpty)
     }
 
+    @Test("While macOS denies Pressing Menu notifications, none is asked for and Notify on new Track shows off, until they're allowed")
+    func notWhileDeniedByMacOS() async {
+        let world = World()
+        let (menu, _, notifier) = world.notifyingPressingMenu()
+        #expect(menu.postsNotifications)
+
+        menu.notificationsAreDenied = true
+        #expect(menu.notifiesOnNewTrack)
+        #expect(!menu.postsNotifications)
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(menu.header == .track(.ballad))
+        #expect(notifier.notified.isEmpty)
+
+        menu.notificationsAreDenied = false
+        #expect(menu.postsNotifications)
+        world.silence(seconds: 15)
+        world.recognizer.answers = [.match(.rocker, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(notifier.notified == [.rocker])
+    }
+
     @Test("The same Track gaining its album or cover later gets no second notification")
     func detailsArrivingLater() {
         let world = World()
@@ -121,6 +145,19 @@ struct PressingMenuNotificationTests {
 
         #expect(menu.header == .track(Track(artist: "Kate Bush", title: "Wuthering Heights", album: "The Kick Inside", artworkURL: URL(string: "https://example.com/kick.jpg"))))
         #expect(notifier.notified == [Track(artist: "Kate Bush", title: "Wuthering Heights")])
+    }
+
+    @Test("The same Track spelled with other case or accents gets no second notification, as History counts it once")
+    func sameTrackOtherSpelling() {
+        let world = World()
+        let (menu, link, notifier) = world.notifyingPressingMenu()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "Björk", "title": "Jóga"}}"#)
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "Bjork", "title": "Joga"}}"#)
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "BJÖRK", "title": "jóga"}}"#)
+
+        #expect(menu.header == .track(Track(artist: "BJÖRK", title: "jóga")))
+        #expect(notifier.notified == [Track(artist: "Björk", title: "Jóga")])
     }
 }
 

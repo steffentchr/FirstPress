@@ -10,6 +10,7 @@ extension Pressing {
             play.scrobble = isLastFmConnected ? .pending : .notScrobbled
             keep(play)
             keepCover(of: play.track)
+            sessionLastTrack = play.track
             state.play = play
             stream.title = "\(play.track.artist) – \(play.track.title)"
             // A new Track wakes the screen and restarts the blank-after time.

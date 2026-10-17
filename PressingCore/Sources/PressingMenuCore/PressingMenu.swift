@@ -3,17 +3,18 @@ import Observation
 import PressingCore
 
 /// Pressing Menu's model: the link to Pressing on the iPhone, and what the
-/// panel and the menu-bar icon show. The Mac app renders it.
+/// panel and the menu-bar icon show. Pressing Menu's views render it.
 @MainActor
 @Observable
 public final class PressingMenu {
     public enum Connection: Sendable, Equatable {
-        /// Looking for Pressing on the network, not found yet.
+        /// Looking for Pressing on the network, not reached yet: from launch
+        /// until the first link is up, however long that takes.
         case looking
         /// Linked to Pressing on the iPhone.
         case connected
-        /// Pressing isn't running, the phone is off the network, or the
-        /// link dropped. The last snapshot stays on screen, greyed, while
+        /// A live link dropped: Pressing stopped running, or the phone left
+        /// the network. The last snapshot stays on screen, greyed, while
         /// Pressing Menu keeps trying.
         case cantBeReached
         /// The phone speaks a newer major version of the wire contract than
@@ -25,19 +26,22 @@ public final class PressingMenu {
     public enum Header: Sendable, Equatable {
         /// The current Track: its title large, the artist beneath.
         case track(Track)
+        /// No phone is connected: Pressing hasn't been found yet, or a live
+        /// link dropped and no Track is kept to show. The panel says only
+        /// that it's looking for Pressing, small.
         case lookingForPressing
-        case cantBeReached
         /// No Session is running, or the phone asks for its input.
         case waitingForRecord
         /// A Record is playing and no Track is identified yet.
         case recordNotIdentified
+        /// The last Record ended with a Flip and the Session still runs:
+        /// "Between sides", with the Session's last Track small beneath, if
+        /// one was identified.
+        case betweenSides(lastTrack: Track?)
         /// The phone is newer than this Pressing Menu can follow.
         case updatePressingMenu
     }
 
-    /// How long Pressing Menu says it's looking before it says the iPhone
-    /// can't be reached. It goes on looking after that.
-    public static let lookingFor: TimeInterval = 5
     /// How long Pressing Menu waits before trying again: doubling from 1 s
     /// after each failed attempt, to at most 30 s.
     static let retryDelays: [TimeInterval] = [1, 2, 4, 8, 16, 30]
@@ -47,23 +51,41 @@ public final class PressingMenu {
     /// The panel is showing. No Track gets a notification meanwhile: the
     /// listener can see it already.
     @ObservationIgnored public var isPanelOpen = false
-    /// The "Notify on new Track" setting, on by default. The Mac app keeps
+    /// The "Notify on new Track" setting, on by default. Pressing Menu keeps
     /// it in its user defaults and sets it here.
-    @ObservationIgnored public var notifiesOnNewTrack = true
+    public var notifiesOnNewTrack = true
+    /// The listener turned notifications off for Pressing Menu in System
+    /// Settings. The notifications adapter reads it from macOS and sets it
+    /// here.
+    public var notificationsAreDenied = false
+    /// New Tracks get a notification: the setting is on and macOS allows
+    /// them. Settings shows the switch this way.
+    public var postsNotifications: Bool {
+        notifiesOnNewTrack && !notificationsAreDenied
+    }
     /// The last snapshot from the phone, kept while it can't be reached.
     private var snapshot: MenuSnapshot?
 
     public var header: Header {
         if connection == .needsUpdate { return .updatePressingMenu }
-        guard let snapshot else {
-            return connection == .cantBeReached ? .cantBeReached : .lookingForPressing
-        }
+        guard let snapshot else { return .lookingForPressing }
         if let track = snapshot.track { return .track(track) }
-        if connection == .cantBeReached { return .cantBeReached }
+        // After a drop-out only a Track is kept on screen.
+        if connection == .cantBeReached { return .lookingForPressing }
+        if snapshot.page == .nowPlaying, snapshot.record == .flipped {
+            return .betweenSides(lastTrack: snapshot.lastTrack)
+        }
         switch (snapshot.page, snapshot.record) {
         case (.nowPlaying, .playing), (.nowPlaying, .gap): return .recordNotIdentified
         default: return .waitingForRecord
         }
+    }
+
+    /// After a drop-out, with the last Track kept on screen, greyed, a small
+    /// line beneath it says Pressing Menu is looking for Pressing. When the
+    /// header says so itself, there is no line.
+    public var showsLookingLine: Bool {
+        connection == .cantBeReached && header != .lookingForPressing
     }
 
     /// History as the panel lists it under the header: at most 10 Tracks,
@@ -95,8 +117,10 @@ public final class PressingMenu {
     /// Where Pressing plays, as the footer says it: the first switched-on
     /// Room's name plus "+N" for the others, This iPhone counted, or "No
     /// Rooms". The Rooms name This iPhone only when no Room is on. Outside a
-    /// Session these are the choices for the next one.
-    public var roomsSummary: String {
+    /// Session these are the choices for the next one. Nil, and not shown,
+    /// while no phone is connected.
+    public var roomsSummary: String? {
+        guard canControl else { return nil }
         var names = rooms.filter(\.isOn).map(\.name)
         if phoneOutput?.isOn == true { names.append("This iPhone") }
         guard let first = names.first else { return "No Rooms" }
@@ -177,7 +201,6 @@ public final class PressingMenu {
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored private let notifier: (any TrackNotifier)?
-    @ObservationIgnored private var lookingTimer: (any ScheduledWork)?
     @ObservationIgnored private var retryTimer: (any ScheduledWork)?
     /// Failed attempts since the link was last up.
     @ObservationIgnored private var failures = 0
@@ -196,23 +219,19 @@ public final class PressingMenu {
         link.setEventHandler { [weak self] event in
             self?.handle(event)
         }
-        lookingTimer = scheduler.schedule(after: Self.lookingFor) { [weak self] in
-            guard let self, connection == .looking else { return }
-            connection = .cantBeReached
-        }
         link.connect()
     }
 
     private func handle(_ event: MenuLinkEvent) {
         switch event {
         case .connected:
-            lookingTimer?.cancel()
-            lookingTimer = nil
             failures = 0
             awaitingFirstSnapshot = true
             connection = .connected
         case .disconnected:
-            connection = .cantBeReached
+            // Until Pressing has been reached once, a failed attempt is
+            // still looking.
+            if connection != .looking { connection = .cantBeReached }
             retry()
         case .received(let data):
             switch MenuWire.decode(data) {
@@ -233,14 +252,10 @@ public final class PressingMenu {
     /// one already playing when the link comes up.
     private func notifyIfNew(_ track: Track?) {
         defer { awaitingFirstSnapshot = false }
-        guard !awaitingFirstSnapshot, let track, !Self.isSameSong(track, snapshot?.track) else { return }
-        guard notifiesOnNewTrack, !isPanelOpen else { return }
+        // The same Track, even once its album or cover is filled in.
+        guard !awaitingFirstSnapshot, let track, snapshot?.track.map(track.isSame) != true else { return }
+        guard postsNotifications, !isPanelOpen else { return }
         notifier?.notify(newTrack: track)
-    }
-
-    /// The same Track, even once its album or cover is filled in.
-    private static func isSameSong(_ track: Track, _ other: Track?) -> Bool {
-        track.artist == other?.artist && track.title == other?.title
     }
 
     private func retry() {
@@ -250,24 +265,6 @@ public final class PressingMenu {
         retryTimer = scheduler.schedule(after: delay) { [weak self] in
             self?.link.connect()
         }
-    }
-}
-
-/// Why a switched-on Room may be quiet, as the phone's Rooms sheet marks it.
-public enum RoomMarker: Sendable, Equatable {
-    /// The Room stopped answering.
-    case cantBeReached
-    /// Someone took it over in the Sonos app, so Pressing stepped back:
-    /// switching it off and on takes it back.
-    case takenOverInSonosApp
-}
-
-extension MenuSnapshot.Room {
-    /// The marker the Rooms view shows, as the phone shows it.
-    public var marker: RoomMarker? {
-        if !isReachable { return .cantBeReached }
-        if isSteppedBack { return .takenOverInSonosApp }
-        return nil
     }
 }
 

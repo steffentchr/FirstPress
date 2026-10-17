@@ -30,8 +30,8 @@ final class MenuSettings {
         }
     }
 
-    var findSongsIn: SongService {
-        didSet { defaults.set(findSongsIn.rawValue, forKey: Keys.findSongsIn) }
+    var findTracksIn: TrackSearchService {
+        didSet { defaults.set(findTracksIn.rawValue, forKey: Keys.findTracksIn) }
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -40,7 +40,8 @@ final class MenuSettings {
     private enum Keys {
         static let appearance = "appearance"
         static let notifiesOnNewTrack = "notifiesOnNewTrack"
-        static let findSongsIn = "findSongsIn"
+        // Stored under its first name, so the choice survives the rename.
+        static let findTracksIn = "findSongsIn"
     }
 
     init(menu: PressingMenu, defaults: UserDefaults = .standard) {
@@ -48,7 +49,7 @@ final class MenuSettings {
         self.defaults = defaults
         appearance = defaults.string(forKey: Keys.appearance).flatMap(Appearance.init) ?? .system
         notifiesOnNewTrack = defaults.object(forKey: Keys.notifiesOnNewTrack) as? Bool ?? true
-        findSongsIn = defaults.string(forKey: Keys.findSongsIn).flatMap(SongService.init) ?? .default
+        findTracksIn = defaults.string(forKey: Keys.findTracksIn).flatMap(TrackSearchService.init) ?? .default
         menu.notifiesOnNewTrack = notifiesOnNewTrack
         applyAppearance()
     }
