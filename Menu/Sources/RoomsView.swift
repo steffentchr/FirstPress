@@ -81,7 +81,7 @@ private struct RoomRow: View {
             .toggleStyle(.checkbox)
             Group {
                 if let marker = room.marker {
-                    Label(marker.text, systemImage: marker.symbol)
+                    Label(marker.text, systemImage: marker.symbolName)
                         .font(.system(size: 12))
                         .foregroundStyle(.orange)
                 }
@@ -114,22 +114,6 @@ private struct RoomRow: View {
                 }
             }
             .padding(.leading, 22)
-        }
-    }
-}
-
-private extension RoomMarker {
-    var text: String {
-        switch self {
-        case .cantBeReached: "Can't be reached"
-        case .takenOverInSonosApp: "Taken over in the Sonos app. Switch off and on to take it back."
-        }
-    }
-
-    var symbol: String {
-        switch self {
-        case .cantBeReached: "wifi.exclamationmark"
-        case .takenOverInSonosApp: "hand.raised"
         }
     }
 }
