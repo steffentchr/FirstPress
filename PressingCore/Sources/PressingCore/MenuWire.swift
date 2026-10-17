@@ -83,8 +83,9 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         }
     }
 
-    /// How many Plays Pressing Menu lists.
-    public static let recentPlaysLimit = 10
+    /// How many Plays Pressing Menu's panel lists: fewer than the phone's
+    /// own History (`Pressing.recentPlaysLimit`).
+    public static let panelHistoryLimit = 10
 
     public var major: Int
     public var page: Page
@@ -175,7 +176,16 @@ public enum MenuWire {
         try! encoder.encode(Tagged(snapshot: snapshot))
     }
 
+    /// A command's `type` on the wire, both ways.
+    private enum CommandType: String {
+        case switchRoom
+        case setVolume
+        case switchPhoneOutput
+    }
+
     private struct CommandFields: Codable {
+        /// A `CommandType`, kept as text so one this build doesn't know
+        /// still decodes, and is ignored.
         var type: String
         var major: Int
         var id: String?
@@ -186,11 +196,11 @@ public enum MenuWire {
     public static func encode(_ command: MenuCommand) -> Data {
         let fields = switch command {
         case .switchRoom(let id, let on):
-            CommandFields(type: "switchRoom", major: MenuSnapshot.currentMajor, id: id, on: on)
+            CommandFields(type: CommandType.switchRoom.rawValue, major: MenuSnapshot.currentMajor, id: id, on: on)
         case .setVolume(let id, let volume):
-            CommandFields(type: "setVolume", major: MenuSnapshot.currentMajor, id: id, volume: volume)
+            CommandFields(type: CommandType.setVolume.rawValue, major: MenuSnapshot.currentMajor, id: id, volume: volume)
         case .switchPhoneOutput(let on):
-            CommandFields(type: "switchPhoneOutput", major: MenuSnapshot.currentMajor, on: on)
+            CommandFields(type: CommandType.switchPhoneOutput.rawValue, major: MenuSnapshot.currentMajor, on: on)
         }
         return try! encoder.encode(fields)
     }
@@ -199,20 +209,19 @@ public enum MenuWire {
     /// this build doesn't know, or from a newer major version.
     public static func decodeCommand(_ data: Data) -> MenuCommand? {
         guard let fields = try? decoder.decode(CommandFields.self, from: data),
-              fields.major <= MenuSnapshot.currentMajor
+              fields.major <= MenuSnapshot.currentMajor,
+              let type = CommandType(rawValue: fields.type)
         else { return nil }
-        switch fields.type {
-        case "switchRoom":
+        switch type {
+        case .switchRoom:
             guard let id = fields.id, let on = fields.on else { return nil }
             return .switchRoom(id: id, on: on)
-        case "setVolume":
+        case .setVolume:
             guard let id = fields.id, let volume = fields.volume else { return nil }
             return .setVolume(id: id, volume: volume)
-        case "switchPhoneOutput":
+        case .switchPhoneOutput:
             guard let on = fields.on else { return nil }
             return .switchPhoneOutput(on: on)
-        default:
-            return nil
         }
     }
 

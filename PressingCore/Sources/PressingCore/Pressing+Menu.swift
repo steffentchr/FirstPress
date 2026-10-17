@@ -55,7 +55,7 @@ extension Pressing {
         case .running(_, .gap): .gap
         case .running(_, .flipped): .flipped
         }
-        let recent = Self.recentPlays(in: history, excluding: state.play?.id, limit: MenuSnapshot.recentPlaysLimit)
+        let recent = Self.recentPlays(in: history, excluding: state.play?.id, limit: MenuSnapshot.panelHistoryLimit)
         return MenuSnapshot(
             page: page,
             record: record,
