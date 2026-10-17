@@ -18,10 +18,10 @@
     { "title": "Letters I Never Sent", "artist": "The Wrights", "album": "Hatful of Borrow", "cover": "hatful-of-borrow", "minutesAgo": 1461 }
   ],
   "screenshots": [
+    { "scene": "waiting", "caption": "A spare iPhone streams\nyour records to Sonos." },
     { "scene": "nowPlaying", "caption": "Put on a record.\nPressing does the rest." },
     { "scene": "rooms", "caption": "Plays in your Sonos Rooms,\neach at its own volume." },
     { "scene": "history", "caption": "Every Track identified\nand kept in your History." },
-    { "scene": "settings", "caption": "Scrobbles to Last.fm,\neven while offline." },
-    { "scene": "waiting", "caption": "A spare iPhone becomes\nyour turntable's companion." }
+    { "scene": "settings", "caption": "Scrobbles to Last.fm,\neven while offline." }
   ]
 }
