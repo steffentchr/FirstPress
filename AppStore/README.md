@@ -40,8 +40,8 @@ App Store Connect needs only the 6.9" set for an iPhone-only app; it scales it d
 
 **The sample music is invented, and nods to The Smiths.** Real artists and real sleeves in store screenshots invite a rejection under guideline 5.2 (intellectual property), so every artist, album, Track and sleeve here is made up. They wink at The Smiths without copying anything:
 
-- The band is **The Joneses**: the other everyman surname.
-- The hero album, **The King Is Asleep**, answers *The Queen Is Dead*. Its sleeve follows that one's formula: a single-colour green still of a man lying on his back, the band name in white and the title in pale pink above. It's drawn from scratch; no part of the original sleeve or its photograph is used.
+- The band is **The Wrights**. Smith and Wright are both old makers' surnames, so the name sits beside The Smiths without copying it.
+- The hero album, **The King Is Dead**, answers *The Queen Is Dead*. Its sleeve follows that one's formula: a single-colour green still of a man lying on his back, the band name in white and the title in pale pink above. It's drawn from scratch; no part of the original sleeve or its photograph is used.
 - The other sleeves follow the Smiths singles' formula, a tinted "cover star" still in one colour with the name in plain white capitals: *Sideways, Here We Go* (blue; *Strangeways, Here We Come*), *Quieter Than Moths* (rose; *Louder Than Bombs*), *Hatful of Borrow* (ochre; *Hatful of Hollow*).
 - The Track playing is *Bigmouth*, leaning on *Bigmouth Strikes Again*, the single from *The Queen Is Dead*.
 - The other Track titles are plain and sincere, not puns: Manchester streets, buses, rain and Sundays, in the band's mood rather than its words. *Under the Iron Bridge*, *Whitworth Street in the Rain*, *A Coat Too Thin for March*, *The Last Bus Out of Salford*, *Nobody Calls on Sundays*, *Bicycles in the Hallway*, *Late Light on the Canal*, *Letters I Never Sent*.

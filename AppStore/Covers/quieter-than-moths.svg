@@ -12,6 +12,6 @@
     <path d="M330 1000 L340 640 C350 570 410 545 470 545 C530 545 590 570 600 640 L610 1000 Z"/>
   </g>
   <rect width="1000" height="1000" filter="url(#grain)"/>
-  <text x="70" y="130" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="80" fill="#ffffff" letter-spacing="2">THE JONESES</text>
+  <text x="70" y="130" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="80" fill="#ffffff" letter-spacing="2">THE WRIGHTS</text>
   <text x="70" y="195" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="46" fill="#f3d6dc" letter-spacing="2">QUIETER THAN MOTHS</text>
 </svg>

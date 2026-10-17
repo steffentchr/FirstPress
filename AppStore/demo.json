@@ -6,16 +6,16 @@
     { "name": "Kitchen", "on": true, "volume": 22 },
     { "name": "Study", "on": false, "volume": 25 }
   ],
-  "nowPlaying": { "title": "Bigmouth", "artist": "The Joneses", "album": "The King Is Asleep", "cover": "the-king-is-asleep", "seconds": 212 },
+  "nowPlaying": { "title": "Bigmouth", "artist": "The Wrights", "album": "The King Is Dead", "cover": "the-king-is-dead", "seconds": 212 },
   "history": [
-    { "title": "Under the Iron Bridge", "artist": "The Joneses", "album": "The King Is Asleep", "cover": "the-king-is-asleep", "minutesAgo": 4 },
-    { "title": "Whitworth Street in the Rain", "artist": "The Joneses", "album": "Sideways, Here We Go", "cover": "sideways-here-we-go", "minutesAgo": 9 },
-    { "title": "A Coat Too Thin for March", "artist": "The Joneses", "album": "Quieter Than Moths", "cover": "quieter-than-moths", "minutesAgo": 15 },
-    { "title": "The Last Bus Out of Salford", "artist": "The Joneses", "album": "Hatful of Borrow", "cover": "hatful-of-borrow", "minutesAgo": 21 },
-    { "title": "Nobody Calls on Sundays", "artist": "The Joneses", "album": "The King Is Asleep", "cover": "the-king-is-asleep", "minutesAgo": 26 },
-    { "title": "Bicycles in the Hallway", "artist": "The Joneses", "album": "Quieter Than Moths", "cover": "quieter-than-moths", "minutesAgo": 1450 },
-    { "title": "Late Light on the Canal", "artist": "The Joneses", "album": "The King Is Asleep", "cover": "the-king-is-asleep", "minutesAgo": 1455 },
-    { "title": "Letters I Never Sent", "artist": "The Joneses", "album": "Hatful of Borrow", "cover": "hatful-of-borrow", "minutesAgo": 1461 }
+    { "title": "Under the Iron Bridge", "artist": "The Wrights", "album": "The King Is Dead", "cover": "the-king-is-dead", "minutesAgo": 4 },
+    { "title": "Whitworth Street in the Rain", "artist": "The Wrights", "album": "Sideways, Here We Go", "cover": "sideways-here-we-go", "minutesAgo": 9 },
+    { "title": "A Coat Too Thin for March", "artist": "The Wrights", "album": "Quieter Than Moths", "cover": "quieter-than-moths", "minutesAgo": 15 },
+    { "title": "The Last Bus Out of Salford", "artist": "The Wrights", "album": "Hatful of Borrow", "cover": "hatful-of-borrow", "minutesAgo": 21 },
+    { "title": "Nobody Calls on Sundays", "artist": "The Wrights", "album": "The King Is Dead", "cover": "the-king-is-dead", "minutesAgo": 26 },
+    { "title": "Bicycles in the Hallway", "artist": "The Wrights", "album": "Quieter Than Moths", "cover": "quieter-than-moths", "minutesAgo": 1450 },
+    { "title": "Late Light on the Canal", "artist": "The Wrights", "album": "The King Is Dead", "cover": "the-king-is-dead", "minutesAgo": 1455 },
+    { "title": "Letters I Never Sent", "artist": "The Wrights", "album": "Hatful of Borrow", "cover": "hatful-of-borrow", "minutesAgo": 1461 }
   ],
   "screenshots": [
     { "scene": "nowPlaying", "caption": "Put on a record.\nPressing does the rest." },
