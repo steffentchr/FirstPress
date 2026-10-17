@@ -1,6 +1,6 @@
-# Pressing
+# First Press
 
-Pressing is an iPhone bridge from a record deck to Sonos speakers: it plays what's on the turntable through the chosen rooms, identifies it, and keeps a history.
+First Press is an iPhone bridge from a record deck to Sonos speakers: it plays what's on the turntable through the chosen rooms, identifies it, and keeps a history.
 
 ## Language
 
@@ -9,7 +9,7 @@ One side of an LP played through, from the needle dropping to the run-out groove
 _Avoid_: Spin, side (as the playback term)
 
 **Session**:
-One or more Records played back to back while Pressing holds the Rooms. It ends when the silence after the last Record lasts longer than the stop delay.
+One or more Records played back to back while First Press holds the Rooms. It ends when the silence after the last Record lasts longer than the stop delay.
 _Avoid_: Stream, listening
 
 **Track**:
@@ -28,16 +28,16 @@ _Avoid_: Speaker, zone, player, group
 The iPhone's own audio output — its speaker, connected earphones or an AirPlay receiver — used as an extra place a Record plays, alongside the Rooms.
 _Avoid_: Monitor, local playback, passthrough
 
-**Pressing Menu**:
-The Mac menu-bar app that shows and controls a Pressing running on an iPhone on the same network.
-_Avoid_: Remote, companion, client, Mac app
+**First Press Menu**:
+The Mac menu-bar app that shows and controls a First Press running on an iPhone on the same network.
+_Avoid_: Remote, companion, client, Mac app, Pressing Menu
 
 **Takeover**:
-Pressing making a Room play the turntable, whatever that Room was doing before.
+First Press making a Room play the turntable, whatever that Room was doing before.
 _Avoid_: Grab, hijack
 
 **Step back**:
-Pressing letting go of a Room because someone else took it over, and leaving it alone for the rest of the Session.
+First Press letting go of a Room because someone else took it over, and leaving it alone for the rest of the Session.
 _Avoid_: Release, yield, give up
 
 **Gap**:

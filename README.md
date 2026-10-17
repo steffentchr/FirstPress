@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="docs/images/icon.png" width="128" alt="Pressing's icon: a record with a cleaning brush on an orange background">
+  <img src="docs/images/icon.png" width="128" alt="First Press's icon: a record with a cleaning brush on an orange background">
 </p>
 
-<h1 align="center">Pressing</h1>
+<h1 align="center">First Press</h1>
 
 <p align="center">An iPhone bridge from your record deck to Sonos speakers.</p>
 
-Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressing on the deck, and the phone streams it to the Sonos Rooms you've chosen. It also shows what's playing and keeps a history, and it can scrobble every Track to Last.fm. You don't have to touch the phone.
+First Press turns a spare iPhone into a dedicated turntable companion. Put a record on the deck, and the phone streams it to the Sonos Rooms you've chosen. It also shows what's playing and keeps a history, and it can scrobble every Track to Last.fm. You don't have to touch the phone.
 
 <p align="center">
   <img src="docs/images/now-playing.png" width="200" alt="Now Playing on an iPhone in kiosk mode: the current Track's cover, title, artist and album, with the two most recent Tracks below">
@@ -19,14 +19,14 @@ Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressi
 </p>
 <p align="center"><sub>Now Playing on an iPhone in kiosk mode, with a Track and before one is identified; the start screen and Settings, from the simulator.</sub></p>
 
-> **Status:** a personal project, in daily use. The code is covered by about 200 tests, and the first full test pass on an iPhone with a USB deck and Sonos speakers is complete ([#10](https://github.com/steffentchr/Pressing/issues/10)). Expect the occasional rough edge.
+> **Status:** a personal project, in daily use. The code is covered by about 200 tests, and the first full test pass on an iPhone with a USB deck and Sonos speakers is complete ([#10](https://github.com/steffentchr/FirstPress/issues/10)). Expect the occasional rough edge.
 
 ## What it does
 
-- **Starts by itself.** Drop the needle and a Session starts. When the side runs out, Pressing waits through the Flip. If no new Record starts, it stops the speakers after 45 s of silence, even with the stylus still in the run-out groove.
-- **Plays in your Sonos Rooms.** Tick any number of Rooms, each with its own volume, and they play in sync. Pressing takes them over even if they were playing something else. If someone takes a Room back in the Sonos app, Pressing steps back and leaves it alone until the next Session.
+- **Starts by itself.** Drop the needle and a Session starts. When the side runs out, First Press waits through the Flip. If no new Record starts, it stops the speakers after 45 s of silence, even with the stylus still in the run-out groove.
+- **Plays in your Sonos Rooms.** Tick any number of Rooms, each with its own volume, and they play in sync. First Press takes them over even if they were playing something else. If someone takes a Room back in the Sonos app, First Press steps back and leaves it alone until the next Session.
 - **Plays on the phone too, if you like.** "This iPhone" plays the Record on the phone's speaker, Bluetooth earphones or an AirPlay receiver, a few seconds ahead of the Rooms.
-- **Knows what's playing.** ShazamKit identifies each Track. Now Playing shows the cover, title, artist and album. The Sonos app shows "Artist – Title" under the station name "Pressing".
+- **Knows what's playing.** ShazamKit identifies each Track. Now Playing shows the cover, title, artist and album. The Sonos app shows "Artist – Title" under the station name "First Press".
 - **Keeps a history.** The Tracks you've played sit under Now Playing, newest first, each Track once. Tap one to look it up on Spotify.
 - **Scrobbles to Last.fm.** It sends "now playing" and scrobbles each Track once it qualifies. Scrobbles queue up while offline.
 - **Behaves like an appliance.** The screen never blanks while a Record plays. It blanks after a set time of silence to protect the OLED panel. Kiosk mode hides the status bar, and hides the on-screen icons until you touch the screen.
@@ -35,7 +35,7 @@ Pressing turns a spare iPhone into a dedicated turntable companion. Put a pressi
 
 ```
 turntable ─► USB (deck with built-in preamp, or preamp + USB audio interface)
-          ─► Lightning/USB-C camera adapter with charging ─► iPhone running Pressing
+          ─► Lightning/USB-C camera adapter with charging ─► iPhone running First Press
                                                                │
               ┌────────────────────────────────────────────────┼─────────────────────┐
               ▼                                                ▼                     ▼
@@ -43,8 +43,8 @@ turntable ─► USB (deck with built-in preamp, or preamp + USB audio interface
    ─► Sonos Rooms, controlled over the LAN            the Track
 ```
 
-- **Detection.** Pressing watches the input level and detects Records, Gaps between tracks, Flips and Sessions. It uses a median that ignores the clicks of the run-out groove. The settings are described in [Calibrate detection](#calibrate-detection).
-- **Sonos.** Pressing controls the speakers over Sonos's local UPnP interface, not the cloud API ([ADR 0001](docs/adr/0001-local-upnp-for-sonos-control.md)). It finds them with Bonjour ([ADR 0003](docs/adr/0003-bonjour-discovery.md)). Each Room plays the phone's own live MP3 stream ([ADR 0002](docs/adr/0002-live-mp3-stream.md)), encoded with LAME. A few seconds of Sonos buffering is expected.
+- **Detection.** First Press watches the input level and detects Records, Gaps between tracks, Flips and Sessions. It uses a median that ignores the clicks of the run-out groove. The settings are described in [Calibrate detection](#calibrate-detection).
+- **Sonos.** First Press controls the speakers over Sonos's local UPnP interface, not the cloud API ([ADR 0001](docs/adr/0001-local-upnp-for-sonos-control.md)). It finds them with Bonjour ([ADR 0003](docs/adr/0003-bonjour-discovery.md)). Each Room plays the phone's own live MP3 stream ([ADR 0002](docs/adr/0002-live-mp3-stream.md)), encoded with LAME. A few seconds of Sonos buffering is expected.
 - **Vocabulary.** Words like Record, Gap, Flip, Session, Track, Play, Room, Takeover and Step back have exact meanings, defined in [GLOSSARY.md](GLOSSARY.md).
 
 ## What you need
@@ -54,18 +54,18 @@ turntable ─► USB (deck with built-in preamp, or preamp + USB audio interface
 - **A camera adapter with a charging port**, so the phone charges while the deck is plugged in. On Lightning phones that's Apple's Lightning to USB 3 Camera Adapter.
 - **Sonos speakers** on the same Wi-Fi network as the phone.
 - **A Mac with Xcode** (current release) and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
-- **An Apple Developer Program membership.** You install Pressing from source onto your own phone, and the ShazamKit App Service is enabled per App ID in the developer portal. This guide assumes a paid membership.
+- **An Apple Developer Program membership.** You install First Press from source onto your own phone, and the ShazamKit App Service is enabled per App ID in the developer portal. This guide assumes a paid membership.
 - **Optional: a Last.fm account**, if you want scrobbling.
 
 ## Install it on your iPhone
 
-Pressing isn't on the App Store. You build it from source and install it on your own phone.
+First Press isn't on the App Store. You build it from source and install it on your own phone.
 
 1. **Clone the repository and install XcodeGen.**
 
    ```sh
-   git clone https://github.com/steffentchr/Pressing.git
-   cd Pressing
+   git clone https://github.com/steffentchr/FirstPress.git
+   cd FirstPress
    brew install xcodegen
    ```
 
@@ -75,8 +75,8 @@ Pressing isn't on the App Store. You build it from source and install it on your
    cp Config/Signing.xcconfig.example Config/Signing.xcconfig
    ```
 
-   - `PRESSING_BUNDLE_ID` is a bundle ID you make up. It must be unique, and in reverse-domain form, for example `com.yourname.pressing`.
-   - `PRESSING_DEVELOPMENT_TEAM` is your 10-character team ID. Find it in Xcode › Settings › Accounts, or under Membership details at [developer.apple.com/account](https://developer.apple.com/account).
+   - `FIRSTPRESS_BUNDLE_ID` is a bundle ID you make up. It must be unique, and in reverse-domain form, for example `com.yourname.firstpress`.
+   - `FIRSTPRESS_DEVELOPMENT_TEAM` is your 10-character team ID. Find it in Xcode › Settings › Accounts, or under Membership details at [developer.apple.com/account](https://developer.apple.com/account).
 
    The copy is git-ignored.
 
@@ -106,39 +106,39 @@ Pressing isn't on the App Store. You build it from source and install it on your
    3. Enter an **Explicit** bundle ID: the one from step 2.
    4. On the **App Services** tab, tick **ShazamKit** and register.
 
-   Do this yourself. Xcode's automatic signing usually installs Pressing under the team's wildcard profile, so it never creates an App ID you could add the service to. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit).
+   Do this yourself. Xcode's automatic signing usually installs First Press under the team's wildcard profile, so it never creates an App ID you could add the service to. Apple's guide is [Enable ShazamKit for an App ID](https://developer.apple.com/help/account/configure-app-services/shazamkit).
 
 6. **Install on the phone.**
-   1. Open `Pressing.xcodeproj`, connect the iPhone and choose it as the run destination.
+   1. Open `FirstPress.xcodeproj`, connect the iPhone and choose it as the run destination.
    2. Run (⌘R).
    3. On first install, iOS asks you to turn on **Developer Mode** (Settings › Privacy & Security). Turn it on and run again.
 
 7. **First launch.**
    1. Plug the deck into the phone.
-   2. Choose the deck's input on the start screen, allowing the microphone when asked. Pressing only ever listens to the input you choose.
-   3. Allow **local network** access when asked. Pressing then finds your Sonos Rooms.
+   2. Choose the deck's input on the start screen, allowing the microphone when asked. First Press only ever listens to the input you choose.
+   3. Allow **local network** access when asked. First Press then finds your Sonos Rooms.
    4. Tap the speaker icon and tick the Rooms that should play.
    5. [Calibrate detection](#calibrate-detection) once for your deck.
    6. For a dedicated phone, tick **Kiosk mode** in Settings › Screen, and start **Guided Access** (Settings › Accessibility) so nobody can leave the app.
 
-## Using Pressing
+## Using First Press
 
-Pressing shows one screen at a time:
+First Press shows one screen at a time:
 
-- **Start screen.** It asks for the input until one is chosen, and again whenever the chosen input is unplugged. Once the input is ready, it reads "Put on a pressing to start." with the input's name under it. Tap the name to switch inputs.
+- **Start screen.** It asks for the input until one is chosen, and again whenever the chosen input is unplugged. Once the input is ready, it reads "Put on a record to start." with the input's name under it. Tap the name to switch inputs.
 - **Now Playing.** This appears by itself when a Record starts and stays through Gaps and Flips. It shows the current Track large. Until a Track is identified, the grey version of the app's artwork holds its place. History sits below, with the two latest Tracks at rest; scroll down for up to 50.
 
 Two icons sit in the top right:
-- **The speaker** opens the Rooms sheet. Tick a Room to switch it on at once, and a volume bar appears. The sheet also shows Rooms that can't be reached or that Pressing stepped back from. "This iPhone" at the top plays on the phone's own output; once it's ticked, its AirPlay button chooses where.
+- **The speaker** opens the Rooms sheet. Tick a Room to switch it on at once, and a volume bar appears. The sheet also shows Rooms that can't be reached or that First Press stepped back from. "This iPhone" at the top plays on the phone's own output; once it's ticked, its AirPlay button chooses where.
 - **The gear** opens Settings: the input, the appearance, screen blanking, kiosk mode and Last.fm, with Detection and Permissions in submenus.
 
-Pressing is dark unless you choose otherwise. Settings › Appearance offers System (follows iOS), Light and Dark, and applies to Now Playing, History, Settings and the Rooms sheet. The orange start screen and the blank screen look the same in every appearance.
+First Press is dark unless you choose otherwise. Settings › Appearance offers System (follows iOS), Light and Dark, and applies to Now Playing, History, Settings and the Rooms sheet. The orange start screen and the blank screen look the same in every appearance.
 
 ### Identification and Last.fm
 
-Pressing searches for the Track at the start of a Record, after each Gap, and every 30 s otherwise. Keep the deck's pitch at zero, or Tracks won't match.
+First Press searches for the Track at the start of a Record, after each Gap, and every 30 s otherwise. Keep the deck's pitch at zero, or Tracks won't match.
 
-Connect Last.fm in Settings. Pressing opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve Pressing, close it, and Pressing finishes connecting.
+Connect Last.fm in Settings. First Press opens Last.fm's own sign-in page, so it never sees your password, and keeps the session key in the Keychain. If the page doesn't close by itself after you approve First Press, close it, and First Press finishes connecting.
 
 Rules for scrobbling:
 - **When a Track counts:** it must be longer than 30 s and have played for half its length or 4 minutes, whichever is less. If Last.fm doesn't know the length, it counts at 4 minutes, or at its end if it ran at least 30 s.
@@ -160,15 +160,15 @@ Changing the gain means calibrating again. If the noise floor is high because of
 
 The defaults are a start threshold of −50 dBFS, a 1.5 s start delay, a 12 s Flip threshold, and a 45 s stop delay. The stop delay counts from when the silence began, and it must be longer than the Flip threshold.
 
-## Pressing Menu on your Mac
+## First Press Menu on your Mac
 
-**Pressing Menu** is a menu-bar app for a Mac (macOS 26 or later) on the same network as the phone. It shows what Pressing is playing without getting up. It finds Pressing on the iPhone by itself over Bonjour and talks to it over a WebSocket, with no pairing ([ADR 0004](docs/adr/0004-pressing-menu-link.md)). The iPhone stays in charge: Pressing Menu only shows Pressing's state and sends the same intents as the phone's own controls. Pressing must be running on the phone, in front or in kiosk mode.
+**First Press Menu** is a menu-bar app for a Mac (macOS 26 or later) on the same network as the phone. It shows what First Press is playing without getting up. It finds First Press on the iPhone by itself over Bonjour and talks to it over a WebSocket, with no pairing ([ADR 0004](docs/adr/0004-first-press-menu-link.md)). The iPhone stays in charge: First Press Menu only shows First Press's state and sends the same intents as the phone's own controls. First Press must be running on the phone, in front or in kiosk mode.
 
 - **The menu-bar icon** is a stylised record: a circle around a solid label. It gains a thin groove ring while a Record plays, and is dimmed while no phone is connected. Click it to open the panel.
-- **The panel** shows the current Track large, with its cover on the left and the artist beneath and the album once Last.fm names it, or what Pressing is doing, with the last 10 Tracks below. After a Flip it says "Between sides", with the last Track's title beneath, until the next Record starts or the Session ends. While no phone is connected, it says only "Looking for Pressing on your iPhone…", small. If the link drops, the last Track and History stay on screen, greyed, with that line beneath the Track, while Pressing Menu keeps reconnecting.
+- **The panel** shows the current Track large, with its cover on the left and the artist beneath and the album once Last.fm names it, or what First Press is doing, with the last 10 Tracks below. After a Flip it says "Between sides", with the last Track's title beneath, until the next Record starts or the Session ends. While no phone is connected, it says only "Looking for First Press on your iPhone…", small. If the link drops, the last Track and History stay on screen, greyed, with that line beneath the Track, while First Press Menu keeps reconnecting.
 - **Click a Track** in the panel, in the header or in History, to search for it in Spotify or Apple Music, whichever Settings names. There is no menu.
-- **Notifications** announce each new Track identified while connected, with its cover. Each replaces the one before and clears itself after about 8 seconds. When a side runs out during a Session, a "Flip the record" notification names the Record's last Track and stays until you dismiss it or the next Record starts; it stays when the Session ends by itself. Clicking one opens the panel. There's none for a Track or a Flip already under way when Pressing Menu connects, and none while the panel is open. Pressing Menu asks for the Alerts style so "Flip the record" stays on screen; macOS applies that only to new installs, so on an existing install switch Pressing Menu to Alerts in System Settings › Notifications.
-- **The footer:** the power button quits Pressing Menu and leaves Pressing on the phone alone. The gear opens Settings: Appearance, Launch at login, Notifications, and Find songs in. Both stay usable while no phone is connected. On the right, while a phone is connected, the Rooms summary shows where Pressing plays, and opens the Rooms view in place of History: This iPhone and every Sonos Room, ticked on or off at once, with a volume slider for each Room that's on.
+- **Notifications** announce each new Track identified while connected, with its cover. Each replaces the one before and clears itself after about 8 seconds. When a side runs out during a Session, a "Flip the record" notification names the Record's last Track and stays until you dismiss it or the next Record starts; it stays when the Session ends by itself. Clicking one opens the panel. There's none for a Track or a Flip already under way when First Press Menu connects, and none while the panel is open. First Press Menu asks for the Alerts style so "Flip the record" stays on screen; macOS applies that only to new installs, so on an existing install switch First Press Menu to Alerts in System Settings › Notifications.
+- **The footer:** the power button quits First Press Menu and leaves First Press on the phone alone. The gear opens Settings: Appearance, Launch at login, Notifications, and Find songs in. Both stay usable while no phone is connected. On the right, while a phone is connected, the Rooms summary shows where First Press plays, and opens the Rooms view in place of History: This iPhone and every Sonos Room, ticked on or off at once, with a volume slider for each Room that's on.
 
 ## Artwork
 
@@ -199,12 +199,12 @@ rsvg-convert -w 960 -h 960 Design/NoTrackCover.svg | magick - -alpha remove -alp
 
 `Design/StartScreen.svg` and `Design/NoTrackCover.svg` are derived from the icon. If the icon changes, regenerate them too, and keep the catalogue number on their labels but off the icon's.
 
-Pressing Menu's artwork has its own sources, rendered into `Menu/Resources/Assets.xcassets`:
+First Press Menu's artwork has its own sources, rendered into `Menu/Resources/Assets.xcassets`:
 
 | Source | Used as |
 |---|---|
-| [`Design/MenuAppIcon.svg`](Design/MenuAppIcon.svg) | Pressing Menu's Mac app icon: the app icon inside the macOS icon grid, an 824 × 824 rounded square on a transparent 1024 canvas. It's derived from `AppIcon.svg`; the comment in it says how. |
-| [`Design/MenuBarIcon.svg`](Design/MenuBarIcon.svg) | The menu-bar icon: a stylised record (a one-line circle around a solid label about 40% of its diameter) as an 18 pt template image, black on transparent, which macOS tints. No grooves, no brush. While no phone is connected, Pressing Menu shows it dimmed. |
+| [`Design/MenuAppIcon.svg`](Design/MenuAppIcon.svg) | First Press Menu's Mac app icon: the app icon inside the macOS icon grid, an 824 × 824 rounded square on a transparent 1024 canvas. It's derived from `AppIcon.svg`; the comment in it says how. |
+| [`Design/MenuBarIcon.svg`](Design/MenuBarIcon.svg) | The menu-bar icon: a stylised record (a one-line circle around a solid label about 40% of its diameter) as an 18 pt template image, black on transparent, which macOS tints. No grooves, no brush. While no phone is connected, First Press Menu shows it dimmed. |
 | [`Design/MenuBarIconPlaying.svg`](Design/MenuBarIconPlaying.svg) | The menu-bar icon while a Record plays: the same, with one thin groove ring between the label and the edge. |
 
 Mac icons keep their transparency. Re-render all of them with:
@@ -216,81 +216,81 @@ scripts/render-menu-artwork.sh
 ## Development
 
 ```
-App/            SwiftUI shell and the production adapters (AVAudioSession, Bonjour, ShazamKit, …)
-Menu/           Pressing Menu, the Mac menu-bar app: SwiftUI panel and Settings, and its adapters (Bonjour/WebSocket link, notifications, login item)
-PressingCore/   All behaviour, and Pressing Menu's model, as a Swift package with no UIKit or SwiftUI; see its README
-Config/         xcconfig files: shared settings, plus examples for your signing and Last.fm keys
-Design/         SVG sources for the icon and artwork
-docs/adr/       Architecture decisions
-docs/agents/    How coding agents use the issue tracker, labels and domain docs
-scripts/        build-lame.sh, render-menu-artwork.sh
-GLOSSARY.md     The domain vocabulary
-project.yml     XcodeGen project definition
+App/              SwiftUI shell and the production adapters (AVAudioSession, Bonjour, ShazamKit, …)
+Menu/             First Press Menu, the Mac menu-bar app: SwiftUI panel and Settings, and its adapters (Bonjour/WebSocket link, notifications, login item)
+FirstPressCore/   All behaviour, and First Press Menu's model, as a Swift package with no UIKit or SwiftUI; see its README
+Config/           xcconfig files: shared settings, plus examples for your signing and Last.fm keys
+Design/           SVG sources for the icon and artwork
+docs/adr/         Architecture decisions
+docs/agents/      How coding agents use the issue tracker, labels and domain docs
+scripts/          build-lame.sh, render-menu-artwork.sh
+GLOSSARY.md       The domain vocabulary
+project.yml       XcodeGen project definition
 ```
 
 Run the tests. They run on macOS and need no simulator:
 
 ```sh
-swift test --package-path PressingCore
+swift test --package-path FirstPressCore
 ```
 
 Build the app for the simulator:
 
 ```sh
 xcodegen generate
-xcodebuild -project Pressing.xcodeproj -scheme Pressing \
+xcodebuild -project FirstPress.xcodeproj -scheme FirstPress \
   -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO
 ```
 
-Build Pressing Menu, the Mac app (macOS 26 and later). It doesn't use LAME:
+Build First Press Menu, the Mac app (macOS 26 and later). It doesn't use LAME:
 
 ```sh
-xcodebuild -project Pressing.xcodeproj -scheme PressingMenu \
+xcodebuild -project FirstPress.xcodeproj -scheme FirstPressMenu \
   -destination 'generic/platform=macOS' build CODE_SIGNING_ALLOWED=NO
 ```
 
 Its bundle ID is the iPhone app's with `.menu` appended.
 
-**Where tests go.** Behaviour is tested through PressingCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
+**Where tests go.** Behaviour is tested through FirstPressCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
 
-**Specs and work.** Specs and tickets are GitHub issues. The original spec is [#1](https://github.com/steffentchr/Pressing/issues/1), and the first on-device checklist is [#10](https://github.com/steffentchr/Pressing/issues/10); it's a good template for checking a new build on the phone.
+**Specs and work.** Specs and tickets are GitHub issues. The original spec is [#1](https://github.com/steffentchr/FirstPress/issues/1), and the first on-device checklist is [#10](https://github.com/steffentchr/FirstPress/issues/10); it's a good template for checking a new build on the phone.
 
 ### Xcode Cloud and TestFlight
 
-Xcode Cloud can build Pressing and send it to TestFlight. Because the `.xcodeproj` and both xcconfigs are git-ignored, [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh) recreates them right after Xcode Cloud clones the repo. It writes the xcconfigs from the workflow's environment, installs XcodeGen and runs `xcodegen generate`, which also builds LAME. Set these in the workflow's **Environment** section:
+Xcode Cloud can build First Press and send it to TestFlight. Because the `.xcodeproj` and both xcconfigs are git-ignored, [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh) recreates them right after Xcode Cloud clones the repo. It writes the xcconfigs from the workflow's environment, installs XcodeGen and runs `xcodegen generate`, which also builds LAME. Set these in the workflow's **Environment** section:
 
 | Variable | Value |
 |---|---|
-| `PRESSING_BUNDLE_ID` | The app's bundle ID, as registered in App Store Connect |
-| `PRESSING_DEVELOPMENT_TEAM` | The 10-character team ID |
-| `PRESSING_LASTFM_API_KEY` | Last.fm API key. Mark it **Secret**. Optional. |
-| `PRESSING_LASTFM_API_SECRET` | Last.fm shared secret. Mark it **Secret**. Optional. |
+| `FIRSTPRESS_BUNDLE_ID` | The app's bundle ID, as registered in App Store Connect. The bundle ID keeps its original value, `com.steffentchr.pressing-dev`, from before the app was renamed First Press: App Store Connect knows the app by it, so don't change it. |
+| `FIRSTPRESS_DEVELOPMENT_TEAM` | The 10-character team ID |
+| `FIRSTPRESS_LASTFM_API_KEY` | Last.fm API key. Mark it **Secret**. Optional. |
+| `FIRSTPRESS_LASTFM_API_SECRET` | Last.fm shared secret. Mark it **Secret**. Optional. |
 
-### Releasing Pressing Menu
+### Releasing First Press Menu
 
-Pressing Menu ships on the Mac App Store, apart from the iPhone app. The two can be out of step, because the wire contract only ever adds fields ([ADR 0004](docs/adr/0004-pressing-menu-link.md)).
+First Press Menu ships on the Mac App Store, apart from the iPhone app. The two can be out of step, because the wire contract only ever adds fields ([ADR 0004](docs/adr/0004-first-press-menu-link.md)).
 
-- **Sandbox.** [`Menu/PressingMenu.entitlements`](Menu/PressingMenu.entitlements) turns on the App Sandbox with outgoing network connections only. [`Menu/Info.plist`](Menu/Info.plist) declares `_pressing._tcp`, and `project.yml` sets the local network usage description. Launch at login uses `SMAppService`, which works in the sandbox.
-- **Version and build** are `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` under the `PressingMenu` target in `project.yml`. Raise the build for every upload.
+- **Sandbox.** [`Menu/FirstPressMenu.entitlements`](Menu/FirstPressMenu.entitlements) turns on the App Sandbox with outgoing network connections only. [`Menu/Info.plist`](Menu/Info.plist) declares `_firstpress._tcp`, and `project.yml` sets the local network usage description. Launch at login uses `SMAppService`, which works in the sandbox.
+- **Version and build** are `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` under the `FirstPressMenu` target in `project.yml`. Raise the build for every upload.
 - **A local Release archive**, unsigned, checks that it builds:
 
   ```sh
   xcodegen generate
-  xcodebuild -project Pressing.xcodeproj -scheme PressingMenu -configuration Release \
-    -destination 'generic/platform=macOS' -archivePath build/PressingMenu.xcarchive \
+  xcodebuild -project FirstPress.xcodeproj -scheme FirstPressMenu -configuration Release \
+    -destination 'generic/platform=macOS' -archivePath build/FirstPressMenu.xcarchive \
     archive CODE_SIGNING_ALLOWED=NO
   ```
 
 **Owner steps.** These need the TwentyThree team's App Store Connect account:
 
-1. Create the App Store Connect record for Pressing Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **Pressing Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
-2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), which covers both the iPhone app and Pressing Menu. Change `SettingsView.privacyURL` if the policy moves.
-3. In Xcode, archive with signing (Product › Archive, scheme PressingMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
-4. Add the Mac screenshots and store text from [`AppStore/PressingMenu/`](AppStore/PressingMenu), and submit for review. Its README lists the store fields that aren't in files and the decisions left before submitting.
+1. Create the App Store Connect record for First Press Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **First Press Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
+2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), which covers both the iPhone app and First Press Menu. Change `SettingsView.privacyURL` if the policy moves.
+3. In Xcode, archive with signing (Product › Archive, scheme FirstPressMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
+4. Add the Mac screenshots and store text from [`AppStore/FirstPressMenu/`](AppStore/FirstPressMenu), and submit for review. Its README lists the store fields that aren't in files and the decisions left before submitting.
 
 ## Credits and notices
 
 - MP3 encoding uses [LAME](https://lame.sourceforge.io), which is licensed under the LGPL. It's downloaded and built by `scripts/build-lame.sh`, not included in this repository.
 - The Sonos UPnP calls follow the work of [SoCo](https://github.com/SoCo/SoCo) and [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api).
-- Pressing isn't affiliated with or endorsed by Sonos, Apple, Shazam, Spotify or Last.fm. Their names are trademarks of their owners.
-- No licence has been chosen for Pressing's own code yet.
+- First Press isn't affiliated with or endorsed by Sonos, Apple, Shazam, Spotify or Last.fm. Their names are trademarks of their owners.
+- No licence has been chosen for First Press's own code yet.
