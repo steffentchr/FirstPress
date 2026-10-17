@@ -216,6 +216,30 @@ struct PressingMenuRoomsTests {
         #expect(menu.room(FakeRoom.kitchen.uuid)?.volume == 60)
     }
 
+    @Test("An older phone without the route still works, and a route kind added later reads as other")
+    func olderAndNewerPhones() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+
+        link.deliver(json: """
+            {"type": "snapshot", "major": 1, "page": "waiting",
+             "rooms": [{"id": "RINCON_A", "name": "Study", "isOn": true, "volume": 25, "isReachable": true, "isSteppedBack": false}],
+             "phoneOutput": {"isOn": true}}
+            """)
+        #expect(menu.rooms.map(\.name) == ["Study"])
+        #expect(menu.phoneOutput?.isOn == true)
+        #expect(menu.phoneOutput?.whereItPlays == nil)
+        #expect(menu.roomsSummary == "Study +1")
+
+        link.deliver(json: """
+            {"type": "snapshot", "major": 1, "page": "waiting",
+             "phoneOutput": {"isOn": false, "route": {"name": "Vision Pro", "kind": "spatial"}}}
+            """)
+        #expect(menu.phoneOutput?.route == PhoneOutputRoute(name: "Vision Pro", kind: .other))
+        #expect(menu.phoneOutput?.whereItPlays == "Vision Pro")
+        #expect(menu.roomsSummary == "No Rooms")
+    }
+
     @Test("A command for a Room the phone doesn't know is ignored")
     func unknownRoomIgnored() async {
         let (world, menu, link) = await session()
