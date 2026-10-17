@@ -37,20 +37,19 @@ struct RootView: View {
             // the system's bar buttons ignore a fade, and kiosk mode fades them.
             // The row always keeps its height, so nothing moves when they fade.
             .safeAreaInset(edge: .top, spacing: 0) {
-                HStack(spacing: 20) {
+                HStack(spacing: 0) {
                     Spacer()
                     // Before any input is chosen, no Rooms are looked for yet.
                     if page != .chooseInput(.noneChosen) {
-                        Button("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
+                        iconButton("Rooms", systemImage: "hifispeaker.2") { showingRooms = true }
                     }
-                    Button("Settings", systemImage: "gearshape") { showingSettings = true }
+                    iconButton("Settings", systemImage: "gearshape") { showingSettings = true }
                 }
-                .labelStyle(.iconOnly)
                 .font(.title2)
                 .buttonStyle(.plain)
                 .foregroundStyle(iconColor)
                 .frame(height: 44)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 8)
                 .kioskHidden(hidesControls)
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -68,6 +67,17 @@ struct RootView: View {
         // indicator fades away until the screen is touched near it.
         .statusBarHidden(isKiosk)
         .persistentSystemOverlays(isKiosk ? .hidden : .automatic)
+    }
+
+    /// A plain button takes only the touches on its glyph; this one takes
+    /// the whole 44-point square around it.
+    private func iconButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: systemImage)
+                .labelStyle(.iconOnly)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
     }
 
     private var isKiosk: Bool { pressing.state.screen.isKiosk }
