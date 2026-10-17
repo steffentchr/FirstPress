@@ -1,22 +1,25 @@
 #!/bin/zsh
 # Shoots Pressing's App Store screenshots in the simulator and frames them.
 #
-#   AppStore/screenshots.sh               shoot every scene in demo.json, then frame
-#   AppStore/screenshots.sh --frame-only  re-frame the raw shots (after editing captions)
+#   AppStore/Pressing/screenshots.sh               shoot every scene in demo.json, then frame
+#   AppStore/Pressing/screenshots.sh --frame-only  re-frame the raw shots (after editing captions)
 #
 # It applies Hook/hook.patch and copies Hook/ScreenshotDemo.swift into the app
 # for one build, and reverts both on exit, so the app source stays clean.
-# Needs Xcode, xcodegen, rsvg-convert and ImageMagick (see README.md › Artwork).
+# Needs Xcode, xcodegen, rsvg-convert and ImageMagick (see the root README.md › Artwork).
 set -euo pipefail
 
-ROOT=${0:A:h:h}
-HERE=$ROOT/AppStore
+HERE=${0:A:h}
+ROOT=${HERE:h:h}
 SIM=${SIM:-"iPhone 17 Pro Max"}   # 6.9" display: 1320 x 2868, the size App Store Connect requires
 RAW=$HERE/Screenshots/raw
 OUT=$HERE/Screenshots/6.9-inch
 TOUCHED=(App/Sources/PressingApp.swift App/Sources/RootView.swift App/Sources/PressingSheet.swift App/Sources/NowPlayingView.swift project.yml)
 
-scenes() { python3 -c 'import json,sys; [print(s["scene"]) for s in json.load(open(sys.argv[1]))["screenshots"]]' $HERE/demo.json }
+# The scenes shot in the simulator. A scene "from" another app is drawn
+# into raw/ by that app's screenshots.sh instead, and only framed here; it
+# must come after the shot ones, which are numbered as they're shot.
+scenes() { python3 -c 'import json,sys; [print(s["scene"]) for s in json.load(open(sys.argv[1]))["screenshots"] if "from" not in s]' $HERE/demo.json }
 
 shoot() {
   cd $ROOT
@@ -86,7 +89,13 @@ for n, s in enumerate(json.load(open(demo))["screenshots"], 1):
     name = f"{n:02d}-{s['scene']}"
     src = os.path.join(raw, name + ".png")
     lines = s["caption"].split("\n")
+    # A scene "from" another app is a finished layer, the size of the
+    # screenshot, laid over the background as it is, without a phone.
+    layer = "from" in s
     tspans = "".join(f'<tspan x="{W//2}" dy="{0 if i == 0 else 108}">{html.escape(l)}</tspan>' for i, l in enumerate(lines))
+    phone = f'''<rect x="{x-22}" y="{y-22+30}" width="{shot_w+44}" height="{shot_h+44}" rx="150" fill="#000" opacity=".45" filter="url(#shadow)"/>
+  <rect x="{x-22}" y="{y-22}" width="{shot_w+44}" height="{shot_h+44}" rx="150" fill="#0d0c0b"/>
+  <image x="{x}" y="{y}" width="{shot_w}" height="{shot_h}" xlink:href="{os.path.basename(src)}" clip-path="url(#screen)"/>'''
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f08a52"/><stop offset=".55" stop-color="#d4551f"/><stop offset="1" stop-color="#9a3410"/></linearGradient>
@@ -95,14 +104,12 @@ for n, s in enumerate(json.load(open(demo))["screenshots"], 1):
   </defs>
   <rect width="{W}" height="{H}" fill="url(#bg)"/>
   <text y="{300 if len(lines) > 1 else 400}" text-anchor="middle" font-family="Helvetica Neue" font-weight="700" font-size="88" fill="#fff">{tspans}</text>
-  <rect x="{x-22}" y="{y-22+30}" width="{shot_w+44}" height="{shot_h+44}" rx="150" fill="#000" opacity=".45" filter="url(#shadow)"/>
-  <rect x="{x-22}" y="{y-22}" width="{shot_w+44}" height="{shot_h+44}" rx="150" fill="#0d0c0b"/>
-  <image x="{x}" y="{y}" width="{shot_w}" height="{shot_h}" xlink:href="{os.path.basename(src)}" clip-path="url(#screen)"/>
+  {phone if not layer else f'<image x="0" y="0" width="{W}" height="{H}" xlink:href="{os.path.basename(src)}"/>'}
 </svg>'''
     svg_path = os.path.join(raw, name + ".frame.svg")
     open(svg_path, "w").write(svg)
     png = subprocess.run(["rsvg-convert", svg_path], check=True, capture_output=True).stdout
-    subprocess.run(["magick", "-", "-alpha", "remove", "-alpha", "off", os.path.join(out, name + ".png")], input=png, check=True)
+    subprocess.run(["magick", "-", "-alpha", "remove", "-alpha", "off", "-define", "png:exclude-chunks=date,time", os.path.join(out, name + ".png")], input=png, check=True)
     os.remove(svg_path)
     print("framed", name)
 PY

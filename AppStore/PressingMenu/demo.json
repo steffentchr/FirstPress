@@ -1,0 +1,9 @@
+{
+  "screenshots": [
+    { "scene": "panel", "caption": "What's on the turntable,\nright in your menu bar.", "panel": "panel-history" },
+    { "scene": "rooms", "caption": "Switch your Sonos Rooms\nand volumes from the Mac.", "panel": "panel-rooms" },
+    { "scene": "notification", "caption": "A notification, with the cover,\nfor each new Track.", "notifications": [{ "newTrack": "nowPlaying" }] },
+    { "scene": "settings", "caption": "Light or dark, at login,\nSpotify or Apple Music.", "window": "settings" }
+  ],
+  "promo": { "panel": "panel-rooms", "notifications": [{ "newTrack": "nowPlaying" }] }
+}
