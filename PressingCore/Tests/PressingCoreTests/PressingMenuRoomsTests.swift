@@ -152,11 +152,13 @@ struct PressingMenuRoomsTests {
         #expect(menu.roomsSummary == "This iPhone")
     }
 
-    @Test("Before the first snapshot, the Rooms summary says No Rooms")
-    func roomsSummaryWhileLooking() {
+    @Test("With no phone connected, the footer shows no Rooms summary")
+    func noRoomsSummaryWithoutPhone() {
         let world = World(settings: Settings())
         let (menu, _) = world.pressingMenu()
+        #expect(menu.roomsSummary == nil)
 
+        world.pressing.chooseInput(AudioInputDevice.deck.id)
         #expect(menu.roomsSummary == "No Rooms")
     }
 
@@ -169,7 +171,7 @@ struct PressingMenuRoomsTests {
 
         #expect(!menu.canControl)
         #expect(menu.room(FakeRoom.kitchen.uuid)?.isOn == true)
-        #expect(menu.roomsSummary == "Kitchen")
+        #expect(menu.roomsSummary == nil)
 
         world.scheduler.advance(by: 1)
         #expect(menu.canControl)

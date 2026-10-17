@@ -1,7 +1,7 @@
 import Foundation
 import PressingCore
 
-/// The "Find songs in" setting: where right-clicking a Track in the panel
+/// The "Find songs in" setting: where clicking a Track in the panel
 /// searches for it.
 public enum TrackSearchService: String, Sendable, CaseIterable {
     case spotify

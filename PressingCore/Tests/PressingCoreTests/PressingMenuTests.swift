@@ -138,7 +138,7 @@ struct PressingMenuTests {
         world.scheduler.advance(by: 600)
         #expect(menu.connection == .looking)
         #expect(menu.header == .lookingForPressing)
-        #expect(!menu.showsCantBeReachedLine)
+        #expect(!menu.showsLookingLine)
 
         world.pressing.chooseInput(AudioInputDevice.deck.id)
         #expect(menu.connection == .connected)
@@ -236,44 +236,56 @@ struct PressingMenuTests {
         #expect(menu.header == .track(.ballad))
     }
 
-    @Test("While the iPhone can't be reached with a Track on screen, the panel still says so, in a line beneath the greyed Track")
-    func cantBeReachedBeneathTrack() async {
+    @Test("After a drop-out with a Track kept on screen, a small line beneath the greyed Track says Pressing Menu is looking for Pressing")
+    func lookingBeneathKeptTrack() async {
         let world = World()
         let (menu, _) = world.pressingMenu()
         world.recognizer.answers = [.match(.ballad, offset: 2)]
         world.music(seconds: 12)
         await settle()
-        #expect(!menu.showsCantBeReachedLine)
+        #expect(!menu.showsLookingLine)
 
         world.menuServer.stop()
         #expect(menu.header == .track(.ballad))
-        #expect(menu.showsCantBeReachedLine)
+        #expect(menu.showsLookingLine)
 
         world.menuServer.start()
         world.scheduler.advance(by: 1)
         #expect(menu.connection == .connected)
         #expect(menu.header == .track(.ballad))
-        #expect(!menu.showsCantBeReachedLine)
+        #expect(!menu.showsLookingLine)
     }
 
-    @Test("With nothing kept on screen, the header itself says the iPhone can't be reached, and no line repeats it")
-    func cantBeReachedInHeaderOnly() {
+    @Test("After a drop-out with no Track kept, the header says only that Pressing Menu is looking for Pressing, and no line repeats it")
+    func lookingInHeaderOnly() async {
         let world = World()
         let (menu, _) = world.pressingMenu()
+        #expect(menu.header == .waitingForRecord)
 
         world.menuServer.stop()
-        #expect(menu.header == .cantBeReached)
-        #expect(!menu.showsCantBeReachedLine)
+        #expect(menu.header == .lookingForPressing)
+        #expect(!menu.showsLookingLine)
+
+        // Between sides isn't kept either: only a Track is.
+        world.menuServer.start()
+        world.scheduler.advance(by: 1)
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: nil))
+        world.menuServer.stop()
+        #expect(menu.header == .lookingForPressing)
     }
 
-    @Test("While Pressing isn't running Pressing Menu says the iPhone can't be reached, and finds it again when it is")
+    @Test("While Pressing isn't running Pressing Menu says it's looking for Pressing, and finds it again when it is")
     func phoneGoneAndBack() {
         let world = World()
         let (menu, _) = world.pressingMenu()
 
         world.menuServer.stop()
         #expect(menu.connection == .cantBeReached)
-        #expect(menu.header == .cantBeReached)
+        #expect(menu.header == .lookingForPressing)
 
         world.scheduler.advance(by: 60)
         #expect(menu.connection == .cantBeReached)

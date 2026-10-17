@@ -26,18 +26,17 @@ public final class PressingMenu {
     public enum Header: Sendable, Equatable {
         /// The current Track: its title large, the artist beneath.
         case track(Track)
-        /// From launch until Pressing is first reached, however long that
-        /// takes.
+        /// No phone is connected: Pressing hasn't been found yet, or a live
+        /// link dropped and no Track is kept to show. The panel says only
+        /// that it's looking for Pressing, small.
         case lookingForPressing
-        /// A live link dropped and nothing from the phone is kept to show.
-        case cantBeReached
         /// No Session is running, or the phone asks for its input.
         case waitingForRecord
         /// A Record is playing and no Track is identified yet.
         case recordNotIdentified
         /// The last Record ended with a Flip and the Session still runs:
         /// "Between sides", with the Session's last Track small beneath, if
-        /// one was identified. Kept, greyed, while the phone can't be reached.
+        /// one was identified.
         case betweenSides(lastTrack: Track?)
         /// The phone is newer than this Pressing Menu can follow.
         case updatePressingMenu
@@ -69,25 +68,24 @@ public final class PressingMenu {
 
     public var header: Header {
         if connection == .needsUpdate { return .updatePressingMenu }
-        guard let snapshot else {
-            return connection == .cantBeReached ? .cantBeReached : .lookingForPressing
-        }
+        guard let snapshot else { return .lookingForPressing }
         if let track = snapshot.track { return .track(track) }
+        // After a drop-out only a Track is kept on screen.
+        if connection == .cantBeReached { return .lookingForPressing }
         if snapshot.page == .nowPlaying, snapshot.record == .flipped {
             return .betweenSides(lastTrack: snapshot.lastTrack)
         }
-        if connection == .cantBeReached { return .cantBeReached }
         switch (snapshot.page, snapshot.record) {
         case (.nowPlaying, .playing), (.nowPlaying, .gap): return .recordNotIdentified
         default: return .waitingForRecord
         }
     }
 
-    /// While the iPhone can't be reached and the header keeps what the phone
-    /// last sent, a line beneath it says the iPhone can't be reached. When
-    /// the header says so itself, there is no line.
-    public var showsCantBeReachedLine: Bool {
-        connection == .cantBeReached && header != .cantBeReached
+    /// After a drop-out, with the last Track kept on screen, greyed, a small
+    /// line beneath it says Pressing Menu is looking for Pressing. When the
+    /// header says so itself, there is no line.
+    public var showsLookingLine: Bool {
+        connection == .cantBeReached && header != .lookingForPressing
     }
 
     /// History as the panel lists it under the header: at most 10 Tracks,
@@ -119,8 +117,10 @@ public final class PressingMenu {
     /// Where Pressing plays, as the footer says it: the first switched-on
     /// Room's name plus "+N" for the others, This iPhone counted, or "No
     /// Rooms". The Rooms name This iPhone only when no Room is on. Outside a
-    /// Session these are the choices for the next one.
-    public var roomsSummary: String {
+    /// Session these are the choices for the next one. Nil, and not shown,
+    /// while no phone is connected.
+    public var roomsSummary: String? {
+        guard canControl else { return nil }
         var names = rooms.filter(\.isOn).map(\.name)
         if phoneOutput?.isOn == true { names.append("This iPhone") }
         guard let first = names.first else { return "No Rooms" }

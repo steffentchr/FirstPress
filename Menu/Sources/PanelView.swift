@@ -5,53 +5,66 @@ import PressingMenuCore
 
 /// The panel, in the reference look: the current Track's title large and
 /// bold with the artist lighter beneath, a divider, then History as a
-/// numbered list. Everything the phone last sent stays on screen, greyed,
-/// while it can't be reached, with a line beneath the header saying so.
-/// The footer's Rooms summary swaps the Rooms view in place of History.
+/// numbered list. While no phone is connected it says, small, that it's
+/// looking for Pressing; after a drop-out the last Track and History stay on
+/// screen, greyed, with that line beneath the Track. The footer is never
+/// greyed. Its Rooms summary swaps the Rooms view in place of History.
 struct PanelView: View {
     let menu: PressingMenu
     @State private var showsRooms = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HeaderView(header: menu.header)
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, menu.showsCantBeReachedLine ? 8 : 16)
-            if menu.showsCantBeReachedLine {
-                Label("The iPhone can't be reached", systemImage: "wifi.exclamationmark")
-                    .font(.system(size: 13, weight: .medium))
+            VStack(alignment: .leading, spacing: 0) {
+                HeaderView(header: menu.header)
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
+                    .padding(.top, 20)
+                    .padding(.bottom, menu.showsLookingLine ? 8 : 16)
+                if menu.showsLookingLine {
+                    LookingText()
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
+                }
+                if showsRooms {
+                    Divider()
+                        .padding(.horizontal, 20)
+                    RoomsView(menu: menu, back: { showsRooms = false })
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                } else if !menu.history.isEmpty {
+                    Divider()
+                        .padding(.horizontal, 20)
+                    HistoryList(tracks: menu.history)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                }
             }
-            if showsRooms {
-                Divider()
-                    .padding(.horizontal, 20)
-                RoomsView(menu: menu, back: { showsRooms = false })
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
-            } else if !menu.history.isEmpty {
-                Divider()
-                    .padding(.horizontal, 20)
-                HistoryList(tracks: menu.history)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 14)
-            }
+            // Only what the phone sent is greyed, never the footer.
+            .opacity(menu.connection == .connected ? 1 : 0.5)
             Divider()
             FooterView(roomsSummary: menu.roomsSummary, showRooms: { showsRooms.toggle() })
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
         }
-        .opacity(menu.connection == .connected ? 1 : 0.5)
         .frame(width: 340)
         // No notifications while the panel is open: the Track is in view.
         .background(PanelVisibility { menu.isPanelOpen = $0 })
     }
 }
 
+/// "Looking for Pressing on your iPhone…", small and secondary: the whole
+/// header while no phone is connected, or a line beneath a kept Track.
+private struct LookingText: View {
+    var body: some View {
+        Text("Looking for Pressing on your iPhone…")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 private struct HeaderView: View {
     let header: PressingMenu.Header
-    @Environment(MenuSettings.self) private var settings
 
     var body: some View {
         switch header {
@@ -65,15 +78,9 @@ private struct HeaderView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .onRightClick { find(track, in: settings.findTracksIn) }
-            .accessibilityElement(children: .combine)
-            .accessibilityAction(named: "Find in \(settings.findTracksIn.name)") { find(track, in: settings.findTracksIn) }
+            .findsOnClick(track)
         case .lookingForPressing:
-            message("Looking for Pressing…")
-        case .cantBeReached:
-            message("The iPhone can't be reached")
+            LookingText()
         case .waitingForRecord:
             message("Waiting for a Record")
         case .recordNotIdentified:
@@ -104,7 +111,6 @@ private struct HeaderView: View {
 /// quieter style.
 private struct HistoryList: View {
     let tracks: [Track]
-    @Environment(MenuSettings.self) private var settings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -124,11 +130,7 @@ private struct HistoryList: View {
                             .lineLimit(1)
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .onRightClick { find(track, in: settings.findTracksIn) }
-                .accessibilityElement(children: .combine)
-                .accessibilityAction(named: "Find in \(settings.findTracksIn.name)") { find(track, in: settings.findTracksIn) }
+                .findsOnClick(track)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -137,9 +139,10 @@ private struct HistoryList: View {
 
 /// On the left, the power button, which quits Pressing Menu and leaves
 /// Pressing on the iPhone untouched, and the gear, which opens Settings. On
-/// the right, where Pressing plays, which opens the Rooms view.
+/// the right, where Pressing plays, which opens the Rooms view: shown only
+/// while a phone is connected.
 private struct FooterView: View {
-    let roomsSummary: String
+    let roomsSummary: String?
     let showRooms: () -> Void
     @Environment(\.openWindow) private var openWindow
 
@@ -166,26 +169,61 @@ private struct FooterView: View {
             .help("Settings")
             .accessibilityLabel("Settings")
             Spacer()
-            Button(action: showRooms) {
-                HStack(spacing: 5) {
-                    Image(systemName: "hifispeaker.2")
-                    Text(roomsSummary)
-                        .lineLimit(1)
+            if let roomsSummary {
+                Button(action: showRooms) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "hifispeaker.2")
+                        Text(roomsSummary)
+                            .lineLimit(1)
+                    }
+                    .font(.system(size: 13))
                 }
-                .font(.system(size: 13))
+                .buttonStyle(.borderless)
+                .help("Rooms")
+                .accessibilityLabel("Rooms: \(roomsSummary)")
             }
-            .buttonStyle(.borderless)
-            .help("Rooms")
-            .accessibilityLabel("Rooms: \(roomsSummary)")
         }
     }
 }
 
-/// Right-clicking a Track opens the chosen service's search for it straight
-/// away, with no menu.
-@MainActor
-private func find(_ track: Track, in service: TrackSearchService) {
-    NSWorkspace.shared.open(service.searchURL(for: track))
+/// Clicking a Track opens the chosen service's search for it straight away,
+/// with no menu. It looks clickable: a pointing hand and a soft highlight
+/// on hover. A right-click does nothing.
+private struct FindsOnClick: ViewModifier {
+    let track: Track
+    @Environment(MenuSettings.self) private var settings
+    @State private var isHovered = false
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.primary.opacity(isHovered ? 0.07 : 0))
+            )
+            .padding(.horizontal, -6)
+            .padding(.vertical, -3)
+            .contentShape(Rectangle())
+            .onHover { isHovered = $0 }
+            .pointerStyle(.link)
+            .onTapGesture { find() }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Finds it in \(settings.findTracksIn.name)")
+            .accessibilityAction { find() }
+    }
+
+    private func find() {
+        NSWorkspace.shared.open(settings.findTracksIn.searchURL(for: track))
+    }
+}
+
+private extension View {
+    func findsOnClick(_ track: Track) -> some View {
+        modifier(FindsOnClick(track: track))
+    }
 }
 
 extension TrackSearchService {

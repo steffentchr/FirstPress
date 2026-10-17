@@ -62,7 +62,7 @@ struct SettingsView: View {
                             Link("Allow in System Settings", destination: notifications.systemSettingsURL)
                         }
                     }
-                    SettingsRow("Find songs in", detail: "Right-click the song in the panel.") {
+                    SettingsRow("Find songs in", detail: "Click the song in the panel.") {
                         Picker("Find songs in", selection: $settings.findTracksIn) {
                             Text("Spotify").tag(TrackSearchService.spotify)
                             Text("Apple Music").tag(TrackSearchService.appleMusic)
