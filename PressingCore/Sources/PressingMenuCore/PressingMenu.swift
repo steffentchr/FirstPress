@@ -66,6 +66,13 @@ public final class PressingMenu {
         }
     }
 
+    /// While the iPhone can't be reached and the header keeps what the phone
+    /// last sent, a line beneath it says the iPhone can't be reached. When
+    /// the header says so itself, there is no line.
+    public var showsCantBeReachedLine: Bool {
+        connection == .cantBeReached && header != .cantBeReached
+    }
+
     /// History as the panel lists it under the header: at most 10 Tracks,
     /// newest first, each once, the current one left out. Kept, greyed,
     /// while the phone can't be reached.

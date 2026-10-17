@@ -6,8 +6,8 @@ import PressingMenuCore
 /// The panel, in the reference look: the current Track's title large and
 /// bold with the artist lighter beneath, a divider, then History as a
 /// numbered list. Everything the phone last sent stays on screen, greyed,
-/// while it can't be reached. The footer's Rooms summary swaps the Rooms
-/// view in place of History.
+/// while it can't be reached, with a line beneath the header saying so.
+/// The footer's Rooms summary swaps the Rooms view in place of History.
 struct PanelView: View {
     let menu: PressingMenu
     @State private var showsRooms = false
@@ -17,7 +17,13 @@ struct PanelView: View {
             HeaderView(header: menu.header)
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
-                .padding(.bottom, 16)
+                .padding(.bottom, menu.showsCantBeReachedLine ? 8 : 16)
+            if menu.showsCantBeReachedLine {
+                Label("The iPhone can't be reached", systemImage: "wifi.exclamationmark")
+                    .font(.system(size: 13, weight: .medium))
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+            }
             if showsRooms {
                 Divider()
                     .padding(.horizontal, 20)

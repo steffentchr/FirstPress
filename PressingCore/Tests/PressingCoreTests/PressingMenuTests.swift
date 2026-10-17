@@ -152,6 +152,36 @@ struct PressingMenuTests {
         #expect(menu.header == .track(.ballad))
     }
 
+    @Test("While the iPhone can't be reached with a Track on screen, the panel still says so, in a line beneath the greyed Track")
+    func cantBeReachedBeneathTrack() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(!menu.showsCantBeReachedLine)
+
+        world.menuServer.stop()
+        #expect(menu.header == .track(.ballad))
+        #expect(menu.showsCantBeReachedLine)
+
+        world.menuServer.start()
+        world.scheduler.advance(by: 1)
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .track(.ballad))
+        #expect(!menu.showsCantBeReachedLine)
+    }
+
+    @Test("With nothing kept on screen, the header itself says the iPhone can't be reached, and no line repeats it")
+    func cantBeReachedInHeaderOnly() {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+
+        world.menuServer.stop()
+        #expect(menu.header == .cantBeReached)
+        #expect(!menu.showsCantBeReachedLine)
+    }
+
     @Test("While Pressing isn't running Pressing Menu says the iPhone can't be reached, and finds it again when it is")
     func phoneGoneAndBack() {
         let world = World()
