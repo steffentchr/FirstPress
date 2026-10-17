@@ -233,14 +233,10 @@ public final class PressingMenu {
     /// one already playing when the link comes up.
     private func notifyIfNew(_ track: Track?) {
         defer { awaitingFirstSnapshot = false }
-        guard !awaitingFirstSnapshot, let track, !Self.isSameSong(track, snapshot?.track) else { return }
+        // The same Track, even once its album or cover is filled in.
+        guard !awaitingFirstSnapshot, let track, snapshot?.track.map(track.isSame) != true else { return }
         guard notifiesOnNewTrack, !isPanelOpen else { return }
         notifier?.notify(newTrack: track)
-    }
-
-    /// The same Track, even once its album or cover is filled in.
-    private static func isSameSong(_ track: Track, _ other: Track?) -> Bool {
-        track.artist == other?.artist && track.title == other?.title
     }
 
     private func retry() {

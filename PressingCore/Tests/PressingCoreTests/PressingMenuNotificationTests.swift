@@ -122,6 +122,19 @@ struct PressingMenuNotificationTests {
         #expect(menu.header == .track(Track(artist: "Kate Bush", title: "Wuthering Heights", album: "The Kick Inside", artworkURL: URL(string: "https://example.com/kick.jpg"))))
         #expect(notifier.notified == [Track(artist: "Kate Bush", title: "Wuthering Heights")])
     }
+
+    @Test("The same Track spelled with other case or accents gets no second notification, as History counts it once")
+    func sameTrackOtherSpelling() {
+        let world = World()
+        let (menu, link, notifier) = world.notifyingPressingMenu()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "Björk", "title": "Jóga"}}"#)
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "Bjork", "title": "Joga"}}"#)
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "playing", "track": {"artist": "BJÖRK", "title": "jóga"}}"#)
+
+        #expect(menu.header == .track(Track(artist: "BJÖRK", title: "jóga")))
+        #expect(notifier.notified == [Track(artist: "Björk", title: "Jóga")])
+    }
 }
 
 extension World {
