@@ -24,6 +24,8 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sonos._tcp</string>
+		<!-- Advertised for Pressing Menu on a Mac (ADR-0004). -->
+		<string>_pressing._tcp</string>
 	</array>
 </dict>
 </plist>
