@@ -4,11 +4,12 @@ import PressingCore
 import PressingMenuCore
 
 /// The panel, in the reference look: the current Track's title large and
-/// bold with the artist lighter beneath, a divider, then History as a
-/// numbered list. While no phone is connected it says, small, that it's
-/// looking for Pressing; after a drop-out the last Track and History stay on
-/// screen, greyed, with that line beneath the Track. The footer is never
-/// greyed. Its Rooms summary swaps the Rooms view in place of History.
+/// bold with the artist lighter beneath and the album, once known, quieter
+/// still, then a divider and History as a numbered list. While no phone
+/// is connected it says, small, that it's looking for Pressing; after a
+/// drop-out the last Track and History stay on screen, greyed, with that
+/// line beneath the Track. The footer is never greyed. Its Rooms summary
+/// swaps the Rooms view in place of History.
 struct PanelView: View {
     let menu: PressingMenu
     @State private var showsRooms = false
@@ -77,6 +78,14 @@ private struct HeaderView: View {
                     .font(.system(size: 17))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+                // The album often arrives a moment later, from Last.fm: its
+                // line appears beneath without moving the title or artist.
+                if let album = track.album, !album.isEmpty {
+                    Text(album)
+                        .font(.system(size: 14))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
             }
             .findsOnClick(track)
         case .lookingForPressing:

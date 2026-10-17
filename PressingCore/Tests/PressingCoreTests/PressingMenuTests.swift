@@ -23,6 +23,25 @@ struct PressingMenuTests {
         #expect(menu.header == .track(.rocker))
     }
 
+    @Test("The header's Track gains its album when Last.fm names it a moment later, and keeps it after a drop-out")
+    func albumArrivesLater() async throws {
+        let world = World(lastFm: .listener)
+        let (menu, _) = world.pressingMenu()
+        world.lastFm.knows(.ballad, durationMilliseconds: 268_000, album: "The Kick Inside")
+
+        try await world.identify(.ballad)
+
+        guard case .track(let track) = menu.header else {
+            Issue.record("Expected a Track, got \(menu.header)")
+            return
+        }
+        #expect(track.title == "Wuthering Heights")
+        #expect(track.album == "The Kick Inside")
+
+        world.menuServer.stop()
+        #expect(menu.header == .track(track))
+    }
+
     @Test("With no Session running, Pressing Menu says Pressing is waiting for a Record")
     func waiting() {
         let world = World()
