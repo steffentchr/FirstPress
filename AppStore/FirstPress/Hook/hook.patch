@@ -39,7 +39,7 @@ diff --git a/App/Sources/RootView.swift b/App/Sources/RootView.swift
 index ca80fce..500eb1e 100644
 --- a/App/Sources/RootView.swift
 +++ b/App/Sources/RootView.swift
-@@ -11,8 +11,8 @@ import FirstPressCore
+@@ -11,9 +11,9 @@ import FirstPressCore
  struct RootView: View {
      let firstPress: FirstPress
      let audioInput: AVAudioSessionInput
@@ -47,6 +47,7 @@ index ca80fce..500eb1e 100644
 -    @State private var showingRooms = false
 +    @State private var showingSettings = ScreenshotDemo.scene == "settings"
 +    @State private var showingRooms = ScreenshotDemo.scene == "rooms"
+     @State private var windowAppearance = WindowAppearance()
  
      private var page: Page { firstPress.state.page }
  
