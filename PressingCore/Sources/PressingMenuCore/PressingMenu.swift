@@ -48,20 +48,21 @@ public final class PressingMenu {
 
     public private(set) var connection = Connection.looking
 
-    /// The panel is showing. No Track gets a notification meanwhile: the
-    /// listener can see it already.
+    /// The panel is showing. No notification is posted meanwhile, for a new
+    /// Track or a Flip: the listener can see it already.
     @ObservationIgnored public var isPanelOpen = false
-    /// The "Notify on new Track" setting, on by default. Pressing Menu keeps
-    /// it in its user defaults and sets it here.
-    public var notifiesOnNewTrack = true
+    /// The Notifications setting, for new Tracks and Flips, on by default.
+    /// Pressing Menu keeps it in its user defaults (under its first name,
+    /// "notifiesOnNewTrack") and sets it here.
+    public var notificationsAreOn = true
     /// The listener turned notifications off for Pressing Menu in System
     /// Settings. The notifications adapter reads it from macOS and sets it
     /// here.
     public var notificationsAreDenied = false
-    /// New Tracks get a notification: the setting is on and macOS allows
-    /// them. Settings shows the switch this way.
+    /// New Tracks and Flips get a notification: the setting is on and macOS
+    /// allows them. Settings shows the switch this way.
     public var postsNotifications: Bool {
-        notifiesOnNewTrack && !notificationsAreDenied
+        notificationsAreOn && !notificationsAreDenied
     }
     /// The last snapshot from the phone, kept while it can't be reached.
     private var snapshot: MenuSnapshot?
@@ -207,6 +208,8 @@ public final class PressingMenu {
     /// The link is up and its first snapshot hasn't arrived: the Track in
     /// it was already playing, so it gets no notification.
     @ObservationIgnored private var awaitingFirstSnapshot = false
+    /// A "Flip the record" notification was posted and not removed yet.
+    @ObservationIgnored private var isFlipNotificationPosted = false
 
     public init(link: any MenuLink, scheduler: any Scheduler, notifier: (any MenuNotifier)? = nil) {
         self.link = link
@@ -237,6 +240,8 @@ public final class PressingMenu {
             switch MenuWire.decode(data) {
             case .snapshot(let snapshot):
                 notifyIfNew(snapshot.track)
+                notifyIfFlipped(snapshot)
+                awaitingFirstSnapshot = false
                 self.snapshot = snapshot
                 connection = .connected
             case .newerMajor:
@@ -251,11 +256,25 @@ public final class PressingMenu {
     /// One notification for each Track identified while connected: not the
     /// one already playing when the link comes up.
     private func notifyIfNew(_ track: Track?) {
-        defer { awaitingFirstSnapshot = false }
         // The same Track, even once its album or cover is filled in.
         guard !awaitingFirstSnapshot, let track, snapshot?.track.map(track.isSame) != true else { return }
         guard postsNotifications, !isPanelOpen else { return }
         notifier?.notify(newTrack: track)
+    }
+
+    /// "Flip the record" when the Record ends with a Flip during a Session:
+    /// not for a Flip already in progress when the link comes up. Removed
+    /// again once the next Record starts, but not when the Session ends by
+    /// itself.
+    private func notifyIfFlipped(_ next: MenuSnapshot) {
+        if isFlipNotificationPosted, next.record == .playing || next.record == .gap {
+            isFlipNotificationPosted = false
+            notifier?.removeFlip()
+        }
+        guard !awaitingFirstSnapshot, next.record == .flipped, snapshot?.record != .flipped else { return }
+        guard postsNotifications, !isPanelOpen else { return }
+        isFlipNotificationPosted = true
+        notifier?.notifyFlip(lastTrack: next.lastTrack)
     }
 
     private func retry() {
