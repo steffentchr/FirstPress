@@ -6,13 +6,13 @@ import PressingCore
 @MainActor
 @Suite("Scrobbling")
 struct ScrobblingTests {
-    @Test("A new Play sends now playing, then asks track.getInfo")
-    func nowPlayingThenGetInfo() async throws {
+    @Test("A new Play asks track.getInfo, then sends now playing")
+    func getInfoThenNowPlaying() async throws {
         let world = World(lastFm: .listener)
 
         try await world.identify(.ballad)
 
-        #expect(world.lastFm.calls.map(\.method) == ["track.updateNowPlaying", "track.getInfo"])
+        #expect(world.lastFm.calls.map(\.method) == ["track.getInfo", "track.updateNowPlaying"])
         let nowPlaying = try #require(world.lastFm.calls("track.updateNowPlaying").first)
         #expect(nowPlaying.httpMethod == "POST")
         #expect(nowPlaying.params["artist"] == "Kate Bush")
@@ -24,6 +24,27 @@ struct ScrobblingTests {
         #expect(getInfo.params["artist"] == "Kate Bush")
         #expect(getInfo.params["track"] == "Wuthering Heights")
         #expect(getInfo.params["sk"] == nil)
+    }
+
+    @Test("Now playing carries the Track's length from track.getInfo, in whole seconds")
+    func nowPlayingCarriesLength() async throws {
+        let world = World(lastFm: .listener)
+        world.lastFm.knows(.ballad, durationMilliseconds: 268_400)
+
+        try await world.identify(.ballad)
+
+        let nowPlaying = try #require(world.lastFm.calls("track.updateNowPlaying").first)
+        #expect(nowPlaying.params["duration"] == "268")
+    }
+
+    @Test("Length unknown to Last.fm: now playing says 4 minutes, when the Play qualifies")
+    func nowPlayingUnknownLength() async throws {
+        let world = World(lastFm: .listener)
+
+        try await world.identify(.ballad)
+
+        let nowPlaying = try #require(world.lastFm.calls("track.updateNowPlaying").first)
+        #expect(nowPlaying.params["duration"] == "240")
     }
 
     @Test("The album Last.fm knows fills in the Play, on screen and in History")

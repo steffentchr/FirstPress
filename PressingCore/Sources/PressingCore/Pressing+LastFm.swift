@@ -95,7 +95,7 @@ extension Pressing {
     }
 }
 
-/// The scrobbler: now playing and track.getInfo when a Play starts, the
+/// The scrobbler: track.getInfo and now playing when a Play starts, the
 /// moment it qualifies, and the durable queue flushed with track.scrobble.
 extension Pressing {
     /// The most `track.scrobble` takes in one request.
@@ -123,8 +123,8 @@ extension Pressing {
         return qualifyingTime(duration: duration).map { played >= $0 } ?? false
     }
 
-    /// A pending Play started: now playing, then track.getInfo for its
-    /// length and album; it qualifies once it has run long enough.
+    /// A pending Play started: track.getInfo for its length and album, then
+    /// now playing with that length; it qualifies once it has run long enough.
     func scrobblePlayStarted(_ play: Play) {
         scrobbling.qualifyTimer?.cancel()
         scrobbling.current = nil
@@ -134,26 +134,36 @@ extension Pressing {
         scheduleQualification(of: play)
         let track = play.track
         Task { [weak self] in
+            // track.getInfo first, so now playing can say how long the Track
+            // is: one sent without a length can vanish from the profile within
+            // seconds, long before the scrobble goes (reported by a tester). With
+            // the length unknown it says 4 minutes, when the Play qualifies
+            // and its scrobble shows instead.
+            let info = try? await api.get("track.getInfo", ["artist": track.artist, "track": track.title, "autocorrect": "1"])
+            let duration = self?.learned(info?["track"] as? [String: Any], about: play.id) ?? Self.longestQualifyingTime
             // Now playing is never retried.
-            _ = try? await api.post("track.updateNowPlaying", ["artist": track.artist, "track": track.title, "sk": session.key])
-            guard let info = try? await api.get("track.getInfo", ["artist": track.artist, "track": track.title, "autocorrect": "1"]) else { return }
-            self?.learned(info["track"] as? [String: Any], about: play.id)
+            _ = try? await api.post("track.updateNowPlaying", [
+                "artist": track.artist, "track": track.title, "duration": String(Int(duration)), "sk": session.key,
+            ])
         }
     }
 
     /// What track.getInfo says: the length in milliseconds (0 when unknown)
-    /// and the album.
-    private func learned(_ info: [String: Any]?, about id: Play.ID) {
+    /// and the album. Returns the length in seconds, nil when unknown.
+    private func learned(_ info: [String: Any]?, about id: Play.ID) -> TimeInterval? {
         if let album = (info?["album"] as? [String: Any])?["title"] as? String, !album.isEmpty {
             updatePlay(id) { play in
                 if play.track.album == nil { play.track.album = album }
             }
         }
         let milliseconds = LastFmAPI.int(info?["duration"]) ?? 0
-        guard milliseconds > 0, scrobbling.current == id, !scrobbling.queue.contains(id),
-              let play = history.first(where: { $0.id == id }) else { return }
-        scrobbling.duration = TimeInterval(milliseconds) / 1000
+        guard milliseconds > 0 else { return nil }
+        let duration = TimeInterval(milliseconds) / 1000
+        guard scrobbling.current == id, !scrobbling.queue.contains(id),
+              let play = history.first(where: { $0.id == id }) else { return duration }
+        scrobbling.duration = duration
         scheduleQualification(of: play)
+        return duration
     }
 
     /// Checks, when the Play would have run long enough, that it really has.
