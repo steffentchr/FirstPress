@@ -33,6 +33,9 @@ public final class PressingMenu {
     /// How long Pressing Menu says it's looking before it says the iPhone
     /// can't be reached. It goes on looking after that.
     public static let lookingFor: TimeInterval = 5
+    /// How long Pressing Menu waits before trying again: doubling from 1 s
+    /// after each failed attempt, to at most 30 s.
+    static let retryDelays: [TimeInterval] = [1, 2, 4, 8, 16, 30]
 
     public private(set) var connection = Connection.looking
     /// The last snapshot from the phone, kept while it can't be reached.
@@ -67,6 +70,9 @@ public final class PressingMenu {
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored private var lookingTimer: (any ScheduledWork)?
+    @ObservationIgnored private var retryTimer: (any ScheduledWork)?
+    /// Failed attempts since the link was last up.
+    @ObservationIgnored private var failures = 0
 
     public init(link: any MenuLink, scheduler: any Scheduler) {
         self.link = link
@@ -90,13 +96,24 @@ public final class PressingMenu {
         case .connected:
             lookingTimer?.cancel()
             lookingTimer = nil
+            failures = 0
             connection = .connected
         case .disconnected:
             connection = .cantBeReached
+            retry()
         case .received(let data):
             if case .snapshot(let snapshot) = MenuWire.decode(data) {
                 self.snapshot = snapshot
             }
+        }
+    }
+
+    private func retry() {
+        let delay = Self.retryDelays[min(failures, Self.retryDelays.count - 1)]
+        failures += 1
+        retryTimer?.cancel()
+        retryTimer = scheduler.schedule(after: delay) { [weak self] in
+            self?.link.connect()
         }
     }
 }

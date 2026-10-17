@@ -134,6 +134,67 @@ struct PressingMenuTests {
         #expect(second.header == .track(.ballad))
     }
 
+    @Test("A dropped link keeps the last Track and History on screen, and Pressing Menu reconnects by itself")
+    func droppedLinkKeepsSnapshot() async {
+        let world = World(store: FakeStore(settings: Settings(inputID: AudioInputDevice.deck.id), plays: lastNight(3)))
+        let (menu, link) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        link.drop()
+        #expect(menu.connection == .cantBeReached)
+        #expect(menu.header == .track(.ballad))
+        #expect(menu.history.map(\.title) == ["Track 2", "Track 1", "Track 0"])
+
+        world.scheduler.advance(by: 1)
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .track(.ballad))
+    }
+
+    @Test("While Pressing isn't running Pressing Menu says the iPhone can't be reached, and finds it again when it is")
+    func phoneGoneAndBack() {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+
+        world.menuServer.stop()
+        #expect(menu.connection == .cantBeReached)
+        #expect(menu.header == .cantBeReached)
+
+        world.scheduler.advance(by: 60)
+        #expect(menu.connection == .cantBeReached)
+
+        world.menuServer.start()
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .waitingForRecord)
+    }
+
+    @Test("When connecting fails, Pressing Menu tries again after 1, 2, 4 and 8 seconds, then no more often than every 30 seconds")
+    func reconnectBackoff() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+        world.menuServer.refusesConnections = true
+        link.drop()
+        #expect(link.connectAttempts == 1)
+
+        for (wait, attempts) in [(1.0, 2), (2, 3), (4, 4), (8, 5), (16, 6), (30, 7), (30, 8)] {
+            world.scheduler.advance(by: wait - 0.1)
+            #expect(link.connectAttempts == attempts - 1)
+            world.scheduler.advance(by: 0.1)
+            #expect(link.connectAttempts == attempts)
+        }
+        #expect(menu.connection == .cantBeReached)
+
+        world.menuServer.refusesConnections = false
+        world.scheduler.advance(by: 30)
+        #expect(menu.connection == .connected)
+
+        // Connected again: the next drop starts over at 1 second.
+        link.drop()
+        world.scheduler.advance(by: 1)
+        #expect(menu.connection == .connected)
+    }
+
     /// Plays from last night, saved oldest first: "Track 0" to "Track \(count - 1)".
     private func lastNight(_ count: Int) -> [Play] {
         let start = Date(timeIntervalSince1970: 1_699_900_000)

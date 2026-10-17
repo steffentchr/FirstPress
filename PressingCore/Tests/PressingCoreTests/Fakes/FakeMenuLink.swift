@@ -10,6 +10,9 @@ import PressingMenuCore
 @MainActor
 final class FakeMenuServer: MenuServer {
     private(set) var isAdvertising = false
+    /// The phone is found but refuses the connection, so Pressing Menu's
+    /// attempt fails at once.
+    var refusesConnections = false
     /// Every message the phone sent, per Pressing Menu.
     private(set) var sent: [MenuClientID: [Data]] = [:]
     private var links: [MenuClientID: FakeMenuLink] = [:]
@@ -83,7 +86,12 @@ final class FakeMenuLink: MenuLink {
 
     /// The phone is advertised: connect to it, unless connected already.
     func phoneFound() {
-        guard client == nil, let id = server.accept(self) else { return }
+        guard client == nil else { return }
+        if server.refusesConnections && server.isAdvertising {
+            handler?(.disconnected)
+            return
+        }
+        guard let id = server.accept(self) else { return }
         client = id
         handler?(.connected)
         server.announce(id)
