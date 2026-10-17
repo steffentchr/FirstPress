@@ -74,17 +74,19 @@ private struct HeaderView: View {
                 CoverView(url: track.artworkURL)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(track.title)
-                        .font(.system(size: 26, weight: .bold))
+                        .font(.system(size: 21, weight: .bold))
                         .lineLimit(2)
+                        // Wraps to a second line before it truncates.
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(track.artist)
-                        .font(.system(size: 17))
+                        .font(.system(size: 15))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     // The album often arrives a moment later, from Last.fm: its
                     // line appears beneath without moving the title or artist.
                     if let album = track.album, !album.isEmpty {
                         Text(album)
-                            .font(.system(size: 14))
+                            .font(.system(size: 13))
                             .foregroundStyle(.tertiary)
                             .lineLimit(1)
                     }
