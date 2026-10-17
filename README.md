@@ -249,7 +249,7 @@ xcodebuild -project FirstPress.xcodeproj -scheme FirstPressMenu \
   -destination 'generic/platform=macOS' build CODE_SIGNING_ALLOWED=NO
 ```
 
-Its bundle ID is the iPhone app's with `.menu` appended.
+Its bundle ID is the iPhone app's with `-menu` appended, so `com.steffentchr.pressing-dev-menu` on the App Store.
 
 **Where tests go.** Behaviour is tested through FirstPressCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
 
@@ -283,7 +283,7 @@ First Press Menu ships on the Mac App Store, apart from the iPhone app. The two 
 
 **Owner steps.** These need the TwentyThree team's App Store Connect account:
 
-1. Create the App Store Connect record for First Press Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **First Press Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
+1. Create the App Store Connect record for First Press Menu, under the TwentyThree team. The name is **First Press Menu** and the subtitle is **Remote control for Mac**. Its bundle ID is `com.steffentchr.pressing-dev-menu`, registered as a macOS App ID with the Team ID (not the account's older App ID prefix) as its prefix: macOS rejects any other prefix.
 2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), which covers both the iPhone app and First Press Menu. Change `SettingsView.privacyURL` if the policy moves.
 3. In Xcode, archive with signing (Product › Archive, scheme FirstPressMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
 4. Add the Mac screenshots and store text from [`AppStore/FirstPressMenu/`](AppStore/FirstPressMenu), and submit for review. Its README lists the store fields that aren't in files and the decisions left before submitting.

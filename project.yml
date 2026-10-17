@@ -81,7 +81,7 @@ targets:
         PRODUCT_NAME: First Press Menu
         PRODUCT_MODULE_NAME: FirstPressMenu
         # A bundle ID of its own, next to the iPhone app's (Config/Signing.xcconfig).
-        PRODUCT_BUNDLE_IDENTIFIER: $(FIRSTPRESS_BUNDLE_ID).menu
+        PRODUCT_BUNDLE_IDENTIFIER: $(FIRSTPRESS_BUNDLE_ID)-menu
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Menu/FirstPressMenu.entitlements
         ENABLE_HARDENED_RUNTIME: YES
