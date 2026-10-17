@@ -54,11 +54,18 @@ diff --git a/project.yml b/project.yml
 index ae8936d..6777bb4 100644
 --- a/project.yml
 +++ b/project.yml
-@@ -20,6 +20,10 @@ targets:
+@@ -20,6 +20,17 @@ targets:
      sources:
        - App/Sources
        - App/Resources
-+      - PressingCore/Tests/PressingCoreTests/Fakes
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakeAudioInput.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakeLastFm.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakePhoneOutput.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakePorts.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakeSonos.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/FakeStore.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/PassThroughEncoder.swift
++      - PressingCore/Tests/PressingCoreTests/Fakes/Signal.swift
 +      - path: App/ScreenshotDemo
 +        type: folder
 +        buildPhase: resources

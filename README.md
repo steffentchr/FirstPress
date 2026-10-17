@@ -171,7 +171,7 @@ The artwork shows a vinyl record with an orange label, and a record-cleaning bru
 | Source | Used as |
 |---|---|
 | [`Design/AppIcon.svg`](Design/AppIcon.svg) | The app icon. |
-| [`Design/StartScreen.svg`](Design/StartScreen.svg) | The start screen and the launch screen: the icon's artwork with the orange extended upwards and the record anchored at the bottom. It's sized at 450 × 972 pt, so it covers every iPhone. The launch screen shows it at the same size and position, so the app opens without a jump. |
+| [`Design/StartScreen.svg`](Design/StartScreen.svg) | The start screen and the launch screen: the icon's artwork with the orange extended upwards and the record anchored at the bottom. It's sized at 450 × 972 pt, so it covers every iPhone. Its label, unlike the icon's, carries a faint catalogue number, "ROUGH 96 B-1U-1-1". The launch screen shows it at the same size and position, so the app opens without a jump. |
 | [`Design/NoTrackCover.svg`](Design/NoTrackCover.svg) | The cover on Now Playing while no Track is identified: the icon in grey. |
 
 The PNGs in `App/Resources/Assets.xcassets` are rendered from these files and are opaque, as iOS requires. After editing an SVG, re-render with `rsvg-convert` and ImageMagick (`brew install librsvg imagemagick`):
@@ -185,7 +185,7 @@ rsvg-convert -w 960 -h 960 Design/NoTrackCover.svg | magick - -alpha remove -alp
   App/Resources/Assets.xcassets/NoTrackCover.imageset/NoTrackCover@3x.png
 ```
 
-`Design/StartScreen.svg` and `Design/NoTrackCover.svg` are derived from the icon. If the icon changes, regenerate them too.
+`Design/StartScreen.svg` and `Design/NoTrackCover.svg` are derived from the icon. If the icon changes, regenerate them too, and keep the catalogue number on the start screen's label only.
 
 ## Development
 

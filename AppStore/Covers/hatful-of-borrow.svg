@@ -13,6 +13,6 @@
     <rect x="450" y="660" width="100" height="110"/>
   </g>
   <rect width="1000" height="1000" filter="url(#grain)"/>
-  <text x="500" y="125" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="80" fill="#ffffff" letter-spacing="2">THE JONESES</text>
+  <text x="500" y="125" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="80" fill="#ffffff" letter-spacing="2">THE WRIGHTS</text>
   <text x="500" y="190" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="46" fill="#fbf0d2" letter-spacing="2">HATFUL OF BORROW</text>
 </svg>
