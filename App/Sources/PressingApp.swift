@@ -29,7 +29,8 @@ struct PressingApp: App {
                 http: URLSessionLastFmHTTP(),
                 webAuth: WebAuthenticationSession(),
                 keychain: KeychainCredentials()
-            )
+            ),
+            menuServer: BonjourMenuServer()
         ))
     }
 

@@ -1,5 +1,6 @@
 import Foundation
 import PressingCore
+import PressingMenuCore
 
 extension Pressing {
     /// For tests that only care about the input: every other port is a fake
@@ -15,7 +16,8 @@ extension Pressing {
             phoneOutput: FakePhoneOutput(),
             recognizer: FakeRecognizer(),
             artwork: FakeArtworkDownloader(),
-            lastFm: LastFmPorts(account: .test, http: FakeLastFm(), webAuth: FakeWebAuth(), keychain: FakeKeychain())
+            lastFm: LastFmPorts(account: .test, http: FakeLastFm(), webAuth: FakeWebAuth(), keychain: FakeKeychain()),
+            menuServer: FakeMenuServer()
         )
     }
 }
@@ -35,6 +37,7 @@ struct World {
     let lastFm = FakeLastFm()
     let webAuth = FakeWebAuth()
     let keychain: FakeKeychain
+    let menuServer = FakeMenuServer()
     let pressing: Pressing
 
     /// `lastFm` is the session in the Keychain at launch: by default Last.fm
@@ -63,9 +66,19 @@ struct World {
             phoneOutput: phoneOutput,
             recognizer: recognizer,
             artwork: artwork,
-            lastFm: LastFmPorts(account: account, http: lastFm, webAuth: webAuth, keychain: self.keychain)
+            lastFm: LastFmPorts(account: account, http: lastFm, webAuth: webAuth, keychain: self.keychain),
+            menuServer: menuServer
         )
         pressing.start()
+    }
+
+    /// A Pressing Menu on a Mac on the same network, joined to this phone by
+    /// an in-memory link. It starts looking for Pressing at once.
+    func pressingMenu() -> (menu: PressingMenu, link: FakeMenuLink) {
+        let link = FakeMenuLink(server: menuServer)
+        let menu = PressingMenu(link: link, scheduler: scheduler)
+        menu.start()
+        return (menu, link)
     }
 
     /// Plays mono samples from the deck in real time.

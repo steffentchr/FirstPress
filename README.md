@@ -191,7 +191,8 @@ rsvg-convert -w 960 -h 960 Design/NoTrackCover.svg | magick - -alpha remove -alp
 
 ```
 App/            SwiftUI shell and the production adapters (AVAudioSession, Bonjour, ShazamKit, …)
-PressingCore/   All behaviour, as a Swift package with no UIKit or SwiftUI; see its README
+Menu/           Pressing Menu, the Mac menu-bar app: SwiftUI panel and its Bonjour/WebSocket link
+PressingCore/   All behaviour, and Pressing Menu's model, as a Swift package with no UIKit or SwiftUI; see its README
 Config/         xcconfig files: shared settings, plus examples for your signing and Last.fm keys
 Design/         SVG sources for the icon and artwork
 docs/adr/       Architecture decisions
@@ -214,6 +215,15 @@ xcodegen generate
 xcodebuild -project Pressing.xcodeproj -scheme Pressing \
   -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO
 ```
+
+Build Pressing Menu, the Mac app (macOS 26 and later). It doesn't use LAME:
+
+```sh
+xcodebuild -project Pressing.xcodeproj -scheme PressingMenu \
+  -destination 'generic/platform=macOS' build CODE_SIGNING_ALLOWED=NO
+```
+
+Its bundle ID is the iPhone app's with `.menu` appended.
 
 **Where tests go.** Behaviour is tested through PressingCore's public interface, with fakes for every connection to the outside world: audio input, Sonos, recogniser, Last.fm, clock, storage, stream and phone output. The app's adapters and SwiftUI views are checked by hand on a device.
 
