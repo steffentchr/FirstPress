@@ -13,11 +13,18 @@ final class FakeMenuServer: MenuServer {
     /// Every message the phone sent, per Pressing Menu.
     private(set) var sent: [MenuClientID: [Data]] = [:]
     private var links: [MenuClientID: FakeMenuLink] = [:]
+    /// Pressing Menus looking for the phone while it isn't advertised.
+    private var looking: [FakeMenuLink] = []
     private var nextID = 1
     private var handler: (@MainActor (MenuServerEvent) -> Void)?
 
     func setEventHandler(_ handler: @escaping @MainActor (MenuServerEvent) -> Void) { self.handler = handler }
-    func start() { isAdvertising = true }
+    func start() {
+        isAdvertising = true
+        let found = looking
+        looking = []
+        for link in found { link.phoneFound() }
+    }
 
     func stop() {
         isAdvertising = false
@@ -34,8 +41,13 @@ final class FakeMenuServer: MenuServer {
 
     // The network's side.
 
+    /// A Pressing Menu looks for the phone: it connects at once while the
+    /// phone is advertised, and as soon as it is otherwise.
     func accept(_ link: FakeMenuLink) -> MenuClientID? {
-        guard isAdvertising else { return nil }
+        guard isAdvertising else {
+            if !looking.contains(where: { $0 === link }) { looking.append(link) }
+            return nil
+        }
         let id = MenuClientID(nextID)
         nextID += 1
         links[id] = link
@@ -66,11 +78,12 @@ final class FakeMenuLink: MenuLink {
 
     func connect() {
         connectAttempts += 1
-        guard client == nil else { return }
-        guard let id = server.accept(self) else {
-            handler?(.disconnected)
-            return
-        }
+        phoneFound()
+    }
+
+    /// The phone is advertised: connect to it, unless connected already.
+    func phoneFound() {
+        guard client == nil, let id = server.accept(self) else { return }
         client = id
         handler?(.connected)
         server.announce(id)

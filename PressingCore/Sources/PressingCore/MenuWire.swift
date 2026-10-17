@@ -10,12 +10,44 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
     /// The wire contract's major version that this build speaks.
     public static let currentMajor = 1
 
+    /// The phone's page, as `PressingState.page` names it.
+    public enum Page: String, Sendable, Equatable, Codable {
+        /// The phone asks for its input: none chosen, or not connected.
+        case chooseInput
+        /// The input is ready and no Session is running.
+        case waiting
+        /// A Session is running.
+        case nowPlaying
+
+        public init(from decoder: any Decoder) throws {
+            // A page added later reads as waiting.
+            self = Page(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .waiting
+        }
+    }
+
+    /// What the current Record is doing, while a Session runs.
+    public enum Record: String, Sendable, Equatable, Codable {
+        case playing
+        case gap
+        case flipped
+
+        public init(from decoder: any Decoder) throws {
+            // A state added later reads as playing.
+            self = Record(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .playing
+        }
+    }
+
     public var major: Int
+    public var page: Page
+    /// Nil outside a Session.
+    public var record: Record?
     /// The current Play's Track, nil while nothing is identified.
     public var track: Track?
 
-    public init(major: Int = MenuSnapshot.currentMajor, track: Track? = nil) {
+    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil) {
         self.major = major
+        self.page = page
+        self.record = record
         self.track = track
     }
 }

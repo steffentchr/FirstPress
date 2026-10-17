@@ -27,7 +27,18 @@ extension Pressing {
 
     /// What Pressing Menus show now.
     var menuSnapshot: MenuSnapshot {
-        MenuSnapshot(track: state.play?.track)
+        let page: MenuSnapshot.Page = switch state.page {
+        case .chooseInput: .chooseInput
+        case .waiting: .waiting
+        case .nowPlaying: .nowPlaying
+        }
+        let record: MenuSnapshot.Record? = switch state.session {
+        case .idle: nil
+        case .running(_, .playing): .playing
+        case .running(_, .gap): .gap
+        case .running(_, .flipped): .flipped
+        }
+        return MenuSnapshot(page: page, record: record, track: state.play?.track)
     }
 
     /// Called whenever `state` or `history` changes: sends a snapshot to every
