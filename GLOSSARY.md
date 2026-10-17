@@ -28,6 +28,10 @@ _Avoid_: Speaker, zone, player, group
 The iPhone's own audio output — its speaker, connected earphones or an AirPlay receiver — used as an extra place a Record plays, alongside the Rooms.
 _Avoid_: Monitor, local playback, passthrough
 
+**Pressing Menu**:
+The Mac menu-bar app that shows and controls a Pressing running on an iPhone on the same network.
+_Avoid_: Remote, companion, client, Mac app
+
 **Takeover**:
 Pressing making a Room play the turntable, whatever that Room was doing before.
 _Avoid_: Grab, hijack
