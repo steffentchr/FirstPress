@@ -22,6 +22,7 @@
     { "scene": "nowPlaying", "caption": "Put on a record.\nPressing does the rest." },
     { "scene": "rooms", "caption": "Plays in your Sonos Rooms,\neach at its own volume." },
     { "scene": "history", "caption": "Every Track identified\nand kept in your History." },
-    { "scene": "settings", "caption": "Scrobbles to Last.fm,\neven while offline." }
+    { "scene": "settings", "caption": "Scrobbles to Last.fm,\neven while offline." },
+    { "scene": "mac", "caption": "Control it from your Mac\nwith Pressing Menu.", "from": "PressingMenu" }
   ]
 }
