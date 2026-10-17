@@ -46,7 +46,7 @@ App Store Connect needs only the 6.9" set for an iPhone-only app; it scales it d
 - The other sleeves follow the Smiths singles' formula, a tinted "cover star" still in one colour with the name in plain white capitals: *Sideways, Here We Go* (blue; *Strangeways, Here We Come*), *Quieter Than Moths* (rose; *Louder Than Bombs*), *Hatful of Borrow* (ochre; *Hatful of Hollow*).
 - The Track playing is *Bigmouth*, leaning on *Bigmouth Strikes Again*, the single from *The Queen Is Dead*.
 - The other Track titles are plain and sincere, not puns: Manchester streets, buses, rain and Sundays, in the band's mood rather than its words. *Under the Iron Bridge*, *Whitworth Street in the Rain*, *A Coat Too Thin for March*, *The Last Bus Out of Salford*, *Nobody Calls on Sundays*, *Bicycles in the Hallway*, *Late Light on the Canal*, *Letters I Never Sent*.
-- The start screen's record (not the icon, and not the grey cover on Now Playing) has "ROUGH 96 B-1U-1-1" printed faintly round its label: *The Queen Is Dead*'s Rough Trade catalogue number. It lives in `Design/StartScreen.svg`.
+- The record on the start screen and on Now Playing's grey cover (not the app icon) has "ROUGH 96 B-1U-1-1" printed faintly round its label: *The Queen Is Dead*'s Rough Trade catalogue number. It lives in `Design/StartScreen.svg` and `Design/NoTrackCover.svg`.
 
 Keep it to nods. A real band name, a full real title or anything traced from a real sleeve would undo the point of inventing them.
 

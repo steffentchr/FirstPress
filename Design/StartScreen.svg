@@ -4,7 +4,7 @@
      Rendered to App/Resources/Assets.xcassets/StartScreen.imageset at 3x.
      Unlike the icon, its label carries a catalogue number, "ROUGH 96 B-1U-1-1", printed
      faintly round the lower edge: a nod to The Smiths' The Queen Is Dead (Rough Trade,
-     ROUGH 96). Keep it here only, not in AppIcon.svg or NoTrackCover.svg. -->
+     ROUGH 96). NoTrackCover.svg carries it too; AppIcon.svg doesn't. -->
 <defs>
   <radialGradient id="bg" cx="30%" cy="20%" r="95%">
     <stop offset="0" stop-color="#f08a52"/><stop offset="0.55" stop-color="#d4551f"/><stop offset="1" stop-color="#9a3410"/>
