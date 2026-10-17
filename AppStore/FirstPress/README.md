@@ -8,8 +8,8 @@ Everything for the iPhone app's App Store listing: screenshots, the sample music
 | `Covers/*.svg` | The sample sleeves, one per album. A Track names its sleeve by file name in `demo.json`. |
 | `Hook/` | The screenshot hook: `ScreenshotDemo.swift` wires the core to the test fakes and plays `demo.json`; `hook.patch` holds the few one-line edits to the app that open a scene. |
 | `screenshots.sh` | Applies the hook, builds, shoots each scene in the simulator, frames the shots, and reverts the hook. |
-| `Screenshots/raw/` | The simulator's shots, 1320 × 2868, and `06-mac.png`, the Mac layer of the last screenshot, drawn by `../FirstPressMenu/screenshots.sh`. |
-| `Screenshots/6.9-inch/` | The framed shots to upload, 1320 × 2868, no alpha. |
+| `Screenshots/raw/` | The simulator's shots, 1206 × 2622, and `06-mac.png`, the Mac layer of the last screenshot, drawn by `../FirstPressMenu/screenshots.sh`. |
+| `Screenshots/6.3-inch/` | The framed shots to upload, 1206 × 2622, no alpha. |
 | `Metadata/en-US/` | The store text, one field per file, in fastlane `deliver`'s layout. |
 | `listing.md` | Promotional Text, Description and Keywords from `Metadata/en-US/`, ready to paste into App Store Connect. |
 | `review-notes.md` | The notes for App Review. |
@@ -19,10 +19,10 @@ Everything for the iPhone app's App Store listing: screenshots, the sample music
 ```sh
 AppStore/FirstPress/screenshots.sh               # shoot every scene, then frame
 AppStore/FirstPress/screenshots.sh --frame-only  # re-frame only, after editing captions
-SIM="iPhone 18 Pro Max" AppStore/FirstPress/screenshots.sh   # another 6.9" simulator
+SIM="iPhone 18 Pro" AppStore/FirstPress/screenshots.sh   # another simulator; its screen must be 1206 × 2622
 ```
 
-A full run takes about three minutes. It refuses to start if the files the patch edits have uncommitted changes, and it reverts them on exit, even after an error. If the app's code moves and `hook.patch` no longer applies, redo the edits by hand (they're short; see the patch) and save the new diff over it with `git diff -- <files> > AppStore/FirstPress/Hook/hook.patch`.
+The frame step stops if a shot isn't exactly 1206 × 2622. A full run takes about three minutes. It refuses to start if the files the patch edits have uncommitted changes, and it reverts them on exit, even after an error. If the app's code moves and `hook.patch` no longer applies, redo the edits by hand (they're short; see the patch) and save the new diff over it with `git diff -- <files> > AppStore/FirstPress/Hook/hook.patch`.
 
 Scenes, by the `scene` name in `demo.json`:
 
@@ -35,7 +35,7 @@ Scenes, by the `scene` name in `demo.json`:
 | `waiting` | The start screen, input ready. |
 | `mac` | Not shot here: First Press Menu on a Mac, with a new-Track notification and the panel's Rooms view. Its `"from": "FirstPressMenu"` says `../FirstPressMenu/screenshots.sh` draws it into `raw/`; this script only frames it. Regenerate it from there, which re-frames this set too. A scene `from` elsewhere must come after the shot ones. |
 
-App Store Connect needs only the 6.9" set for an iPhone-only app; it scales it down for smaller iPhones.
+Upload the `6.3-inch/` set to App Store Connect's **iPhone with Dynamic Island (medium display)** slot, the 6.1"/6.3" one. For this app it takes only 1179 × 2556 or 1206 × 2622 screenshots (or their landscape turns); it rejected the earlier 6.9" set, 1320 × 2868, with "File dimensions are invalid". There is one set, shot on a 6.3" simulator (iPhone 17 Pro by default) so text is the simulator's own pixels rather than rescaled. A 6.9" set would need a second simulator run, so there isn't one.
 
 ## Choices, and why
 

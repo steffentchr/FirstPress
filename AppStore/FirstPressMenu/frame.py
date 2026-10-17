@@ -290,29 +290,31 @@ def mac_screenshots():
 
 
 def iphone_promo():
-    """The Mac layer of the iPhone set's last screenshot, 1320 x 2868 and
-    transparent: a crop of the Mac's screen with a new-Track notification,
-    and the panel's Rooms view below it. The iPhone frame step puts the
-    caption and the background around it."""
+    """The Mac layer of the iPhone set's last screenshot, 1206 x 2622 (the
+    6.3" size, as ../FirstPress/screenshots.sh frames it) and transparent:
+    a crop of the Mac's screen with a new-Track notification, and the
+    panel's Rooms view below it. The iPhone frame step puts the caption
+    and the background around it."""
     promo = DEMO["promo"]
-    W, H = 1320, 2868
-    d = Desktop(590, 330, 2, "promo")
+    W, H = 1206, 2622
+    k = W / 1320  # the layout was drawn at 1320 pixels wide
+    d = Desktop(590, 330, 2 * k, "promo")
     d.background()
     d.menu_bar(open_icon=True)
     d.notifications(promo.get("notifications", []))
-    x, y = (W - d.px(d.w)) // 2, 600
+    x, y = (W - d.px(d.w)) / 2, 600 * k
     png = render(promo["panel"])
     pw, ph = size_of(png)
-    ps = 2.6 / RENDER_SCALE
-    PW, PH = pw * ps, ph * ps
-    PX, PY = (W - PW) / 2, y + d.px(d.h) - 40
-    panel = (f'<defs><clipPath id="pp"><rect x="{PX}" y="{PY}" width="{PW}" height="{PH}" rx="{16 * 2.6}"/></clipPath>'
-             f'<filter id="ps" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="40"/></filter></defs>'
-             f'<rect x="{PX}" y="{PY + 30}" width="{PW}" height="{PH}" rx="{16 * 2.6}" fill="#000" opacity=".4" filter="url(#ps)"/>'
-             f'<rect x="{PX}" y="{PY}" width="{PW}" height="{PH}" rx="{16 * 2.6}" fill="#f6f6f8" opacity=".94"/>'
+    ps = 2.6 * k / RENDER_SCALE
+    PW, PH, PR = pw * ps, ph * ps, 16 * 2.6 * k
+    PX, PY = (W - PW) / 2, y + d.px(d.h) - 40 * k
+    panel = (f'<defs><clipPath id="pp"><rect x="{PX}" y="{PY}" width="{PW}" height="{PH}" rx="{PR}"/></clipPath>'
+             f'<filter id="ps" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="{40 * k}"/></filter></defs>'
+             f'<rect x="{PX}" y="{PY + 30 * k}" width="{PW}" height="{PH}" rx="{PR}" fill="#000" opacity=".4" filter="url(#ps)"/>'
+             f'<rect x="{PX}" y="{PY}" width="{PW}" height="{PH}" rx="{PR}" fill="#f6f6f8" opacity=".94"/>'
              f'<image x="{PX}" y="{PY}" width="{PW}" height="{PH}" href="{png}" clip-path="url(#pp)"/>')
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{W}" height="{H}">'
-           + screen(d, x, y, 22, 48) + panel + '</svg>')
+           + screen(d, x, y, 22 * k, 48 * k) + panel + '</svg>')
     # Named as the iPhone frame step names it: its place in the iPhone
     # set, then its scene.
     n, scene = next((n, x) for n, x in enumerate(WORLD["screenshots"], 1) if x.get("from") == "FirstPressMenu")

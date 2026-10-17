@@ -42,7 +42,7 @@ App Store Connect takes one Mac size for every Mac, 16:10; 2880 × 1800 is the l
 
 **A notification card is data.** `{ "newTrack": "nowPlaying" }` draws a Track as the app posts it: the title, then the artist and the album, with the sleeve. Any other card, such as "Flip the record", is `{ "title": …, "body": …, "image": null }`, with no new code.
 
-**The iPhone set's last screenshot** comes from here: `frame.py` draws a crop of the Mac's screen with a new-Track notification, and the panel's Rooms view below it, as a transparent layer at `../FirstPress/Screenshots/raw/06-mac.png`. The iPhone frame step adds the background and its caption from `../FirstPress/demo.json`.
+**The iPhone set's last screenshot** comes from here: `frame.py` draws a crop of the Mac's screen with a new-Track notification, and the panel's Rooms view below it, as a transparent layer at `../FirstPress/Screenshots/raw/06-mac.png`, 1206 × 2622 like the rest of the iPhone set (the 6.3" size; see `../FirstPress/README.md`). The iPhone frame step adds the background and its caption from `../FirstPress/demo.json`.
 
 ## Choices, and why
 
