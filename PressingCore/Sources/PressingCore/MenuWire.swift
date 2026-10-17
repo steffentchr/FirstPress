@@ -37,18 +37,45 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         }
     }
 
+    /// A Play as History lists it.
+    public struct Play: Sendable, Equatable, Codable {
+        public var track: Track
+        public var startedAt: Date
+
+        public init(track: Track, startedAt: Date) {
+            self.track = track
+            self.startedAt = startedAt
+        }
+    }
+
+    /// How many Plays Pressing Menu lists.
+    public static let recentPlaysLimit = 10
+
     public var major: Int
     public var page: Page
     /// Nil outside a Session.
     public var record: Record?
     /// The current Play's Track, nil while nothing is identified.
     public var track: Track?
+    /// History by the phone's rule, at most 10: newest first, each Track
+    /// once at its latest Play, and the current Play left out.
+    public var recentPlays: [Play]
 
-    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil) {
+    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = []) {
         self.major = major
         self.page = page
         self.record = record
         self.track = track
+        self.recentPlays = recentPlays
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        major = try container.decode(Int.self, forKey: .major)
+        page = try container.decode(Page.self, forKey: .page)
+        record = try container.decodeIfPresent(Record.self, forKey: .record)
+        track = try container.decodeIfPresent(Track.self, forKey: .track)
+        recentPlays = try container.decodeIfPresent([Play].self, forKey: .recentPlays) ?? []
     }
 }
 

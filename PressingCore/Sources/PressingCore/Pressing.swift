@@ -24,7 +24,7 @@ public final class Pressing {
 
     /// The same rule, for a view that reads `history` but not `state`, so
     /// the level meter's updates don't redraw the list.
-    public static func recentPlays(in history: [Play], excluding current: Play.ID?) -> [Play] {
+    public static func recentPlays(in history: [Play], excluding current: Play.ID?, limit: Int = recentPlaysLimit) -> [Play] {
         var listed: [Play] = []
         var seen = Set<String>()
         if let current, let playing = history.first(where: { $0.id == current }) {
@@ -33,7 +33,7 @@ public final class Pressing {
         for play in history where play.id != current {
             guard seen.insert(play.track.sameness).inserted else { continue }
             listed.append(play)
-            if listed.count == recentPlaysLimit { break }
+            if listed.count == limit { break }
         }
         return listed
     }

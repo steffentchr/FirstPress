@@ -38,7 +38,13 @@ extension Pressing {
         case .running(_, .gap): .gap
         case .running(_, .flipped): .flipped
         }
-        return MenuSnapshot(page: page, record: record, track: state.play?.track)
+        let recent = Self.recentPlays(in: history, excluding: state.play?.id, limit: MenuSnapshot.recentPlaysLimit)
+        return MenuSnapshot(
+            page: page,
+            record: record,
+            track: state.play?.track,
+            recentPlays: recent.map { MenuSnapshot.Play(track: $0.track, startedAt: $0.startedAt) }
+        )
     }
 
     /// Called whenever `state` or `history` changes: sends a snapshot to every

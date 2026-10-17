@@ -50,6 +50,13 @@ public final class PressingMenu {
         }
     }
 
+    /// History as the panel lists it under the header: at most 10 Tracks,
+    /// newest first, each once, the current one left out. Kept, greyed,
+    /// while the phone can't be reached.
+    public var history: [Track] {
+        snapshot?.recentPlays.map(\.track) ?? []
+    }
+
     /// A Record is playing on the phone, in a Gap or not: the menu-bar icon
     /// changes subtly.
     public var isRecordPlaying: Bool {
