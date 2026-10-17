@@ -19,13 +19,13 @@ swift test --package-path PressingCore
   | `AudioInput` | The deck's input: buffers, available inputs, route changes |
   | `SonosNetwork` | Discovery events, and SOAP requests to the speakers |
   | `StreamSink` | The live MP3 stream served to the Rooms |
-  | `PhoneOutput` | Playing the Record on the phone itself |
+  | `PhoneOutput` | Playing the Record on the phone itself, and where it plays (the route) |
   | `Recognizer` | ShazamKit matching |
   | `ArtworkDownloader` | Covers |
   | `LastFmHTTP`, `WebAuth`, `Keychain` | Last.fm calls, sign-in and the stored session |
   | `Store` | Settings, History and the scrobble queue |
   | `Scheduler` | Time and timers |
-  | `MenuServer` | Pressing Menus connected over the network: snapshots out, commands in |
+  | `MenuServer` | Pressing Menus connected over the network: snapshots out, commands (Rooms, volumes, This iPhone) in |
 
 - **`PressingMenuCore`** is a second library product: Pressing Menu's model (`PressingMenu`), for the Mac app. It reaches the phone only through its `MenuLink` port, and shares the wire types (`MenuSnapshot`, `MenuWire`) with the core. Like the core, it imports only Foundation and Observation. See ADR-0004.
 - **Protocol logic lives here, not in the adapters.** That covers the SOAP envelopes, ICY stream framing, Last.fm request signing, detection, resampling and Pressing Menu's wire contract. The adapters only move bytes and call system APIs, so the logic is tested.

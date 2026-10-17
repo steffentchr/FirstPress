@@ -59,7 +59,13 @@ final class FakeMenuServer: MenuServer {
 
     func announce(_ client: MenuClientID) { handler?(.connected(client)) }
 
-    func receive(_ message: Data, from client: MenuClientID) { handler?(.received(message, from: client)) }
+    /// Every message the phone received from any Pressing Menu, in order.
+    private(set) var received: [Data] = []
+
+    func receive(_ message: Data, from client: MenuClientID) {
+        received.append(message)
+        handler?(.received(message, from: client))
+    }
 
     func forget(_ client: MenuClientID) {
         guard links.removeValue(forKey: client) != nil else { return }

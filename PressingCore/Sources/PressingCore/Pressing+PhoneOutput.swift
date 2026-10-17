@@ -11,6 +11,13 @@ extension Pressing {
         applyPhoneOutputSwitch()
     }
 
+    /// Follows where the phone plays, for the Rooms sheet and Pressing Menus.
+    func startPhoneOutputRoute() {
+        phoneOutput.setRouteHandler { [weak self] route in
+            self?.state.phoneOutput.route = route
+        }
+    }
+
     /// Tells the phone the switch as set. At launch this comes before capture
     /// starts, so the audio session is set up for it from the first start.
     func applyPhoneOutputSwitch() {

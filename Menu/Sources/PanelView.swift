@@ -6,9 +6,11 @@ import PressingMenuCore
 /// The panel, in the reference look: the current Track's title large and
 /// bold with the artist lighter beneath, a divider, then History as a
 /// numbered list. Everything the phone last sent stays on screen, greyed,
-/// while it can't be reached.
+/// while it can't be reached. The footer's Rooms summary swaps the Rooms
+/// view in place of History.
 struct PanelView: View {
     let menu: PressingMenu
+    @State private var showsRooms = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -16,7 +18,13 @@ struct PanelView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
                 .padding(.bottom, 16)
-            if !menu.history.isEmpty {
+            if showsRooms {
+                Divider()
+                    .padding(.horizontal, 20)
+                RoomsView(menu: menu, back: { showsRooms = false })
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+            } else if !menu.history.isEmpty {
                 Divider()
                     .padding(.horizontal, 20)
                 HistoryList(tracks: menu.history)
@@ -24,7 +32,7 @@ struct PanelView: View {
                     .padding(.vertical, 14)
             }
             Divider()
-            FooterView()
+            FooterView(roomsSummary: menu.roomsSummary, showRooms: { showsRooms.toggle() })
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
         }
@@ -107,9 +115,13 @@ private struct HistoryList: View {
     }
 }
 
-/// For now only the power button, which quits Pressing Menu and leaves
-/// Pressing on the iPhone untouched.
+/// The power button, which quits Pressing Menu and leaves Pressing on the
+/// iPhone untouched, and on the right where Pressing plays, which opens the
+/// Rooms view.
 private struct FooterView: View {
+    let roomsSummary: String
+    let showRooms: () -> Void
+
     var body: some View {
         HStack {
             Button {
@@ -122,6 +134,17 @@ private struct FooterView: View {
             .help("Quit Pressing Menu")
             .accessibilityLabel("Quit Pressing Menu")
             Spacer()
+            Button(action: showRooms) {
+                HStack(spacing: 5) {
+                    Image(systemName: "hifispeaker.2")
+                    Text(roomsSummary)
+                        .lineLimit(1)
+                }
+                .font(.system(size: 13))
+            }
+            .buttonStyle(.borderless)
+            .help("Rooms")
+            .accessibilityLabel("Rooms: \(roomsSummary)")
         }
     }
 }

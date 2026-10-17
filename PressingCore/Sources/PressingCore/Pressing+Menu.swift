@@ -18,10 +18,27 @@ extension Pressing {
             let snapshot = menuSnapshot
             lastMenuSnapshot = snapshot
             menuServer.send(MenuWire.encode(snapshot), to: client)
-        case .received:
-            break
+        case .received(let message, _):
+            guard let command = MenuWire.decodeCommand(message) else { return }
+            perform(command)
         case .disconnected(let client):
             menuClients.remove(client)
+        }
+    }
+
+    /// A command from a Pressing Menu is the phone's own intent, but not a
+    /// touch: the screen is left as it is. One for a Room the phone doesn't
+    /// know is ignored.
+    private func perform(_ command: MenuCommand) {
+        switch command {
+        case .switchRoom(let id, let on):
+            guard state.rooms.contains(where: { $0.id == id }) else { return }
+            switchRoom(id, on: on)
+        case .setVolume(let id, let volume):
+            guard state.rooms.contains(where: { $0.id == id }) else { return }
+            setVolume(volume, for: id)
+        case .switchPhoneOutput(let on):
+            switchPhoneOutput(on: on)
         }
     }
 
@@ -43,7 +60,11 @@ extension Pressing {
             page: page,
             record: record,
             track: state.play?.track,
-            recentPlays: recent.map { MenuSnapshot.Play(track: $0.track, startedAt: $0.startedAt) }
+            recentPlays: recent.map { MenuSnapshot.Play(track: $0.track, startedAt: $0.startedAt) },
+            rooms: state.rooms.map {
+                MenuSnapshot.Room(id: $0.id, name: $0.name, isOn: $0.isOn, volume: $0.volume, isReachable: $0.isReachable, isSteppedBack: $0.isSteppedBack)
+            },
+            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route)
         )
     }
 

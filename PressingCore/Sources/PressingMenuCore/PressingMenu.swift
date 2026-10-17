@@ -66,6 +66,96 @@ public final class PressingMenu {
         snapshot?.recentPlays.map(\.track) ?? []
     }
 
+    /// The Sonos Rooms Pressing has found, by name, as the phone's Rooms
+    /// sheet lists them. Kept, greyed, while the phone can't be reached.
+    public var rooms: [MenuSnapshot.Room] {
+        (snapshot?.rooms ?? []).map { room in
+            // A slider being dragged shows where it is, not the phone's last
+            // answer, which can lag behind while volumes are held back.
+            guard let volume = draggedVolumes[room.id] else { return room }
+            var dragged = room
+            dragged.volume = volume
+            return dragged
+        }
+    }
+
+    /// This iPhone, the Phone output. Nil before the first snapshot, or from
+    /// an older phone that doesn't send it.
+    public var phoneOutput: MenuSnapshot.PhoneOutput? {
+        snapshot?.phoneOutput
+    }
+
+    /// Where Pressing plays, as the footer says it: the first switched-on
+    /// Room's name plus "+N" for the others, This iPhone counted, or "No
+    /// Rooms". The Rooms name This iPhone only when no Room is on. Outside a
+    /// Session these are the choices for the next one.
+    public var roomsSummary: String {
+        var names = rooms.filter(\.isOn).map(\.name)
+        if phoneOutput?.isOn == true { names.append("This iPhone") }
+        guard let first = names.first else { return "No Rooms" }
+        return names.count == 1 ? first : "\(first) +\(names.count - 1)"
+    }
+
+    public func room(_ id: MenuSnapshot.Room.ID) -> MenuSnapshot.Room? {
+        rooms.first { $0.id == id }
+    }
+
+    /// The Rooms controls work only while linked to the phone.
+    public var canControl: Bool { connection == .connected }
+
+    /// Switches a Room on or off on the phone, at once: mid-Session it is
+    /// taken over or let go; outside one it is chosen for the next.
+    public func switchRoom(_ id: MenuSnapshot.Room.ID, on: Bool) {
+        send(.switchRoom(id: id, on: on))
+    }
+
+    /// Sets a Room's volume on the phone, 0 to 100: a click, or the end of
+    /// a drag. Sent at once.
+    public func setVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        volumeTimers.removeValue(forKey: id)?.cancel()
+        draggedVolumes[id] = nil
+        sendVolume(volume, for: id)
+    }
+
+    /// A Room's volume slider moved while being dragged. The phone hears at
+    /// most one volume per `volumeInterval`, the latest each time, so the
+    /// Room follows the drag without flooding the phone. Call `setVolume`
+    /// on release.
+    public func dragVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        guard canControl else { return }
+        draggedVolumes[id] = volume
+        guard volumeTimers[id] == nil else { return }
+        let elapsed = lastVolumeSent[id].map { scheduler.now.timeIntervalSince($0) } ?? .infinity
+        if elapsed >= Self.volumeInterval {
+            sendVolume(volume, for: id)
+            return
+        }
+        volumeTimers[id] = scheduler.schedule(after: Self.volumeInterval - elapsed) { [weak self] in
+            guard let self else { return }
+            volumeTimers[id] = nil
+            if let latest = draggedVolumes[id] { sendVolume(latest, for: id) }
+        }
+    }
+
+    /// The shortest time between two volumes sent while a slider is dragged:
+    /// about 10 a second.
+    public static let volumeInterval: TimeInterval = 0.1
+
+    private func sendVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        lastVolumeSent[id] = scheduler.now
+        send(.setVolume(id: id, volume: volume))
+    }
+
+    /// Switches This iPhone on or off on the phone.
+    public func switchPhoneOutput(on: Bool) {
+        send(.switchPhoneOutput(on: on))
+    }
+
+    private func send(_ command: MenuCommand) {
+        guard canControl else { return }
+        link.send(MenuWire.encode(command))
+    }
+
     /// A Record is playing on the phone, in a Gap or not: the menu-bar icon
     /// changes subtly.
     public var isRecordPlaying: Bool {
@@ -73,6 +163,10 @@ public final class PressingMenu {
         return record != .flipped
     }
 
+    /// Volumes of sliders being dragged, by Room.
+    private var draggedVolumes: [MenuSnapshot.Room.ID: Int] = [:]
+    @ObservationIgnored private var lastVolumeSent: [MenuSnapshot.Room.ID: Date] = [:]
+    @ObservationIgnored private var volumeTimers: [MenuSnapshot.Room.ID: any ScheduledWork] = [:]
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored private var lookingTimer: (any ScheduledWork)?
@@ -129,4 +223,28 @@ public final class PressingMenu {
             self?.link.connect()
         }
     }
+}
+
+/// Why a switched-on Room may be quiet, as the phone's Rooms sheet marks it.
+public enum RoomMarker: Sendable, Equatable {
+    /// The Room stopped answering.
+    case cantBeReached
+    /// Someone took it over in the Sonos app, so Pressing stepped back:
+    /// switching it off and on takes it back.
+    case takenOverInSonosApp
+}
+
+extension MenuSnapshot.Room {
+    /// The marker the Rooms view shows, as the phone shows it.
+    public var marker: RoomMarker? {
+        if !isReachable { return .cantBeReached }
+        if isSteppedBack { return .takenOverInSonosApp }
+        return nil
+    }
+}
+
+extension MenuSnapshot.PhoneOutput {
+    /// Where This iPhone plays, such as "AirPlay: Kitchen", "iPhone speaker"
+    /// or "AirPods". Nil while the phone reports no route.
+    public var whereItPlays: String? { route?.label }
 }

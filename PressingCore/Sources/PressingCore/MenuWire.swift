@@ -48,6 +48,41 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         }
     }
 
+    /// A Sonos Room as the phone's Rooms sheet lists it.
+    public struct Room: Sendable, Equatable, Codable, Identifiable {
+        /// The RINCON id of the Room's visible player.
+        public var id: String
+        public var name: String
+        /// Switched on in Pressing: a Session takes it over.
+        public var isOn: Bool
+        /// 0 to 100.
+        public var volume: Int
+        public var isReachable: Bool
+        /// Taken over in the Sonos app: Pressing stepped back from it.
+        public var isSteppedBack: Bool
+
+        public init(id: String, name: String, isOn: Bool, volume: Int, isReachable: Bool = true, isSteppedBack: Bool = false) {
+            self.id = id
+            self.name = name
+            self.isOn = isOn
+            self.volume = volume
+            self.isReachable = isReachable
+            self.isSteppedBack = isSteppedBack
+        }
+    }
+
+    /// This iPhone, as the phone's Rooms sheet shows it.
+    public struct PhoneOutput: Sendable, Equatable, Codable {
+        public var isOn: Bool
+        /// Nil while the phone reports none.
+        public var route: PhoneOutputRoute?
+
+        public init(isOn: Bool, route: PhoneOutputRoute? = nil) {
+            self.isOn = isOn
+            self.route = route
+        }
+    }
+
     /// How many Plays Pressing Menu lists.
     public static let recentPlaysLimit = 10
 
@@ -60,13 +95,20 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
     /// History by the phone's rule, at most 10: newest first, each Track
     /// once at its latest Play, and the current Play left out.
     public var recentPlays: [Play]
+    /// The Sonos Rooms found, by name. Added to version 1 after its first
+    /// release: an older phone sends none.
+    public var rooms: [Room]
+    /// This iPhone. Added with the Rooms: nil from an older phone.
+    public var phoneOutput: PhoneOutput?
 
-    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = []) {
+    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = [], rooms: [Room] = [], phoneOutput: PhoneOutput? = nil) {
+        self.phoneOutput = phoneOutput
         self.major = major
         self.page = page
         self.record = record
         self.track = track
         self.recentPlays = recentPlays
+        self.rooms = rooms
     }
 
     public init(from decoder: any Decoder) throws {
@@ -76,7 +118,20 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         record = try container.decodeIfPresent(Record.self, forKey: .record)
         track = try container.decodeIfPresent(Track.self, forKey: .track)
         recentPlays = try container.decodeIfPresent([Play].self, forKey: .recentPlays) ?? []
+        rooms = try container.decodeIfPresent([Room].self, forKey: .rooms) ?? []
+        phoneOutput = try container.decodeIfPresent(PhoneOutput.self, forKey: .phoneOutput)
     }
+}
+
+/// What a Pressing Menu asks of the phone: the same intents the phone's own
+/// Rooms sheet sends.
+public enum MenuCommand: Sendable, Equatable {
+    /// Switch a Room on or off.
+    case switchRoom(id: String, on: Bool)
+    /// Set a Room's volume, 0 to 100.
+    case setVolume(id: String, volume: Int)
+    /// Switch This iPhone, the Phone output, on or off.
+    case switchPhoneOutput(on: Bool)
 }
 
 /// The JSON on the wire, both ways.
@@ -111,6 +166,47 @@ public enum MenuWire {
     public static func encode(_ snapshot: MenuSnapshot) -> Data {
         // Encoding plain values can't fail.
         try! encoder.encode(Tagged(snapshot: snapshot))
+    }
+
+    private struct CommandFields: Codable {
+        var type: String
+        var major: Int
+        var id: String?
+        var on: Bool?
+        var volume: Int?
+    }
+
+    public static func encode(_ command: MenuCommand) -> Data {
+        let fields = switch command {
+        case .switchRoom(let id, let on):
+            CommandFields(type: "switchRoom", major: MenuSnapshot.currentMajor, id: id, on: on)
+        case .setVolume(let id, let volume):
+            CommandFields(type: "setVolume", major: MenuSnapshot.currentMajor, id: id, volume: volume)
+        case .switchPhoneOutput(let on):
+            CommandFields(type: "switchPhoneOutput", major: MenuSnapshot.currentMajor, on: on)
+        }
+        return try! encoder.encode(fields)
+    }
+
+    /// A command from a Pressing Menu, as the phone reads it. Nil for one
+    /// this build doesn't know, or from a newer major version.
+    public static func decodeCommand(_ data: Data) -> MenuCommand? {
+        guard let fields = try? decoder.decode(CommandFields.self, from: data),
+              fields.major <= MenuSnapshot.currentMajor
+        else { return nil }
+        switch fields.type {
+        case "switchRoom":
+            guard let id = fields.id, let on = fields.on else { return nil }
+            return .switchRoom(id: id, on: on)
+        case "setVolume":
+            guard let id = fields.id, let volume = fields.volume else { return nil }
+            return .setVolume(id: id, volume: volume)
+        case "switchPhoneOutput":
+            guard let on = fields.on else { return nil }
+            return .switchPhoneOutput(on: on)
+        default:
+            return nil
+        }
     }
 
     public static func decode(_ data: Data) -> Message {
