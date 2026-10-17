@@ -34,8 +34,42 @@ final class AVAudioPhoneOutput: PhoneOutput {
         observers.append(NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
             // The old engine is dead; drop it without touching it. The next
             // buffer builds a new one.
-            MainActor.assumeIsolated { self?.forgetEngine() }
+            MainActor.assumeIsolated {
+                self?.forgetEngine()
+                self?.reportRoute()
+            }
         })
+    }
+
+    private var routeHandler: (@MainActor (PhoneOutputRoute?) -> Void)?
+
+    func setRouteHandler(_ handler: @escaping @MainActor (PhoneOutputRoute?) -> Void) {
+        routeHandler = handler
+        if routeObserver == nil {
+            routeObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.reportRoute() }
+            }
+        }
+        reportRoute()
+    }
+
+    private var routeObserver: NSObjectProtocol?
+
+    /// The system's current output, as the core names it. Only reads the
+    /// route; choosing one is the system picker's job.
+    private func reportRoute() {
+        guard let output = AVAudioSession.sharedInstance().currentRoute.outputs.first else {
+            routeHandler?(nil)
+            return
+        }
+        let kind: PhoneOutputRoute.Kind = switch output.portType {
+        case .builtInSpeaker, .builtInReceiver: .builtInSpeaker
+        case .headphones, .lineOut, .usbAudio, .HDMI: .wired
+        case .bluetoothA2DP, .bluetoothLE, .bluetoothHFP: .bluetooth
+        case .airPlay: .airPlay
+        default: .other
+        }
+        routeHandler?(PhoneOutputRoute(name: output.portName, kind: kind))
     }
 
     func switched(on: Bool) {

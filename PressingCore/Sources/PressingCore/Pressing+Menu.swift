@@ -37,6 +37,8 @@ extension Pressing {
         case .setVolume(let id, let volume):
             guard state.rooms.contains(where: { $0.id == id }) else { return }
             setVolume(volume, for: id)
+        case .switchPhoneOutput(let on):
+            switchPhoneOutput(on: on)
         }
     }
 
@@ -61,7 +63,8 @@ extension Pressing {
             recentPlays: recent.map { MenuSnapshot.Play(track: $0.track, startedAt: $0.startedAt) },
             rooms: state.rooms.map {
                 MenuSnapshot.Room(id: $0.id, name: $0.name, isOn: $0.isOn, volume: $0.volume, isReachable: $0.isReachable, isSteppedBack: $0.isSteppedBack)
-            }
+            },
+            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route)
         )
     }
 

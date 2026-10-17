@@ -199,9 +199,53 @@ public enum RecordState: Sendable, Equatable {
 public struct PhoneOutputState: Sendable, Equatable {
     /// Switched on: the Record plays on the phone while a Session runs.
     public var isOn: Bool
+    /// Where the phone plays now, as the system routes it. Nil until the
+    /// Phone output reports one, or while the system routes to no output.
+    public var route: PhoneOutputRoute?
 
-    public init(isOn: Bool = false) {
+    public init(isOn: Bool = false, route: PhoneOutputRoute? = nil) {
         self.isOn = isOn
+        self.route = route
+    }
+}
+
+/// Where the phone's audio goes: chosen on the phone, with the system's
+/// route picker or by plugging something in.
+public struct PhoneOutputRoute: Sendable, Equatable, Codable {
+    public enum Kind: String, Sendable, Equatable, Codable {
+        /// The phone's own speaker.
+        case builtInSpeaker
+        /// Earphones or another output on a cable.
+        case wired
+        case bluetooth
+        case airPlay
+        /// Anything else the system routes to.
+        case other
+
+        public init(from decoder: any Decoder) throws {
+            // A kind added later reads as other.
+            self = Kind(rawValue: try decoder.singleValueContainer().decode(String.self)) ?? .other
+        }
+    }
+
+    /// The output's name as the system gives it, such as "Kitchen" for an
+    /// AirPlay receiver or "AirPods".
+    public var name: String
+    public var kind: Kind
+
+    public init(name: String, kind: Kind) {
+        self.name = name
+        self.kind = kind
+    }
+
+    /// Where This iPhone plays, as the Rooms sheet and Pressing Menu say
+    /// it: "AirPlay: Kitchen", "iPhone speaker" or "AirPods".
+    public var label: String {
+        switch kind {
+        case .builtInSpeaker: "iPhone speaker"
+        case .airPlay: "AirPlay: \(name)"
+        case .wired, .bluetooth, .other: name
+        }
     }
 }
 

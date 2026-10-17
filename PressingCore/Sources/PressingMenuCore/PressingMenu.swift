@@ -72,6 +72,12 @@ public final class PressingMenu {
         snapshot?.rooms ?? []
     }
 
+    /// This iPhone, the Phone output. Nil before the first snapshot, or from
+    /// an older phone that doesn't send it.
+    public var phoneOutput: MenuSnapshot.PhoneOutput? {
+        snapshot?.phoneOutput
+    }
+
     public func room(_ id: MenuSnapshot.Room.ID) -> MenuSnapshot.Room? {
         rooms.first { $0.id == id }
     }
@@ -88,6 +94,11 @@ public final class PressingMenu {
     /// Sets a Room's volume on the phone, 0 to 100.
     public func setVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
         send(.setVolume(id: id, volume: volume))
+    }
+
+    /// Switches This iPhone on or off on the phone.
+    public func switchPhoneOutput(on: Bool) {
+        send(.switchPhoneOutput(on: on))
     }
 
     private func send(_ command: MenuCommand) {
@@ -176,4 +187,10 @@ extension MenuSnapshot.Room {
         if isSteppedBack { return .takenOverInSonosApp }
         return nil
     }
+}
+
+extension MenuSnapshot.PhoneOutput {
+    /// Where This iPhone plays, such as "AirPlay: Kitchen", "iPhone speaker"
+    /// or "AirPods". Nil while the phone reports no route.
+    public var whereItPlays: String? { route?.label }
 }

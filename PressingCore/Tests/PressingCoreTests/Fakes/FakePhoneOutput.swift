@@ -15,6 +15,21 @@ final class FakePhoneOutput: PhoneOutput {
     func stop() { isPlaying = false }
     func play(_ buffer: PCMBuffer) { played.append(buffer) }
 
+    private var route: PhoneOutputRoute?
+    private var routeHandler: (@MainActor (PhoneOutputRoute?) -> Void)?
+
+    func setRouteHandler(_ handler: @escaping @MainActor (PhoneOutputRoute?) -> Void) {
+        routeHandler = handler
+        handler(route)
+    }
+
+    /// The system's route changed: an AirPlay receiver picked, earphones
+    /// plugged in. Nil for no output.
+    func report(_ route: PhoneOutputRoute?) {
+        self.route = route
+        routeHandler?(route)
+    }
+
     /// Seconds of audio handed over so far.
     var playedSeconds: Double {
         played.reduce(0) { $0 + Double($1.frameCount) / $1.sampleRate }

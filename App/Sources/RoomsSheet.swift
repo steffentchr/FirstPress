@@ -41,7 +41,8 @@ struct PhoneOutputRow: View {
                     RoutePickerButton()
                         .frame(width: 28, height: 28)
                         .accessibilityLabel("Where This iPhone plays")
-                    Text("Speaker, earphones or AirPlay. Plays ahead of the Rooms.")
+                    Text(pressing.state.phoneOutput.route.map { "Plays on \($0.label), ahead of the Rooms." }
+                        ?? "Speaker, earphones or AirPlay. Plays ahead of the Rooms.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

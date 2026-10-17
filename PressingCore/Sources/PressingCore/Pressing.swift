@@ -128,6 +128,7 @@ public final class Pressing {
         wakeScreen()
         showControls()
         applyPhoneOutputSwitch()
+        startPhoneOutputRoute()
         state.input.chosenID = settings.inputID
         state.input.chosenName = settings.inputName
         state.input.available = audioInput.availableInputs

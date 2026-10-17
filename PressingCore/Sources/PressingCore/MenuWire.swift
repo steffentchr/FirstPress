@@ -71,6 +71,18 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         }
     }
 
+    /// This iPhone, as the phone's Rooms sheet shows it.
+    public struct PhoneOutput: Sendable, Equatable, Codable {
+        public var isOn: Bool
+        /// Nil while the phone reports none.
+        public var route: PhoneOutputRoute?
+
+        public init(isOn: Bool, route: PhoneOutputRoute? = nil) {
+            self.isOn = isOn
+            self.route = route
+        }
+    }
+
     /// How many Plays Pressing Menu lists.
     public static let recentPlaysLimit = 10
 
@@ -86,8 +98,11 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
     /// The Sonos Rooms found, by name. Added to version 1 after its first
     /// release: an older phone sends none.
     public var rooms: [Room]
+    /// This iPhone. Added with the Rooms: nil from an older phone.
+    public var phoneOutput: PhoneOutput?
 
-    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = [], rooms: [Room] = []) {
+    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = [], rooms: [Room] = [], phoneOutput: PhoneOutput? = nil) {
+        self.phoneOutput = phoneOutput
         self.major = major
         self.page = page
         self.record = record
@@ -104,6 +119,7 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         track = try container.decodeIfPresent(Track.self, forKey: .track)
         recentPlays = try container.decodeIfPresent([Play].self, forKey: .recentPlays) ?? []
         rooms = try container.decodeIfPresent([Room].self, forKey: .rooms) ?? []
+        phoneOutput = try container.decodeIfPresent(PhoneOutput.self, forKey: .phoneOutput)
     }
 }
 
@@ -114,6 +130,8 @@ public enum MenuCommand: Sendable, Equatable {
     case switchRoom(id: String, on: Bool)
     /// Set a Room's volume, 0 to 100.
     case setVolume(id: String, volume: Int)
+    /// Switch This iPhone, the Phone output, on or off.
+    case switchPhoneOutput(on: Bool)
 }
 
 /// The JSON on the wire, both ways.
@@ -164,6 +182,8 @@ public enum MenuWire {
             CommandFields(type: "switchRoom", major: MenuSnapshot.currentMajor, id: id, on: on)
         case .setVolume(let id, let volume):
             CommandFields(type: "setVolume", major: MenuSnapshot.currentMajor, id: id, volume: volume)
+        case .switchPhoneOutput(let on):
+            CommandFields(type: "switchPhoneOutput", major: MenuSnapshot.currentMajor, on: on)
         }
         return try! encoder.encode(fields)
     }
@@ -181,6 +201,9 @@ public enum MenuWire {
         case "setVolume":
             guard let id = fields.id, let volume = fields.volume else { return nil }
             return .setVolume(id: id, volume: volume)
+        case "switchPhoneOutput":
+            guard let on = fields.on else { return nil }
+            return .switchPhoneOutput(on: on)
         default:
             return nil
         }

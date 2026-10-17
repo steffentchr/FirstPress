@@ -19,4 +19,8 @@ public protocol PhoneOutput: AnyObject {
     func play(_ buffer: PCMBuffer)
     /// Stops at once, dropping anything not yet heard.
     func stop()
+    /// Where the phone plays: the adapter reports the current route at once,
+    /// and again whenever the system's route changes, whether or not the
+    /// Phone output is switched on. Nil while there is no output.
+    func setRouteHandler(_ handler: @escaping @MainActor (PhoneOutputRoute?) -> Void)
 }

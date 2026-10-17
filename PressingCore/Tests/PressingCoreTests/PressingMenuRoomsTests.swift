@@ -79,6 +79,57 @@ struct PressingMenuRoomsTests {
         #expect(menu.room(FakeRoom.bathroom.uuid)?.marker == nil)
     }
 
+    @Test("Switching This iPhone on and off from Pressing Menu switches the Phone output")
+    func switchPhoneOutput() async {
+        let (world, menu, _) = await session()
+        #expect(menu.phoneOutput?.isOn == false)
+
+        menu.switchPhoneOutput(on: true)
+        #expect(world.pressing.state.phoneOutput.isOn)
+        #expect(world.phoneOutput.isPlaying)
+        #expect(menu.phoneOutput?.isOn == true)
+
+        menu.switchPhoneOutput(on: false)
+        #expect(!world.pressing.state.phoneOutput.isOn)
+        #expect(!world.phoneOutput.isPlaying)
+        #expect(menu.phoneOutput?.isOn == false)
+    }
+
+    @Test("Pressing Menu shows where This iPhone plays, as the Phone output reports its route")
+    func phoneOutputRoute() async {
+        let (world, menu, _) = await session()
+        #expect(menu.phoneOutput?.route == nil)
+
+        world.phoneOutput.report(PhoneOutputRoute(name: "Speaker", kind: .builtInSpeaker))
+        #expect(world.pressing.state.phoneOutput.route == PhoneOutputRoute(name: "Speaker", kind: .builtInSpeaker))
+        #expect(menu.phoneOutput?.route?.kind == .builtInSpeaker)
+        #expect(menu.phoneOutput?.whereItPlays == "iPhone speaker")
+
+        world.phoneOutput.report(PhoneOutputRoute(name: "Kitchen", kind: .airPlay))
+        #expect(menu.phoneOutput?.route == PhoneOutputRoute(name: "Kitchen", kind: .airPlay))
+        #expect(menu.phoneOutput?.whereItPlays == "AirPlay: Kitchen")
+
+        world.phoneOutput.report(PhoneOutputRoute(name: "AirPods", kind: .bluetooth))
+        #expect(menu.phoneOutput?.whereItPlays == "AirPods")
+
+        world.phoneOutput.report(PhoneOutputRoute(name: "Headphones", kind: .wired))
+        #expect(menu.phoneOutput?.whereItPlays == "Headphones")
+
+        world.phoneOutput.report(nil)
+        #expect(menu.phoneOutput?.route == nil)
+        #expect(menu.phoneOutput?.whereItPlays == nil)
+    }
+
+    @Test("A route reported before Pressing Menu connects is in its first snapshot")
+    func routeOnConnect() {
+        let world = World()
+        world.phoneOutput.report(PhoneOutputRoute(name: "Kitchen", kind: .airPlay))
+
+        let (menu, _) = world.pressingMenu()
+
+        #expect(menu.phoneOutput?.whereItPlays == "AirPlay: Kitchen")
+    }
+
     @Test("A command for a Room the phone doesn't know is ignored")
     func unknownRoomIgnored() async {
         let (world, menu, link) = await session()
