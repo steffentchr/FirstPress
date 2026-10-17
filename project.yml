@@ -57,6 +57,7 @@ targets:
     platform: macOS
     sources:
       - Menu/Sources
+      - Menu/Resources
       # Shared with the iPhone app: it imports only Foundation and PressingCore.
       - App/Sources/Adapters/MainQueueScheduler.swift
     configFiles:
@@ -80,6 +81,8 @@ targets:
         SWIFT_VERSION: "6.0"
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
+        # Rendered from Design/MenuAppIcon.svg by scripts/render-menu-artwork.sh.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: Menu/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Pressing Menu

@@ -43,6 +43,13 @@ public final class PressingMenu {
     static let retryDelays: [TimeInterval] = [1, 2, 4, 8, 16, 30]
 
     public private(set) var connection = Connection.looking
+
+    /// The panel is showing. No Track gets a notification meanwhile: the
+    /// listener can see it already.
+    @ObservationIgnored public var isPanelOpen = false
+    /// The "Notify on new Track" setting, on by default. The Mac app keeps
+    /// it in its user defaults and sets it here.
+    @ObservationIgnored public var notifiesOnNewTrack = true
     /// The last snapshot from the phone, kept while it can't be reached.
     private var snapshot: MenuSnapshot?
 
@@ -169,14 +176,19 @@ public final class PressingMenu {
     @ObservationIgnored private var volumeTimers: [MenuSnapshot.Room.ID: any ScheduledWork] = [:]
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
+    @ObservationIgnored private let notifier: (any TrackNotifier)?
     @ObservationIgnored private var lookingTimer: (any ScheduledWork)?
     @ObservationIgnored private var retryTimer: (any ScheduledWork)?
     /// Failed attempts since the link was last up.
     @ObservationIgnored private var failures = 0
+    /// The link is up and its first snapshot hasn't arrived: the Track in
+    /// it was already playing, so it gets no notification.
+    @ObservationIgnored private var awaitingFirstSnapshot = false
 
-    public init(link: any MenuLink, scheduler: any Scheduler) {
+    public init(link: any MenuLink, scheduler: any Scheduler, notifier: (any TrackNotifier)? = nil) {
         self.link = link
         self.scheduler = scheduler
+        self.notifier = notifier
     }
 
     /// Call once at launch: starts looking for Pressing.
@@ -197,6 +209,7 @@ public final class PressingMenu {
             lookingTimer?.cancel()
             lookingTimer = nil
             failures = 0
+            awaitingFirstSnapshot = true
             connection = .connected
         case .disconnected:
             connection = .cantBeReached
@@ -204,6 +217,7 @@ public final class PressingMenu {
         case .received(let data):
             switch MenuWire.decode(data) {
             case .snapshot(let snapshot):
+                notifyIfNew(snapshot.track)
                 self.snapshot = snapshot
                 connection = .connected
             case .newerMajor:
@@ -213,6 +227,20 @@ public final class PressingMenu {
                 break
             }
         }
+    }
+
+    /// One notification for each Track identified while connected: not the
+    /// one already playing when the link comes up.
+    private func notifyIfNew(_ track: Track?) {
+        defer { awaitingFirstSnapshot = false }
+        guard !awaitingFirstSnapshot, let track, !Self.isSameSong(track, snapshot?.track) else { return }
+        guard notifiesOnNewTrack, !isPanelOpen else { return }
+        notifier?.notify(newTrack: track)
+    }
+
+    /// The same Track, even once its album or cover is filled in.
+    private static func isSameSong(_ track: Track, _ other: Track?) -> Bool {
+        track.artist == other?.artist && track.title == other?.title
     }
 
     private func retry() {

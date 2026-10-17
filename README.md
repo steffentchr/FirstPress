@@ -158,6 +158,16 @@ Changing the gain means calibrating again. If the noise floor is high because of
 
 The defaults are a start threshold of −50 dBFS, a 1.5 s start delay, a 12 s Flip threshold, and a 45 s stop delay. The stop delay counts from when the silence began, and it must be longer than the Flip threshold.
 
+## Pressing Menu on your Mac
+
+**Pressing Menu** is a menu-bar app for a Mac (macOS 26 or later) on the same network as the phone. It shows what Pressing is playing without getting up. It finds Pressing on the iPhone by itself over Bonjour and talks to it over a WebSocket, with no pairing ([ADR 0004](docs/adr/0004-pressing-menu-link.md)). The iPhone stays in charge: Pressing Menu only shows Pressing's state and sends the same intents as the phone's own controls. Pressing must be running on the phone, in front or in kiosk mode.
+
+- **The menu-bar icon** is the record and brush. It's dashed while the iPhone can't be reached, and fills in while a Record plays. Click it to open the panel.
+- **The panel** shows the current Track large, or what Pressing is doing, with the last 10 Tracks below. While the phone can't be reached, the last of it stays on screen, greyed.
+- **Right-click a Track** in the panel to search for it in Spotify or Apple Music, whichever Settings names. A left-click does nothing.
+- **Notifications** announce each new Track identified while connected, with its cover. Clicking one opens the panel. There's none for the Track already playing when Pressing Menu connects, and none while the panel is open.
+- **The footer:** the power button quits Pressing Menu and leaves Pressing on the phone alone. The gear opens Settings: Appearance, Launch at login, Notify on new Track, and Find songs in. On the right, the Rooms summary shows where Pressing plays, and opens the Rooms view in place of History: This iPhone and every Sonos Room, ticked on or off at once, with a volume slider for each Room that's on.
+
 ## Artwork
 
 <p>
@@ -187,17 +197,32 @@ rsvg-convert -w 960 -h 960 Design/NoTrackCover.svg | magick - -alpha remove -alp
 
 `Design/StartScreen.svg` and `Design/NoTrackCover.svg` are derived from the icon. If the icon changes, regenerate them too, and keep the catalogue number on their labels but off the icon's.
 
+Pressing Menu's artwork has its own sources, rendered into `Menu/Resources/Assets.xcassets`:
+
+| Source | Used as |
+|---|---|
+| [`Design/MenuAppIcon.svg`](Design/MenuAppIcon.svg) | Pressing Menu's Mac app icon: the app icon inside the macOS icon grid, an 824 × 824 rounded square on a transparent 1024 canvas. It's derived from `AppIcon.svg`; the comment in it says how. |
+| [`Design/MenuBarIcon.svg`](Design/MenuBarIcon.svg) | The menu-bar icon while connected: the record and brush as an 18 pt template image, black on transparent, which macOS tints. |
+| [`Design/MenuBarIconPlaying.svg`](Design/MenuBarIconPlaying.svg) | The menu-bar icon while a Record plays: the record filled in. |
+| [`Design/MenuBarIconUnreachable.svg`](Design/MenuBarIconUnreachable.svg) | The menu-bar icon while looking for Pressing, or while the iPhone can't be reached: the record dashed. |
+
+Mac icons keep their transparency. Re-render all of them with:
+
+```sh
+scripts/render-menu-artwork.sh
+```
+
 ## Development
 
 ```
 App/            SwiftUI shell and the production adapters (AVAudioSession, Bonjour, ShazamKit, …)
-Menu/           Pressing Menu, the Mac menu-bar app: SwiftUI panel and its Bonjour/WebSocket link
+Menu/           Pressing Menu, the Mac menu-bar app: SwiftUI panel and Settings, and its adapters (Bonjour/WebSocket link, notifications, login item)
 PressingCore/   All behaviour, and Pressing Menu's model, as a Swift package with no UIKit or SwiftUI; see its README
 Config/         xcconfig files: shared settings, plus examples for your signing and Last.fm keys
 Design/         SVG sources for the icon and artwork
 docs/adr/       Architecture decisions
 docs/agents/    How coding agents use the issue tracker, labels and domain docs
-scripts/        build-lame.sh
+scripts/        build-lame.sh, render-menu-artwork.sh
 GLOSSARY.md     The domain vocabulary
 project.yml     XcodeGen project definition
 ```
@@ -239,6 +264,28 @@ Xcode Cloud can build Pressing and send it to TestFlight. Because the `.xcodepro
 | `PRESSING_DEVELOPMENT_TEAM` | The 10-character team ID |
 | `PRESSING_LASTFM_API_KEY` | Last.fm API key. Mark it **Secret**. Optional. |
 | `PRESSING_LASTFM_API_SECRET` | Last.fm shared secret. Mark it **Secret**. Optional. |
+
+### Releasing Pressing Menu
+
+Pressing Menu ships on the Mac App Store, apart from the iPhone app. The two can be out of step, because the wire contract only ever adds fields ([ADR 0004](docs/adr/0004-pressing-menu-link.md)).
+
+- **Sandbox.** [`Menu/PressingMenu.entitlements`](Menu/PressingMenu.entitlements) turns on the App Sandbox with outgoing network connections only. [`Menu/Info.plist`](Menu/Info.plist) declares `_pressing._tcp`, and `project.yml` sets the local network usage description. Launch at login uses `SMAppService`, which works in the sandbox.
+- **Version and build** are `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` under the `PressingMenu` target in `project.yml`. Raise the build for every upload.
+- **A local Release archive**, unsigned, checks that it builds:
+
+  ```sh
+  xcodegen generate
+  xcodebuild -project Pressing.xcodeproj -scheme PressingMenu -configuration Release \
+    -destination 'generic/platform=macOS' -archivePath build/PressingMenu.xcarchive \
+    archive CODE_SIGNING_ALLOWED=NO
+  ```
+
+**Owner steps.** These need the TwentyThree team's App Store Connect account:
+
+1. Create the App Store Connect record for Pressing Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **Pressing Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
+2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), the iPhone app's policy, which doesn't mention Pressing Menu yet: extend it (Pressing Menu talks only to Pressing on the home network, and opens Spotify or Apple Music searches when asked), or change `SettingsView.privacyURL` if the policy moves.
+3. In Xcode, archive with signing (Product › Archive, scheme PressingMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
+4. Add the Mac screenshots and store text, and submit for review.
 
 ## Credits and notices
 

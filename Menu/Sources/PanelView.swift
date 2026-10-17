@@ -38,11 +38,14 @@ struct PanelView: View {
         }
         .opacity(menu.connection == .connected ? 1 : 0.5)
         .frame(width: 340)
+        // No notifications while the panel is open: the Track is in view.
+        .background(PanelVisibility { menu.isPanelOpen = $0 })
     }
 }
 
 private struct HeaderView: View {
     let header: PressingMenu.Header
+    @Environment(MenuSettings.self) private var settings
 
     var body: some View {
         switch header {
@@ -57,7 +60,10 @@ private struct HeaderView: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onRightClick { find(track, in: settings.findSongsIn) }
             .accessibilityElement(children: .combine)
+            .accessibilityAction(named: "Find in \(settings.findSongsIn.name)") { find(track, in: settings.findSongsIn) }
         case .lookingForPressing:
             message("Looking for Pressing…")
         case .cantBeReached:
@@ -89,6 +95,7 @@ private struct HeaderView: View {
 /// quieter style.
 private struct HistoryList: View {
     let tracks: [Track]
+    @Environment(MenuSettings.self) private var settings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -108,19 +115,24 @@ private struct HistoryList: View {
                             .lineLimit(1)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .onRightClick { find(track, in: settings.findSongsIn) }
                 .accessibilityElement(children: .combine)
+                .accessibilityAction(named: "Find in \(settings.findSongsIn.name)") { find(track, in: settings.findSongsIn) }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-/// The power button, which quits Pressing Menu and leaves Pressing on the
-/// iPhone untouched, and on the right where Pressing plays, which opens the
-/// Rooms view.
+/// On the left, the power button, which quits Pressing Menu and leaves
+/// Pressing on the iPhone untouched, and the gear, which opens Settings. On
+/// the right, where Pressing plays, which opens the Rooms view.
 private struct FooterView: View {
     let roomsSummary: String
     let showRooms: () -> Void
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         HStack {
@@ -133,6 +145,17 @@ private struct FooterView: View {
             .buttonStyle(.borderless)
             .help("Quit Pressing Menu")
             .accessibilityLabel("Quit Pressing Menu")
+            Button {
+                openWindow(id: SettingsView.windowID)
+                // A menu-bar app isn't in front by itself: bring Settings forward.
+                NSApplication.shared.activate()
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 15))
+            }
+            .buttonStyle(.borderless)
+            .help("Settings")
+            .accessibilityLabel("Settings")
             Spacer()
             Button(action: showRooms) {
                 HStack(spacing: 5) {
@@ -145,6 +168,22 @@ private struct FooterView: View {
             .buttonStyle(.borderless)
             .help("Rooms")
             .accessibilityLabel("Rooms: \(roomsSummary)")
+        }
+    }
+}
+
+/// Right-clicking a Track opens the chosen service's search for it straight
+/// away, with no menu.
+@MainActor
+private func find(_ track: Track, in service: SongService) {
+    NSWorkspace.shared.open(service.searchURL(for: track))
+}
+
+extension SongService {
+    var name: String {
+        switch self {
+        case .spotify: "Spotify"
+        case .appleMusic: "Apple Music"
         }
     }
 }
