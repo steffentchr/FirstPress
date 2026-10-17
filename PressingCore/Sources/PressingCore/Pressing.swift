@@ -5,10 +5,14 @@ import Observation
 @MainActor
 @Observable
 public final class Pressing {
-    public internal(set) var state = PressingState()
+    public internal(set) var state = PressingState() {
+        didSet { menuMayHaveChanged() }
+    }
     /// Every Play kept on the phone, newest first, the current one included.
     /// Apart from `state` so the level meter's updates don't redraw History.
-    public internal(set) var history: [Play] = []
+    public internal(set) var history: [Play] = [] {
+        didSet { menuMayHaveChanged() }
+    }
 
     /// History as Now Playing lists it under the current Track: the most
     /// recent Plays, newest first, each Track once (at its most recent Play)
@@ -45,6 +49,11 @@ public final class Pressing {
     @ObservationIgnored let sonos: any SonosNetwork
     @ObservationIgnored private let encoder: any MP3Encoder
     @ObservationIgnored let phoneOutput: any PhoneOutput
+    @ObservationIgnored let menuServer: any MenuServer
+    /// The Pressing Menus connected now.
+    @ObservationIgnored var menuClients: Set<MenuClientID> = []
+    /// The snapshot Pressing Menus were last sent.
+    @ObservationIgnored var lastMenuSnapshot: MenuSnapshot?
     /// The Phone output was started and not stopped since.
     @ObservationIgnored var isPhoneOutputPlaying = false
     @ObservationIgnored var detector: Detector!
@@ -79,9 +88,11 @@ public final class Pressing {
         phoneOutput: any PhoneOutput,
         recognizer: any Recognizer,
         artwork: any ArtworkDownloader,
-        lastFm: LastFmPorts
+        lastFm: LastFmPorts,
+        menuServer: any MenuServer
     ) {
         self.audioInput = audioInput
+        self.menuServer = menuServer
         self.phoneOutput = phoneOutput
         lastFmPorts = lastFm
         self.artwork = artwork
@@ -132,6 +143,7 @@ public final class Pressing {
         servicesStarted = true
         stream.start(port: Self.streamPort)
         startDiscovery()
+        startMenuServer()
     }
 
     private func handle(_ event: AudioInputEvent) {
