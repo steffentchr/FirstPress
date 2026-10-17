@@ -285,7 +285,7 @@ Pressing Menu ships on the Mac App Store, apart from the iPhone app. The two can
 1. Create the App Store Connect record for Pressing Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **Pressing Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
 2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), which covers both the iPhone app and Pressing Menu. Change `SettingsView.privacyURL` if the policy moves.
 3. In Xcode, archive with signing (Product › Archive, scheme PressingMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
-4. Add the Mac screenshots and store text, and submit for review.
+4. Add the Mac screenshots and store text from [`AppStore/PressingMenu/`](AppStore/PressingMenu), and submit for review. Its README lists the store fields that aren't in files and the decisions left before submitting.
 
 ## Credits and notices
 
