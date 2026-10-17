@@ -20,7 +20,7 @@ final class BonjourMenuLink: MenuLink {
     func connect() {
         // Already looking, or already linked.
         guard browser == nil, connection == nil else { return }
-        let browser = NWBrowser(for: .bonjour(type: "_pressing._tcp", domain: nil), using: .tcp)
+        let browser = NWBrowser(for: .bonjour(type: MenuNetwork.serviceType, domain: nil), using: .tcp)
         browser.browseResultsChangedHandler = { results, _ in
             MainActor.assumeIsolated {
                 guard let first = results.first else { return }
@@ -40,9 +40,7 @@ final class BonjourMenuLink: MenuLink {
 
     func send(_ message: Data) {
         guard let connection else { return }
-        let metadata = NWProtocolWebSocket.Metadata(opcode: .text)
-        let context = NWConnection.ContentContext(identifier: "pressing", metadata: [metadata])
-        connection.send(content: message, contentContext: context, isComplete: true, completion: .contentProcessed { _ in })
+        MenuNetwork.send(message, on: connection)
     }
 
     private func stopBrowsing() {
@@ -53,11 +51,7 @@ final class BonjourMenuLink: MenuLink {
     private func open(_ endpoint: NWEndpoint) {
         guard connection == nil else { return }
         stopBrowsing()
-        let parameters = NWParameters.tcp
-        let webSocket = NWProtocolWebSocket.Options()
-        webSocket.autoReplyPing = true
-        parameters.defaultProtocolStack.applicationProtocols.insert(webSocket, at: 0)
-        let connection = NWConnection(to: endpoint, using: parameters)
+        let connection = NWConnection(to: endpoint, using: MenuNetwork.webSocketParameters())
         connection.stateUpdateHandler = { state in
             MainActor.assumeIsolated {
                 guard self.connection === connection else { return }

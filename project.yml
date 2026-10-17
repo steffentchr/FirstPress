@@ -58,8 +58,10 @@ targets:
     sources:
       - Menu/Sources
       - Menu/Resources
-      # Shared with the iPhone app: it imports only Foundation and PressingCore.
+      # Shared with the iPhone app: they import only Foundation, Network and
+      # PressingCore.
       - App/Sources/Adapters/MainQueueScheduler.swift
+      - App/Sources/Adapters/MenuNetwork.swift
     configFiles:
       Debug: Config/Base.xcconfig
       Release: Config/Base.xcconfig
