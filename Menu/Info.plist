@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged with the Info.plist Xcode generates from project.yml. Only keys
+	     that INFOPLIST_KEY_ build settings can't express go here. -->
+	<!-- Pressing on the iPhone advertises itself as this (ADR-0004). -->
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_pressing._tcp</string>
+	</array>
+</dict>
+</plist>
