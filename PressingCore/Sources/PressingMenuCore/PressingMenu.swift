@@ -16,6 +16,9 @@ public final class PressingMenu {
         /// link dropped. The last snapshot stays on screen, greyed, while
         /// Pressing Menu keeps trying.
         case cantBeReached
+        /// The phone speaks a newer major version of the wire contract than
+        /// this Pressing Menu. It shows nothing from it and sends nothing.
+        case needsUpdate
     }
 
     /// What the panel's header shows.
@@ -28,6 +31,8 @@ public final class PressingMenu {
         case waitingForRecord
         /// A Record is playing and no Track is identified yet.
         case recordNotIdentified
+        /// The phone is newer than this Pressing Menu can follow.
+        case updatePressingMenu
     }
 
     /// How long Pressing Menu says it's looking before it says the iPhone
@@ -42,6 +47,7 @@ public final class PressingMenu {
     private var snapshot: MenuSnapshot?
 
     public var header: Header {
+        if connection == .needsUpdate { return .updatePressingMenu }
         guard let snapshot else {
             return connection == .cantBeReached ? .cantBeReached : .lookingForPressing
         }
@@ -102,8 +108,15 @@ public final class PressingMenu {
             connection = .cantBeReached
             retry()
         case .received(let data):
-            if case .snapshot(let snapshot) = MenuWire.decode(data) {
+            switch MenuWire.decode(data) {
+            case .snapshot(let snapshot):
                 self.snapshot = snapshot
+                connection = .connected
+            case .newerMajor:
+                snapshot = nil
+                connection = .needsUpdate
+            case .unknown:
+                break
             }
         }
     }

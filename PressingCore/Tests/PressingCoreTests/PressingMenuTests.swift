@@ -195,6 +195,38 @@ struct PressingMenuTests {
         #expect(menu.connection == .connected)
     }
 
+    @Test("Pressing Menu ignores snapshot fields it doesn't know, from a newer phone of the same major version")
+    func ignoresUnknownFields() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+
+        link.deliver(json: """
+            {"type": "snapshot", "major": 1, "minor": 7, "page": "nowPlaying", "record": "playing",
+             "track": {"artist": "Kate Bush", "title": "Wuthering Heights", "duration": 268},
+             "recentPlays": [{"track": {"artist": "Gasolin'", "title": "Rabalderstræde"}, "startedAt": "2026-10-16T21:04:00Z", "scrobbled": true}],
+             "lyrics": {"line": "Out on the wiley, windy moors"}}
+            """)
+
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .track(Track(artist: "Kate Bush", title: "Wuthering Heights")))
+        #expect(menu.history == [Track(artist: "Gasolin'", title: "Rabalderstræde")])
+    }
+
+    @Test("Only a newer major version shows Update Pressing Menu")
+    func newerMajorVersion() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "waiting", "recentPlays": []}"#)
+        #expect(menu.connection == .connected)
+        #expect(menu.header == .waitingForRecord)
+
+        link.deliver(json: #"{"type": "snapshot", "major": 2, "everything": "different"}"#)
+        #expect(menu.connection == .needsUpdate)
+        #expect(menu.header == .updatePressingMenu)
+        #expect(menu.history.isEmpty)
+    }
+
     /// Plays from last night, saved oldest first: "Track 0" to "Track \(count - 1)".
     private func lastNight(_ count: Int) -> [Play] {
         let start = Date(timeIntervalSince1970: 1_699_900_000)
