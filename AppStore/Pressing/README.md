@@ -4,11 +4,11 @@ Everything for the iPhone app's App Store listing: screenshots, the sample music
 
 | Path | What it is |
 |---|---|
-| `demo.json` | The sample world the screenshots show: the input's name, the Rooms, the Last.fm user, the current Track, History, and each screenshot's scene and caption. |
+| `demo.json` | The sample world the screenshots show: the input's name, the Rooms, the Last.fm user, the current Track, History, and each screenshot's scene and caption. Pressing Menu's screenshots show the same world. |
 | `Covers/*.svg` | The sample sleeves, one per album. A Track names its sleeve by file name in `demo.json`. |
 | `Hook/` | The screenshot hook: `ScreenshotDemo.swift` wires the core to the test fakes and plays `demo.json`; `hook.patch` holds the few one-line edits to the app that open a scene. |
 | `screenshots.sh` | Applies the hook, builds, shoots each scene in the simulator, frames the shots, and reverts the hook. |
-| `Screenshots/raw/` | The simulator's shots, 1320 × 2868. |
+| `Screenshots/raw/` | The simulator's shots, 1320 × 2868, and `06-mac.png`, the Mac layer of the last screenshot, drawn by `../PressingMenu/screenshots.sh`. |
 | `Screenshots/6.9-inch/` | The framed shots to upload, 1320 × 2868, no alpha. |
 | `Metadata/en-US/` | The store text, one field per file, in fastlane `deliver`'s layout. |
 | `listing.md` | Promotional Text, Description and Keywords from `Metadata/en-US/`, ready to paste into App Store Connect. |
@@ -33,6 +33,7 @@ Scenes, by the `scene` name in `demo.json`:
 | `history` | Now Playing scrolled to the bottom of History. |
 | `settings` | Settings at full height, with Last.fm connected. |
 | `waiting` | The start screen, input ready. |
+| `mac` | Not shot here: Pressing Menu on a Mac, with a new-Track notification and the panel's Rooms view. Its `"from": "PressingMenu"` says `../PressingMenu/screenshots.sh` draws it into `raw/`; this script only frames it. Regenerate it from there, which re-frames this set too. A scene `from` elsewhere must come after the shot ones. |
 
 App Store Connect needs only the 6.9" set for an iPhone-only app; it scales it down for smaller iPhones.
 
