@@ -1,5 +1,5 @@
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// The app's root: the page the core names (choose input, waiting or Now
 /// Playing) under a gear and a speaker icon. History is listed on Now
@@ -9,13 +9,13 @@ import PressingCore
 /// Settings or Rooms sheet stays open when a Record starts or a Session ends
 /// underneath it.
 struct RootView: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
     let audioInput: AVAudioSessionInput
     @State private var showingSettings = false
     @State private var showingRooms = false
     @State private var windowAppearance = WindowAppearance()
 
-    private var page: Page { pressing.state.page }
+    private var page: Page { firstPress.state.page }
 
     /// White over the start screen's orange; the primary colour on Now Playing.
     private var iconColor: Color { page == .nowPlaying ? .primary : .white }
@@ -25,16 +25,16 @@ struct RootView: View {
             Group {
                 switch page {
                 case .chooseInput(let reason):
-                    WaitingView(pressing: pressing, audioInput: audioInput, chooseInput: reason)
+                    WaitingView(firstPress: firstPress, audioInput: audioInput, chooseInput: reason)
                 case .waiting:
-                    WaitingView(pressing: pressing, audioInput: audioInput, chooseInput: nil)
+                    WaitingView(firstPress: firstPress, audioInput: audioInput, chooseInput: nil)
                 case .nowPlaying:
-                    NowPlayingView(pressing: pressing, play: pressing.state.play)
+                    NowPlayingView(firstPress: firstPress, play: firstPress.state.play)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .animation(.easeInOut(duration: 0.4), value: page)
-            // The two icons are Pressing's own row rather than toolbar items:
+            // The two icons are First Press's own row rather than toolbar items:
             // the system's bar buttons ignore a fade, and kiosk mode fades them.
             // The row always keeps its height, so nothing moves when they fade.
             .safeAreaInset(edge: .top, spacing: 0) {
@@ -55,18 +55,18 @@ struct RootView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showingSettings) {
-                SettingsView(pressing: pressing)
-                    .screenBlanker(pressing)
+                SettingsView(firstPress: firstPress)
+                    .screenBlanker(firstPress)
                     .preferredColorScheme(sheetColorScheme)
             }
             .sheet(isPresented: $showingRooms) {
-                RoomsSheet(pressing: pressing)
-                    .screenBlanker(pressing)
+                RoomsSheet(firstPress: firstPress)
+                    .screenBlanker(firstPress)
                     .preferredColorScheme(sheetColorScheme)
             }
             .background { WindowReader { windowAppearance.attach($0) } }
         }
-        .screenBlanker(pressing)
+        .screenBlanker(firstPress)
         // Kiosk mode: no clock, battery or other status bar, and the home
         // indicator fades away until the screen is touched near it.
         .statusBarHidden(isKiosk)
@@ -89,8 +89,8 @@ struct RootView: View {
         }
     }
 
-    private var isKiosk: Bool { pressing.state.screen.isKiosk }
-    private var appearance: Appearance { pressing.state.screen.appearance }
+    private var isKiosk: Bool { firstPress.state.screen.isKiosk }
+    private var appearance: Appearance { firstPress.state.screen.appearance }
     /// Dark on the start screen; the appearance on Now Playing, where nil
     /// (System) follows iOS.
     private var windowColorScheme: ColorScheme? {
@@ -101,7 +101,7 @@ struct RootView: View {
     private var sheetColorScheme: ColorScheme {
         appearance.colorScheme ?? windowAppearance.system
     }
-    private var hidesControls: Bool { pressing.state.hidesControls }
+    private var hidesControls: Bool { firstPress.state.hidesControls }
 }
 
 extension Appearance {

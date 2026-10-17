@@ -1,21 +1,21 @@
-// Shared build settings for the Pressing app target.
+// Shared build settings for the First Press app target.
 //
 // Signing is per developer: copy Signing.xcconfig.example to Signing.xcconfig
 // (git-ignored) and fill in your own bundle ID and team. Without it the app
 // still builds for the simulator with a placeholder bundle ID.
 
-PRESSING_BUNDLE_ID = invalid.pressing.set-in-signing-xcconfig
-PRESSING_DEVELOPMENT_TEAM =
+FIRSTPRESS_BUNDLE_ID = invalid.firstpress.set-in-signing-xcconfig
+FIRSTPRESS_DEVELOPMENT_TEAM =
 
 #include? "Signing.xcconfig"
 
 // Last.fm's API key and secret are per developer too and never committed:
 // copy LastFm.xcconfig.example to LastFm.xcconfig (git-ignored). Without it
 // the app builds, and Settings says Last.fm isn't available in this build.
-PRESSING_LASTFM_API_KEY =
-PRESSING_LASTFM_API_SECRET =
+FIRSTPRESS_LASTFM_API_KEY =
+FIRSTPRESS_LASTFM_API_SECRET =
 
 #include? "LastFm.xcconfig"
 
-PRODUCT_BUNDLE_IDENTIFIER = $(PRESSING_BUNDLE_ID)
-DEVELOPMENT_TEAM = $(PRESSING_DEVELOPMENT_TEAM)
+PRODUCT_BUNDLE_IDENTIFIER = $(FIRSTPRESS_BUNDLE_ID)
+DEVELOPMENT_TEAM = $(FIRSTPRESS_DEVELOPMENT_TEAM)

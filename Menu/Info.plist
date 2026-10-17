@@ -9,10 +9,10 @@
 	     notification clears itself either way. -->
 	<key>NSUserNotificationAlertStyle</key>
 	<string>alert</string>
-	<!-- Pressing on the iPhone advertises itself as this (ADR-0004). -->
+	<!-- First Press on the iPhone advertises itself as this (ADR-0004). -->
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_pressing._tcp</string>
+		<string>_firstpress._tcp</string>
 	</array>
 </dict>
 </plist>

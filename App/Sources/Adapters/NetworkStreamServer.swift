@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import PressingCore
+import FirstPressCore
 
 /// Production StreamSink: a small HTTP server on a Network.framework listener.
 ///

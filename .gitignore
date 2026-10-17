@@ -22,9 +22,9 @@ Vendor/
 # Agent worktrees
 .claude/worktrees/
 
-# App Store screenshot hook, only present while AppStore/Pressing/screenshots.sh runs
+# App Store screenshot hook, only present while AppStore/FirstPress/screenshots.sh runs
 App/ScreenshotDemo/
 App/Sources/ScreenshotDemo.swift
 
-# Pressing Menu screenshot hook, only present while AppStore/PressingMenu/screenshots.sh runs
+# First Press Menu screenshot hook, only present while AppStore/FirstPressMenu/screenshots.sh runs
 Menu/Sources/ScreenshotDemo.swift

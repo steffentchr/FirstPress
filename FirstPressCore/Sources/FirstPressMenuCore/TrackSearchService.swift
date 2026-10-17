@@ -1,0 +1,18 @@
+import Foundation
+import FirstPressCore
+
+/// The "Find songs in" setting: where clicking a Track in the panel
+/// searches for it.
+public enum TrackSearchService: String, Sendable, CaseIterable {
+    case spotify
+    case appleMusic
+
+    public static let `default` = TrackSearchService.spotify
+
+    public func searchURL(for track: Track) -> URL {
+        switch self {
+        case .spotify: track.spotifySearchURL
+        case .appleMusic: track.appleMusicSearchURL
+        }
+    }
+}

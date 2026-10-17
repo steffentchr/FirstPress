@@ -1,8 +1,8 @@
 import AppKit
 import Observation
-import PressingMenuCore
+import FirstPressMenuCore
 
-/// Pressing Menu's Settings, kept in the Mac's user defaults so they're
+/// First Press Menu's Settings, kept in the Mac's user defaults so they're
 /// remembered between launches. Launch at login isn't here: the system's
 /// login-item service remembers that itself (`LoginItem`).
 @MainActor
@@ -35,17 +35,17 @@ final class MenuSettings {
     }
 
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored private let menu: PressingMenu
+    @ObservationIgnored private let menu: FirstPressMenu
 
     private enum Keys {
         static let appearance = "appearance"
         // Stored under its first name, so the choice survives the rename.
         static let notificationsAreOn = "notifiesOnNewTrack"
         // Stored under its first name, so the choice survives the rename.
-        static let findTracksIn = "findSongsIn"
+        static let findTracksIn = "findTracksIn"
     }
 
-    init(menu: PressingMenu, defaults: UserDefaults = .standard) {
+    init(menu: FirstPressMenu, defaults: UserDefaults = .standard) {
         self.menu = menu
         self.defaults = defaults
         appearance = defaults.string(forKey: Keys.appearance).flatMap(Appearance.init) ?? .system

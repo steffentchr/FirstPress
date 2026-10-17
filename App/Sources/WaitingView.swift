@@ -1,12 +1,12 @@
 import SwiftUI
 import UIKit
-import PressingCore
+import FirstPressCore
 
 /// The one screen shown while no Record plays. It asks for an input when
 /// none is chosen or the chosen one isn't connected, and otherwise waits
 /// quietly for a Record.
 struct WaitingView: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
     let audioInput: AVAudioSessionInput
     /// Why an input is needed, or nil once the input is ready.
     let chooseInput: Page.Reason?
@@ -44,11 +44,11 @@ struct WaitingView: View {
             Text(reason == .noneChosen ? "Choose the input" : "The input isn't connected")
                 .font(.title2.bold())
             Text(reason == .noneChosen
-                 ? "Choose the record deck's input. Pressing only listens to the input chosen here."
+                 ? "Choose the record deck's input. First Press only listens to the input chosen here."
                  : "Check the cable, or choose another input.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.white.opacity(0.85))
-            InputNameMenu(pressing: pressing)
+            InputNameMenu(firstPress: firstPress)
                 .buttonStyle(.bordered)
             if audioInput.isPermissionDenied {
                 Button("Allow microphone access") {
@@ -60,13 +60,13 @@ struct WaitingView: View {
 
     private var waiting: some View {
         VStack(spacing: 16) {
-            Text("Put on a pressing to start.")
+            Text("Put on a record to start.")
                 .font(.title2.bold())
-            InputNameMenu(pressing: pressing)
+            InputNameMenu(firstPress: firstPress)
                 .font(.subheadline)
             // Only a problem is worth a word here; a ready input says nothing.
-            if pressing.state.input.status != .present {
-                InputStatusView(input: pressing.state.input)
+            if firstPress.state.input.status != .present {
+                InputStatusView(input: firstPress.state.input)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -104,8 +104,8 @@ struct InputStatusView: View {
         case .missing: "The chosen input isn't connected. Check the cable."
         case .present: ""
         case .interrupted: "Another app is using audio."
-        case .permissionDenied: "Pressing can't use the input. Allow microphone access in Settings › Permissions."
-        case .unsupportedSampleRate(let rate): "The input runs at \(Int(rate)) Hz. Pressing takes 44.1 or 48 kHz."
+        case .permissionDenied: "First Press can't use the input. Allow microphone access in Settings › Permissions."
+        case .unsupportedSampleRate(let rate): "The input runs at \(Int(rate)) Hz. First Press takes 44.1 or 48 kHz."
         case .failed(let reason): reason
         }
     }

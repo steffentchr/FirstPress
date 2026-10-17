@@ -1,14 +1,14 @@
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// Settings › Detection: calibrate against the live level and noise floor
 /// (README › Calibrate detection).
 struct DetectionSettingsView: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
     @State private var refusal: String?
 
-    private var detection: DetectionSettings { pressing.state.detection }
-    private var input: InputState { pressing.state.input }
+    private var detection: DetectionSettings { firstPress.state.detection }
+    private var input: InputState { firstPress.state.input }
 
     var body: some View {
         Form {
@@ -48,7 +48,7 @@ struct DetectionSettingsView: View {
                 var changed = detection
                 changed[keyPath: keyPath] = value
                 do {
-                    try pressing.setDetection(changed)
+                    try firstPress.setDetection(changed)
                     refusal = nil
                 } catch {
                     refusal = "The stop delay must be longer than the Flip threshold, or a Session could end before its Record."

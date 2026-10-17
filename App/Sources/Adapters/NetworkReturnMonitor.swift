@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import PressingCore
+import FirstPressCore
 
 /// Tells the core when the phone gets a network path back, so Plays waiting
 /// for Last.fm go at once instead of at the next retry.

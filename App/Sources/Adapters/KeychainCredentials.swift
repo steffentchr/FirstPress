@@ -1,16 +1,16 @@
 import Foundation
 import os
-import PressingCore
+import FirstPressCore
 import Security
 
 /// Production Keychain: the Last.fm session as one generic password item,
-/// readable after the first unlock so Pressing works on a phone that has
+/// readable after the first unlock so First Press works on a phone that has
 /// sat locked beside the deck since it restarted. It stays on this device.
 @MainActor
 final class KeychainCredentials: Keychain {
-    private let service = "Pressing.lastfm"
+    private let service = "FirstPress.lastfm"
     private let account = "session"
-    private let log = Logger(subsystem: "Pressing", category: "Keychain")
+    private let log = Logger(subsystem: "FirstPress", category: "Keychain")
 
     private var query: [String: Any] {
         [

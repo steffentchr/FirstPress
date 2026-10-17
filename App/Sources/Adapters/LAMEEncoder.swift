@@ -1,6 +1,6 @@
 import Foundation
 import LAME
-import PressingCore
+import FirstPressCore
 
 /// Production MP3Encoder: LAME 3.100 at 320 kbps CBR, 44.1 kHz joint stereo
 /// (ADR-0002). LAME's output isn't aligned to calls, so it is split on MPEG

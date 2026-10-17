@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>LastFmAPIKey</key>
-	<string>$(PRESSING_LASTFM_API_KEY)</string>
+	<string>$(FIRSTPRESS_LASTFM_API_KEY)</string>
 	<key>LastFmAPISecret</key>
-	<string>$(PRESSING_LASTFM_API_SECRET)</string>
+	<string>$(FIRSTPRESS_LASTFM_API_SECRET)</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sonos._tcp</string>
-		<string>_pressing._tcp</string>
+		<string>_firstpress._tcp</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

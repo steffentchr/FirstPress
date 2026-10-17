@@ -1,16 +1,16 @@
 import SwiftUI
-import PressingCore
-import PressingMenuCore
+import FirstPressCore
+import FirstPressMenuCore
 
 /// The phone's Rooms sheet, inside the panel, in place of History: This
-/// iPhone first, then every Sonos Room Pressing has found. Ticking a box
+/// iPhone first, then every Sonos Room First Press has found. Ticking a box
 /// switches it at once, on the phone and on the speakers; a switched-on Room
 /// has a volume slider. Disabled while no phone is connected.
 ///
 /// Everything lines up on two columns: the checkboxes (and the back
 /// chevron above them), then the names (and the "Rooms" title).
 struct RoomsView: View {
-    let menu: PressingMenu
+    let menu: FirstPressMenu
     let back: () -> Void
 
     var body: some View {
@@ -84,7 +84,7 @@ private struct CheckboxRow: View {
 /// itself is picked on the phone; iOS offers no way to choose it from here.
 private struct PhoneOutputRow: View {
     let phoneOutput: MenuSnapshot.PhoneOutput
-    let menu: PressingMenu
+    let menu: FirstPressMenu
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -104,7 +104,7 @@ private struct PhoneOutputRow: View {
 
 private struct RoomRow: View {
     let room: MenuSnapshot.Room
-    let menu: PressingMenu
+    let menu: FirstPressMenu
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

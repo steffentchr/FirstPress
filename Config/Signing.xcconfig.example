@@ -1,7 +1,7 @@
 // Copy to Config/Signing.xcconfig (git-ignored) and fill in your own values.
 
 // A bundle ID you own. Later tickets need the ShazamKit App Service enabled on it.
-PRESSING_BUNDLE_ID = com.example.pressing
+FIRSTPRESS_BUNDLE_ID = com.example.firstpress
 
 // Your Apple developer team ID (Xcode › Settings › Accounts, or developer.apple.com › Membership).
-PRESSING_DEVELOPMENT_TEAM = ABCDE12345
+FIRSTPRESS_DEVELOPMENT_TEAM = ABCDE12345

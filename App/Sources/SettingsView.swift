@@ -1,41 +1,41 @@
 import SwiftUI
 import UIKit
-import PressingCore
+import FirstPressCore
 
 /// Opened from the gear: the common settings at the top, and Detection and
 /// Permissions, rarely touched once set, in submenus.
 struct SettingsView: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     var body: some View {
-        PressingSheet(title: "Settings") {
+        FirstPressSheet(title: "Settings") {
             Form {
                 Section {
-                    InputPicker(pressing: pressing)
+                    InputPicker(firstPress: firstPress)
                 } footer: {
-                    Text("Pressing only listens to the input chosen here. It never switches to the built-in microphone on its own.")
+                    Text("First Press only listens to the input chosen here. It never switches to the built-in microphone on its own.")
                 }
 
                 Section {
-                    AppearanceRow(pressing: pressing)
+                    AppearanceRow(firstPress: firstPress)
                     Picker("Blank screen", selection: blankAfter) {
                         ForEach(Self.blankAfterChoices, id: \.self) { choice in
                             Text(Self.label(choice)).tag(choice)
                         }
                     }
-                    CheckboxRow(name: "Kiosk mode", nameFont: .body, isOn: pressing.state.screen.isKiosk) {
-                        pressing.setKiosk(!pressing.state.screen.isKiosk)
+                    CheckboxRow(name: "Kiosk mode", nameFont: .body, isOn: firstPress.state.screen.isKiosk) {
+                        firstPress.setKiosk(!firstPress.state.screen.isKiosk)
                     }
                 } header: {
                     Text("Screen")
                 } footer: {
-                    Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it. Kiosk mode lets Pressing take the whole screen, without the clock, battery and other status icons, and Now Playing's icons hide until you touch the screen. To keep others from leaving the app, also start Guided Access.")
+                    Text("A blank screen protects the display. It never blanks while a Record is playing. Touch it, or start a Record, to wake it. Kiosk mode lets First Press take the whole screen, without the clock, battery and other status icons, and Now Playing's icons hide until you touch the screen. To keep others from leaving the app, also start Guided Access.")
                 }
 
-                LastFmSection(pressing: pressing)
+                LastFmSection(firstPress: firstPress)
 
                 Section {
-                    NavigationLink("Detection") { DetectionSettingsView(pressing: pressing) }
+                    NavigationLink("Detection") { DetectionSettingsView(firstPress: firstPress) }
                     NavigationLink("Permissions") { PermissionsView() }
                 }
             }
@@ -44,8 +44,8 @@ struct SettingsView: View {
 
     private var blankAfter: Binding<BlankAfter> {
         Binding(
-            get: { pressing.state.screen.blankAfter },
-            set: { pressing.setBlankAfter($0) }
+            get: { firstPress.state.screen.blankAfter },
+            set: { firstPress.setBlankAfter($0) }
         )
     }
 
@@ -60,10 +60,10 @@ struct SettingsView: View {
     }
 }
 
-/// System, Light or Dark, with the icons Pressing Menu uses for the same
+/// System, Light or Dark, with the icons First Press Menu uses for the same
 /// choice. The start screen and the blank screen look the same in all three.
 private struct AppearanceRow: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     var body: some View {
         HStack(spacing: 16) {
@@ -93,24 +93,24 @@ private struct AppearanceRow: View {
 
     private var appearance: Binding<Appearance> {
         Binding(
-            get: { pressing.state.screen.appearance },
-            set: { pressing.setAppearance($0) }
+            get: { firstPress.state.screen.appearance },
+            set: { firstPress.setAppearance($0) }
         )
     }
 }
 
-/// Settings › Permissions: shortcuts to Pressing's page in the Settings app.
+/// Settings › Permissions: shortcuts to First Press's page in the Settings app.
 struct PermissionsView: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
         Form {
             Section {
-                // Both switches are on Pressing's own page in the Settings app.
+                // Both switches are on First Press's own page in the Settings app.
                 Button("Microphone access") { openAppSettings() }
                 Button("Local network access") { openAppSettings() }
             } footer: {
-                Text("Pressing needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
+                Text("First Press needs the microphone to hear the deck's input, and local network access to find your Sonos Rooms and play to them.")
             }
         }
         .sheetPage("Permissions")

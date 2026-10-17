@@ -4,7 +4,7 @@ import SwiftUI
 /// The panel's window, which SwiftUI's MenuBarExtra keeps to itself.
 enum PanelWindow {
     /// Opens the panel, as clicking the menu-bar icon does. SwiftUI has no
-    /// call for that, so this clicks Pressing Menu's own status-bar button.
+    /// call for that, so this clicks First Press Menu's own status-bar button.
     @MainActor
     static func open() {
         for window in NSApplication.shared.windows {

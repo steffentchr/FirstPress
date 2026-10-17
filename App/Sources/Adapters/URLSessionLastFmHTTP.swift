@@ -1,5 +1,5 @@
 import Foundation
-import PressingCore
+import FirstPressCore
 
 /// Production LastFmHTTP: sends the request the core built and signed, as is.
 @MainActor
@@ -9,7 +9,7 @@ final class URLSessionLastFmHTTP: LastFmHTTP {
     init() {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
-        configuration.httpAdditionalHeaders = ["User-Agent": "Pressing"]
+        configuration.httpAdditionalHeaders = ["User-Agent": "FirstPress"]
         session = URLSession(configuration: configuration)
     }
 

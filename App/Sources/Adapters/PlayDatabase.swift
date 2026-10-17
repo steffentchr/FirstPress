@@ -1,5 +1,5 @@
 import Foundation
-import PressingCore
+import FirstPressCore
 import SQLite3
 
 /// Plays in a SQLite database, one row per Play, keyed by its id.

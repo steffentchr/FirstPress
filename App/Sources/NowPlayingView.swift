@@ -1,5 +1,5 @@
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// Shown while a Session runs: the current Track, large enough to read from
 /// across the room, with History below it.
@@ -9,7 +9,7 @@ import PressingCore
 /// row heights, and every row has that one fixed height. Scrolling down
 /// reveals more Plays; the gear and speaker icons stay in the toolbar.
 struct NowPlayingView: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
     /// Passed in rather than read here, so this view doesn't follow every
     /// change to `state` (the level meter's included).
     let play: Play?
@@ -38,7 +38,7 @@ struct NowPlayingView: View {
                                 )
                             }
                         }
-                    RecentPlaysList(pressing: pressing, current: play?.id, rowHeight: rowHeight)
+                    RecentPlaysList(firstPress: firstPress, current: play?.id, rowHeight: rowHeight)
                         .opacity(isScrolled ? 1 : 0.55)
                         .animation(.easeInOut(duration: 0.3), value: isScrolled)
                 }
@@ -122,18 +122,18 @@ private struct CurrentTrackView: View {
 ///
 /// Reads `history` but not `state`, so the level meter doesn't redraw it.
 private struct RecentPlaysList: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
     let current: Play.ID?
     let rowHeight: CGFloat
     @Environment(\.openURL) private var openURL
 
     var body: some View {
         LazyVStack(spacing: 0) {
-            ForEach(Pressing.recentPlays(in: pressing.history, excluding: current)) { play in
+            ForEach(FirstPress.recentPlays(in: firstPress.history, excluding: current)) { play in
                 Button {
                     openURL(play.track.spotifySearchURL)
                 } label: {
-                    PlayRow(play: play, cover: pressing.cover(for: play.track))
+                    PlayRow(play: play, cover: firstPress.cover(for: play.track))
                         .padding(.horizontal)
                         .frame(height: rowHeight)
                         .contentShape(Rectangle())

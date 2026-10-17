@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import PressingCore
+import FirstPressCore
 
 /// One Play: cover, title, artist and album when known.
 struct PlayRow: View {

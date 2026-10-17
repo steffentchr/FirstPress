@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import os
-import PressingCore
+import FirstPressCore
 
 /// Production Store. Settings are one small JSON value in UserDefaults; Plays
 /// and the scrobble queue go in a SQLite database (`PlayDatabase`), since
@@ -15,7 +15,7 @@ final class PhoneStore: Store {
     private let plays: PlayDatabase?
     /// Covers as downloaded, one file each.
     private let coversDirectory: URL
-    private let log = Logger(subsystem: "Pressing", category: "Store")
+    private let log = Logger(subsystem: "FirstPress", category: "Store")
 
     init(defaults: UserDefaults = .standard, directory: URL = PhoneStore.defaultDirectory) {
         self.defaults = defaults
@@ -34,7 +34,7 @@ final class PhoneStore: Store {
     /// Application Support, not Caches: iOS may empty Caches, and History is
     /// kept indefinitely.
     nonisolated static var defaultDirectory: URL {
-        URL.applicationSupportDirectory.appending(path: "Pressing", directoryHint: .isDirectory)
+        URL.applicationSupportDirectory.appending(path: "FirstPress", directoryHint: .isDirectory)
     }
 
     func loadSettings() -> Settings? {

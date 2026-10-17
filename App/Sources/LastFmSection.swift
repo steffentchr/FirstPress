@@ -1,11 +1,11 @@
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// Settings: connect Last.fm through its own sign-in page, or disconnect it.
 struct LastFmSection: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
-    private var lastFm: LastFmState { pressing.state.lastFm }
+    private var lastFm: LastFmState { firstPress.state.lastFm }
 
     var body: some View {
         Section {
@@ -15,7 +15,7 @@ struct LastFmSection: View {
                     .foregroundStyle(.secondary)
             case .disconnected:
                 Button("Connect Last.fm") {
-                    Task { await pressing.connectLastFm() }
+                    Task { await firstPress.connectLastFm() }
                 }
             case .connecting:
                 HStack {
@@ -26,7 +26,7 @@ struct LastFmSection: View {
             case .connected(let username):
                 LabeledContent("Scrobbling as", value: username)
                 Button("Disconnect Last.fm", role: .destructive) {
-                    pressing.disconnectLastFm()
+                    firstPress.disconnectLastFm()
                 }
             }
         } header: {
@@ -46,7 +46,7 @@ struct LastFmSection: View {
             case .connected:
                 Text("Each Track is scrobbled once it has played for half its length or 4 minutes. Disconnecting stops scrobbling; Plays not yet sent are never sent.")
             default:
-                Text("You sign in on Last.fm's own page; Pressing never sees your password. Plays from before you connect are never sent.")
+                Text("You sign in on Last.fm's own page; First Press never sees your password. Plays from before you connect are never sent.")
             }
         }
     }
@@ -56,7 +56,7 @@ struct LastFmSection: View {
         case .signInFailed:
             "Signing in to Last.fm didn't work. Check the network and try again."
         case .sessionRevoked:
-            "Last.fm no longer accepts Pressing's sign-in. Connect again to send the Plays still waiting."
+            "Last.fm no longer accepts First Press's sign-in. Connect again to send the Plays still waiting."
         case .misconfigured(let code):
             "Last.fm refuses this build's API key (error \(code)). Plays wait until it is fixed."
         }

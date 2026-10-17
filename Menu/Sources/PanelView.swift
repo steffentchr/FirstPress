@@ -1,17 +1,17 @@
 import AppKit
 import SwiftUI
-import PressingCore
-import PressingMenuCore
+import FirstPressCore
+import FirstPressMenuCore
 
 /// The panel, in the reference look: the current Track's cover on the
 /// left, its title large and bold with the artist lighter beneath and the
 /// album, once known, quieter still, then a divider and History as a numbered list. While no phone
-/// is connected it says, small, that it's looking for Pressing; after a
+/// is connected it says, small, that it's looking for First Press; after a
 /// drop-out the last Track and History stay on screen, greyed, with that
 /// line beneath the Track. The footer is never greyed. Its Rooms summary
 /// swaps the Rooms view in place of History.
 struct PanelView: View {
-    let menu: PressingMenu
+    let menu: FirstPressMenu
     @State private var showsRooms = false
 
     var body: some View {
@@ -53,11 +53,11 @@ struct PanelView: View {
     }
 }
 
-/// "Looking for Pressing on your iPhone…", small and secondary: the whole
+/// "Looking for First Press on your iPhone…", small and secondary: the whole
 /// header while no phone is connected, or a line beneath a kept Track.
 private struct LookingText: View {
     var body: some View {
-        Text("Looking for Pressing on your iPhone…")
+        Text("Looking for First Press on your iPhone…")
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -65,7 +65,7 @@ private struct LookingText: View {
 }
 
 private struct HeaderView: View {
-    let header: PressingMenu.Header
+    let header: FirstPressMenu.Header
 
     var body: some View {
         switch header {
@@ -91,7 +91,7 @@ private struct HeaderView: View {
                 }
             }
             .findsOnClick(track)
-        case .lookingForPressing:
+        case .lookingForFirstPress:
             LookingText()
         case .waitingForRecord:
             message("Waiting for a Record")
@@ -100,8 +100,8 @@ private struct HeaderView: View {
         case .betweenSides(let lastTrack):
             // The last Track's title kept small beneath, if there was one.
             message("Between sides", detail: lastTrack?.title)
-        case .updatePressingMenu:
-            message("Update Pressing Menu", detail: "Pressing on the iPhone is newer than this Pressing Menu.")
+        case .updateFirstPressMenu:
+            message("Update First Press Menu", detail: "First Press on the iPhone is newer than this First Press Menu.")
         }
     }
 
@@ -167,9 +167,9 @@ private struct HistoryList: View {
     }
 }
 
-/// On the left, the power button, which quits Pressing Menu and leaves
-/// Pressing on the iPhone untouched, and the gear, which opens Settings. On
-/// the right, where Pressing plays, which opens the Rooms view: shown only
+/// On the left, the power button, which quits First Press Menu and leaves
+/// First Press on the iPhone untouched, and the gear, which opens Settings. On
+/// the right, where First Press plays, which opens the Rooms view: shown only
 /// while a phone is connected.
 private struct FooterView: View {
     let roomsSummary: String?
@@ -185,8 +185,8 @@ private struct FooterView: View {
                     .font(.system(size: 15))
             }
             .buttonStyle(.borderless)
-            .help("Quit Pressing Menu")
-            .accessibilityLabel("Quit Pressing Menu")
+            .help("Quit First Press Menu")
+            .accessibilityLabel("Quit First Press Menu")
             Button {
                 openWindow(id: SettingsView.windowID)
                 // A menu-bar app isn't in front by itself: bring Settings forward.

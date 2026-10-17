@@ -1,7 +1,7 @@
-// Copy to Config/LastFm.xcconfig (git-ignored) and fill in Pressing's Last.fm
+// Copy to Config/LastFm.xcconfig (git-ignored) and fill in First Press's Last.fm
 // API account. Create one at https://www.last.fm/api/account/create, named
-// "Pressing"; the key and secret are on https://www.last.fm/api/accounts.
+// "First Press"; the key and secret are on https://www.last.fm/api/accounts.
 // Never commit them.
 
-PRESSING_LASTFM_API_KEY = your-32-character-api-key
-PRESSING_LASTFM_API_SECRET = your-32-character-shared-secret
+FIRSTPRESS_LASTFM_API_KEY = your-32-character-api-key
+FIRSTPRESS_LASTFM_API_SECRET = your-32-character-shared-secret

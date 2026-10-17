@@ -1,9 +1,9 @@
 import AuthenticationServices
-import PressingCore
+import FirstPressCore
 import UIKit
 
 /// Production WebAuth: Last.fm's sign-in page in `ASWebAuthenticationSession`,
-/// so Pressing never sees the listener's password. It shares Safari's
+/// so First Press never sees the listener's password. It shares Safari's
 /// cookies, so a listener already signed in to last.fm only has to approve.
 @MainActor
 final class WebAuthenticationSession: NSObject, WebAuth, ASWebAuthenticationPresentationContextProviding {

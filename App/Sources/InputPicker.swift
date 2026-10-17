@@ -1,15 +1,15 @@
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// The input as one dropdown, in Settings. Shows "Not connected" while the
 /// chosen input is missing, so it's clear why nothing is happening.
 struct InputPicker: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
-    private var input: InputState { pressing.state.input }
+    private var input: InputState { firstPress.state.input }
 
     var body: some View {
-        Picker("Input", selection: Self.selection(pressing)) {
+        Picker("Input", selection: Self.selection(firstPress)) {
             if input.chosenID == nil {
                 Text("Choose…").tag(AudioInputDevice.ID?.none)
             }
@@ -22,11 +22,11 @@ struct InputPicker: View {
     }
 
     /// Choosing an input switches to it at once.
-    static func selection(_ pressing: Pressing) -> Binding<AudioInputDevice.ID?> {
+    static func selection(_ firstPress: FirstPress) -> Binding<AudioInputDevice.ID?> {
         Binding(
-            get: { pressing.state.input.chosenID },
+            get: { firstPress.state.input.chosenID },
             set: { id in
-                if let id { pressing.chooseInput(id) }
+                if let id { firstPress.chooseInput(id) }
             }
         )
     }
@@ -55,13 +55,13 @@ private struct InputChoices: View {
 /// it opens the same choices as Settings' dropdown. With no input chosen it
 /// reads as a prompt; a missing input is named and marked not connected.
 struct InputNameMenu: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
-    private var input: InputState { pressing.state.input }
+    private var input: InputState { firstPress.state.input }
 
     var body: some View {
         Menu {
-            Picker("Input", selection: InputPicker.selection(pressing)) {
+            Picker("Input", selection: InputPicker.selection(firstPress)) {
                 InputChoices(input: input)
             }
             .pickerStyle(.inline)

@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import PressingCore
+import FirstPressCore
 
 /// Production SonosNetwork: Bonjour on `_sonos._tcp` (ADR-0003) and SOAP over
 /// URLSession (ADR-0001).

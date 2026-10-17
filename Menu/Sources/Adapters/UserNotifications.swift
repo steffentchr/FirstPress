@@ -1,9 +1,9 @@
 import AppKit
 @preconcurrency import UserNotifications
-import PressingCore
-import PressingMenuCore
+import FirstPressCore
+import FirstPressMenuCore
 
-/// Production MenuNotifier: posts the Mac notifications Pressing Menu's
+/// Production MenuNotifier: posts the Mac notifications First Press Menu's
 /// model picks. Clicking one opens the panel.
 ///
 /// - A new Track: the title as the heading, the artist (and the album, if
@@ -11,7 +11,7 @@ import PressingMenuCore
 ///   Each replaces the one before and clears itself after `trackLifetime`,
 ///   so they don't pile up on screen.
 /// - A Flip: "Flip the record", with the Record's last Track below. It stays
-///   until the listener dismisses it or the model removes it. Pressing Menu
+///   until the listener dismisses it or the model removes it. First Press Menu
 ///   asks for the Alerts style (`NSUserNotificationAlertStyle` in its
 ///   Info.plist) so it stays on screen.
 ///
@@ -22,7 +22,7 @@ final class UserNotifications: NSObject, MenuNotifier {
     /// Opens the panel: called when the listener clicks a notification.
     var onOpen: (() -> Void)?
     /// Called with whether the listener turned notifications off for
-    /// Pressing Menu in System Settings, each time it's read.
+    /// First Press Menu in System Settings, each time it's read.
     var onDeniedChange: ((Bool) -> Void)?
 
     /// How long a cover may take to load before the notification goes
@@ -61,7 +61,7 @@ final class UserNotifications: NSObject, MenuNotifier {
         onDeniedChange?(await center.notificationSettings().authorizationStatus == .denied)
     }
 
-    /// System Settings › Notifications, at Pressing Menu.
+    /// System Settings › Notifications, at First Press Menu.
     var systemSettingsURL: URL {
         let id = Bundle.main.bundleIdentifier ?? ""
         return URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(id)")!

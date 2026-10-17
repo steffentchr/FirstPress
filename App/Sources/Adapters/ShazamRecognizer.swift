@@ -1,13 +1,13 @@
 import AVFAudio
 import Foundation
-import PressingCore
+import FirstPressCore
 import ShazamKit
 
 /// Production Recognizer: one ShazamKit search per call, against the Shazam
 /// catalog, with a fresh `SHSession` and `SHSignatureGenerator` each time.
 ///
 /// `SHManagedSession` is not usable here: it records audio itself, and
-/// Pressing already owns the capture on the deck's input. Matching the Shazam
+/// First Press already owns the capture on the deck's input. Matching the Shazam
 /// catalog needs the ShazamKit App Service on the App ID (see README).
 @MainActor
 final class ShazamRecognizer: Recognizer {

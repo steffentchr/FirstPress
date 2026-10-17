@@ -1,12 +1,12 @@
 import Foundation
 import Network
-import PressingMenuCore
+import FirstPressMenuCore
 
-/// Production MenuLink: browses Bonjour for `_pressing._tcp` and opens a
-/// WebSocket over Network.framework to the first Pressing it finds
+/// Production MenuLink: browses Bonjour for `_firstpress._tcp` and opens a
+/// WebSocket over Network.framework to the first First Press it finds
 /// (ADR-0004). Choosing among several iPhones is out of scope.
 ///
-/// It only moves messages; when to retry is Pressing Menu's model's call.
+/// It only moves messages; when to retry is First Press Menu's model's call.
 @MainActor
 final class BonjourMenuLink: MenuLink {
     private var handler: (@MainActor (MenuLinkEvent) -> Void)?

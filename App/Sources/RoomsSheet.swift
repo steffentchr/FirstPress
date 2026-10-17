@@ -1,25 +1,25 @@
 import AVKit
 import SwiftUI
-import PressingCore
+import FirstPressCore
 
 /// Opened from the speaker icon: "This iPhone" (the Phone output), then the
 /// Sonos Rooms. Ticking a Room's checkbox switches it on at once (there's
 /// nothing to apply), and only a switched-on Room shows its volume bar.
 /// Works mid-Session too.
 struct RoomsSheet: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     var body: some View {
-        PressingSheet(title: "Rooms") {
+        FirstPressSheet(title: "Rooms") {
             List {
-                PhoneOutputRow(pressing: pressing)
-                if pressing.state.rooms.isEmpty {
+                PhoneOutputRow(firstPress: firstPress)
+                if firstPress.state.rooms.isEmpty {
                     Text("Looking for Sonos Rooms… If none appear, allow local network access in Settings › Permissions.")
                         .foregroundStyle(.secondary)
                         .listRowBackground(Color.clear)
                 }
-                ForEach(pressing.state.rooms) { room in
-                    RoomRow(room: room, pressing: pressing)
+                ForEach(firstPress.state.rooms) { room in
+                    RoomRow(room: room, firstPress: firstPress)
                 }
             }
             .listRowBackground(Color.clear)
@@ -31,17 +31,17 @@ struct RoomsSheet: View {
 /// AirPlay), chosen with the system route picker while it's on. The volume is
 /// the system's, so there is no bar.
 struct PhoneOutputRow: View {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     var body: some View {
-        let isOn = pressing.state.phoneOutput.isOn
-        CheckboxRow(name: "This iPhone", isOn: isOn, toggle: { pressing.switchPhoneOutput(on: !isOn) }) {
+        let isOn = firstPress.state.phoneOutput.isOn
+        CheckboxRow(name: "This iPhone", isOn: isOn, toggle: { firstPress.switchPhoneOutput(on: !isOn) }) {
             if isOn {
                 HStack(spacing: 8) {
                     RoutePickerButton()
                         .frame(width: 28, height: 28)
                         .accessibilityLabel("Where This iPhone plays")
-                    Text(pressing.state.phoneOutput.route.map { "Plays on \($0.label), ahead of the Rooms." }
+                    Text(firstPress.state.phoneOutput.route.map { "Plays on \($0.label), ahead of the Rooms." }
                         ?? "Speaker, earphones or AirPlay. Plays ahead of the Rooms.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -70,10 +70,10 @@ struct RoutePickerButton: UIViewRepresentable {
 
 struct RoomRow: View {
     let room: RoomState
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     var body: some View {
-        CheckboxRow(name: room.name, isOn: room.isOn, toggle: { pressing.switchRoom(room.id, on: !room.isOn) }) {
+        CheckboxRow(name: room.name, isOn: room.isOn, toggle: { firstPress.switchRoom(room.id, on: !room.isOn) }) {
             if let marker = room.marker {
                 Label(marker.text, systemImage: marker.symbolName)
                     .font(.footnote)
@@ -87,7 +87,7 @@ struct RoomRow: View {
                     Slider(
                         value: Binding(
                             get: { Double(room.volume) },
-                            set: { pressing.setVolume(Int($0.rounded()), for: room.id) }
+                            set: { firstPress.setVolume(Int($0.rounded()), for: room.id) }
                         ),
                         in: 0...100,
                         step: 1

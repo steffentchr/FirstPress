@@ -1,6 +1,6 @@
-# Xcode project definition. Generate Pressing.xcodeproj with `xcodegen generate`;
+# Xcode project definition. Generate FirstPress.xcodeproj with `xcodegen generate`;
 # the .xcodeproj itself is not checked in.
-name: Pressing
+name: FirstPress
 
 options:
   deploymentTarget:
@@ -11,11 +11,11 @@ options:
   preGenCommand: scripts/build-lame.sh --if-missing
 
 packages:
-  PressingCore:
-    path: PressingCore
+  FirstPressCore:
+    path: FirstPressCore
 
 targets:
-  Pressing:
+  FirstPress:
     type: application
     platform: iOS
     sources:
@@ -25,7 +25,7 @@ targets:
       Debug: Config/Base.xcconfig
       Release: Config/Base.xcconfig
     dependencies:
-      - package: PressingCore
+      - package: FirstPressCore
       - framework: Vendor/LAME.xcframework
         embed: false
     scheme: {}
@@ -42,43 +42,43 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         # Merged into the generated Info.plist: only keys INFOPLIST_KEY_ can't express.
         INFOPLIST_FILE: App/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: Pressing
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Pressing listens to your record deck's USB input so it can play the Record in your Sonos Rooms. It only uses the input you choose in Settings."
-        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Pressing finds your Sonos Rooms and plays your Record to them over your home network, and shows what's playing in Pressing Menu on your Mac."
+        INFOPLIST_KEY_CFBundleDisplayName: First Press
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "First Press listens to your record deck's USB input so it can play the Record in your Sonos Rooms. It only uses the input you choose in Settings."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "First Press finds your Sonos Rooms and plays your Record to them over your home network, and shows what's playing in First Press Menu on your Mac."
         # The launch screen is defined in App/Info.plist (the start screen's artwork).
         INFOPLIST_KEY_UILaunchScreen_Generation: NO
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
 
-  # Pressing Menu: the Mac menu-bar app that shows and controls a Pressing on
+  # First Press Menu: the Mac menu-bar app that shows and controls a First Press on
   # the same network (ADR-0004). No LAME, no Sonos: it only talks to the phone.
-  PressingMenu:
+  FirstPressMenu:
     type: application
     platform: macOS
     sources:
       - Menu/Sources
       - Menu/Resources
       # Shared with the iPhone app: they import only Foundation, Network and
-      # PressingCore.
+      # FirstPressCore.
       - App/Sources/Adapters/MainQueueScheduler.swift
       - App/Sources/Adapters/MenuNetwork.swift
     configFiles:
       Debug: Config/Base.xcconfig
       Release: Config/Base.xcconfig
     dependencies:
-      - package: PressingCore
-        product: PressingCore
-      - package: PressingCore
-        product: PressingMenuCore
+      - package: FirstPressCore
+        product: FirstPressCore
+      - package: FirstPressCore
+        product: FirstPressMenuCore
     scheme: {}
     settings:
       base:
-        PRODUCT_NAME: Pressing Menu
-        PRODUCT_MODULE_NAME: PressingMenu
+        PRODUCT_NAME: First Press Menu
+        PRODUCT_MODULE_NAME: FirstPressMenu
         # A bundle ID of its own, next to the iPhone app's (Config/Signing.xcconfig).
-        PRODUCT_BUNDLE_IDENTIFIER: $(PRESSING_BUNDLE_ID).menu
+        PRODUCT_BUNDLE_IDENTIFIER: $(FIRSTPRESS_BUNDLE_ID).menu
         CODE_SIGN_STYLE: Automatic
-        CODE_SIGN_ENTITLEMENTS: Menu/PressingMenu.entitlements
+        CODE_SIGN_ENTITLEMENTS: Menu/FirstPressMenu.entitlements
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_VERSION: "6.0"
         MARKETING_VERSION: "1.0"
@@ -87,8 +87,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: Menu/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: Pressing Menu
+        INFOPLIST_KEY_CFBundleDisplayName: First Press Menu
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.music
         # A menu-bar extra: no Dock icon and no main menu.
         INFOPLIST_KEY_LSUIElement: YES
-        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Pressing Menu finds Pressing on your iPhone over your home network, to show what's playing."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "First Press Menu finds First Press on your iPhone over your home network, to show what's playing."

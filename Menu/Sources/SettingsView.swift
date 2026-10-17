@@ -1,19 +1,19 @@
 import AppKit
 import SwiftUI
-import PressingMenuCore
+import FirstPressMenuCore
 
 /// The Settings window, in the reference layout: grouped rows, each with a
 /// title and a one-line explanation on the left and its control on the
 /// right, then an About footer.
 struct SettingsView: View {
-    let menu: PressingMenu
+    let menu: FirstPressMenu
     @Bindable var settings: MenuSettings
     let loginItem: LoginItem
     let notifications: UserNotifications
 
-    static let projectURL = URL(string: "https://github.com/steffentchr/Pressing")!
+    static let projectURL = URL(string: "https://github.com/steffentchr/FirstPress")!
     /// The same policy the App Store listing links to (AppStore/Metadata).
-    static let privacyURL = URL(string: "https://github.com/steffentchr/Pressing/blob/main/AppStore/privacy-policy.md")!
+    static let privacyURL = URL(string: "https://github.com/steffentchr/FirstPress/blob/main/AppStore/privacy-policy.md")!
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,7 +38,7 @@ struct SettingsView: View {
                         .labelsHidden()
                         .fixedSize()
                     }
-                    SettingsRow("Launch at login", detail: loginItem.needsApproval ? nil : "Open Pressing Menu when you log in.") {
+                    SettingsRow("Launch at login", detail: loginItem.needsApproval ? nil : "Open First Press Menu when you log in.") {
                         Toggle("Launch at login", isOn: Binding(get: { loginItem.isOn }, set: { loginItem.set($0) }))
                             .toggleStyle(.switch)
                             .labelsHidden()
@@ -138,7 +138,7 @@ private struct AboutFooter: View {
                 .frame(width: 44, height: 44)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Pressing Menu")
+                Text("First Press Menu")
                     .font(.headline)
                 Text("Version \(Self.version) (\(Self.build))")
                     .font(.callout)

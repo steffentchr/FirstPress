@@ -1,8 +1,8 @@
 import SwiftUI
 import UIKit
-import PressingCore
+import FirstPressCore
 
-/// Covers the screen in black while Pressing has blanked it, to protect the
+/// Covers the screen in black while First Press has blanked it, to protect the
 /// OLED panel. The first touch on the black overlay only wakes the screen;
 /// every other touch restarts the blank-after time.
 ///
@@ -11,13 +11,13 @@ import PressingCore
 /// leaves the next touch on the screen underneath swallowed, so the gear or
 /// speaker icon took a second tap.
 struct ScreenBlanker: ViewModifier {
-    let pressing: Pressing
+    let firstPress: FirstPress
 
     func body(content: Content) -> some View {
         content
-            .background { TouchObserver { pressing.screenTouched() } }
+            .background { TouchObserver { firstPress.screenTouched() } }
             .overlay {
-                if pressing.state.screen.isBlanked {
+                if firstPress.state.screen.isBlanked {
                     // Opaque, so it takes the touch and no control underneath
                     // gets it; the window's recogniser wakes the screen.
                     Color.black
@@ -31,8 +31,8 @@ struct ScreenBlanker: ViewModifier {
 }
 
 extension View {
-    func screenBlanker(_ pressing: Pressing) -> some View {
-        modifier(ScreenBlanker(pressing: pressing))
+    func screenBlanker(_ firstPress: FirstPress) -> some View {
+        modifier(ScreenBlanker(firstPress: firstPress))
     }
 }
 

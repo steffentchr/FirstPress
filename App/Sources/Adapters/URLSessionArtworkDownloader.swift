@@ -1,5 +1,5 @@
 import Foundation
-import PressingCore
+import FirstPressCore
 
 /// Production ArtworkDownloader: a plain GET.
 @MainActor

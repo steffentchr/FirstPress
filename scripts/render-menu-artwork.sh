@@ -1,5 +1,5 @@
 #!/bin/sh
-# Renders Pressing Menu's artwork from the SVG sources in Design/ into
+# Renders First Press Menu's artwork from the SVG sources in Design/ into
 # Menu/Resources/Assets.xcassets: the Mac app icon at every size macOS asks
 # for, and the two menu-bar icons at 1x and 2x. Mac icons keep their
 # transparent corners; the menu-bar icons are template images.

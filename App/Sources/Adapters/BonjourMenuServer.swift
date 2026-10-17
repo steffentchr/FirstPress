@@ -1,12 +1,12 @@
 import Foundation
 import Network
-import PressingCore
+import FirstPressCore
 
 /// Production MenuServer: a WebSocket listener on Network.framework,
-/// advertised over Bonjour as `_pressing._tcp` (ADR-0004).
+/// advertised over Bonjour as `_firstpress._tcp` (ADR-0004).
 ///
 /// It only moves messages: each WebSocket text message is one JSON message
-/// the core built or will read. Several Pressing Menus may connect at once.
+/// the core built or will read. Several First Press Menus may connect at once.
 /// A listener that fails, for example after the app was suspended, is
 /// started again after a short wait.
 @MainActor
