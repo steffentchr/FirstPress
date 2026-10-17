@@ -164,9 +164,9 @@ struct PressingMenuNotificationTests {
 extension World {
     /// A Pressing Menu joined to this world's phone, posting its
     /// notifications to a fake.
-    func notifyingPressingMenu() -> (menu: PressingMenu, link: FakeMenuLink, notifier: FakeTrackNotifier) {
+    func notifyingPressingMenu() -> (menu: PressingMenu, link: FakeMenuLink, notifier: FakeMenuNotifier) {
         let link = FakeMenuLink(server: menuServer)
-        let notifier = FakeTrackNotifier()
+        let notifier = FakeMenuNotifier()
         let menu = PressingMenu(link: link, scheduler: scheduler, notifier: notifier)
         menu.start()
         return (menu, link, notifier)

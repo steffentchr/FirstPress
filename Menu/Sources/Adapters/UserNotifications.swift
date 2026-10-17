@@ -3,7 +3,7 @@ import AppKit
 import PressingCore
 import PressingMenuCore
 
-/// Production TrackNotifier: posts a Mac notification for each new Track
+/// Production MenuNotifier: posts a Mac notification for each new Track
 /// Pressing Menu's model picks. The title is the heading, the artist (and
 /// the album, if known by then) below, with the cover attached once its
 /// artwork loads. Clicking it opens the panel.
@@ -11,7 +11,7 @@ import PressingMenuCore
 /// Whether macOS allows notifications is read here and handed to the model
 /// through `onDeniedChange`; the model decides whether to post at all.
 @MainActor
-final class UserNotifications: NSObject, TrackNotifier {
+final class UserNotifications: NSObject, MenuNotifier {
     /// Opens the panel: called when the listener clicks a notification.
     var onOpen: (() -> Void)?
     /// Called with whether the listener turned notifications off for

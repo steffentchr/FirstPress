@@ -200,7 +200,7 @@ public final class PressingMenu {
     @ObservationIgnored private var volumeTimers: [MenuSnapshot.Room.ID: any ScheduledWork] = [:]
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
-    @ObservationIgnored private let notifier: (any TrackNotifier)?
+    @ObservationIgnored private let notifier: (any MenuNotifier)?
     @ObservationIgnored private var retryTimer: (any ScheduledWork)?
     /// Failed attempts since the link was last up.
     @ObservationIgnored private var failures = 0
@@ -208,7 +208,7 @@ public final class PressingMenu {
     /// it was already playing, so it gets no notification.
     @ObservationIgnored private var awaitingFirstSnapshot = false
 
-    public init(link: any MenuLink, scheduler: any Scheduler, notifier: (any TrackNotifier)? = nil) {
+    public init(link: any MenuLink, scheduler: any Scheduler, notifier: (any MenuNotifier)? = nil) {
         self.link = link
         self.scheduler = scheduler
         self.notifier = notifier
