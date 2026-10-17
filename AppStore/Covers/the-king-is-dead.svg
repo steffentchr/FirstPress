@@ -11,6 +11,6 @@
     <path d="M0 1000 L0 380 C60 300 160 250 260 250 C380 250 470 320 500 420 C520 480 515 520 540 560 C560 595 590 610 575 640 C560 660 530 660 525 690 C530 720 545 740 520 770 C500 790 470 790 460 820 C450 860 470 920 430 1000 Z"/>
   </g>
   <rect width="1000" height="1000" filter="url(#grain)"/>
-  <text x="70" y="130" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="88" fill="#ffffff" letter-spacing="2">THE JONESES</text>
-  <text x="70" y="205" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="54" fill="#f3d6dc" letter-spacing="2">THE KING IS ASLEEP</text>
+  <text x="70" y="130" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="88" fill="#ffffff" letter-spacing="2">THE WRIGHTS</text>
+  <text x="70" y="205" font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="54" fill="#f3d6dc" letter-spacing="2">THE KING IS DEAD</text>
 </svg>
