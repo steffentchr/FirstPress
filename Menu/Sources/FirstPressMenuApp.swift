@@ -30,6 +30,7 @@ struct FirstPressMenuApp: App {
         MenuBarExtra {
             PanelView(menu: menu)
                 .environment(settings)
+                .followsAppAppearance()
         } label: {
             MenuBarIcon(menu: menu)
         }
@@ -37,6 +38,7 @@ struct FirstPressMenuApp: App {
 
         Window("First Press Menu Settings", id: SettingsView.windowID) {
             SettingsView(menu: menu, settings: settings, loginItem: loginItem, notifications: notifications)
+                .followsAppAppearance()
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)

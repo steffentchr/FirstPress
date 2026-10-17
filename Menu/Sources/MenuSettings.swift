@@ -55,8 +55,9 @@ final class MenuSettings {
         applyAppearance()
     }
 
-    /// Re-themes the panel and the Settings window at once: both follow the
-    /// app's appearance.
+    /// Sets the app's appearance. The Settings window follows it; the panel's
+    /// window is held to it by `followsAppAppearance()`, since MenuBarExtra
+    /// otherwise gives the panel the menu bar's appearance.
     private func applyAppearance() {
         NSApplication.shared.appearance = switch appearance {
         case .system: nil
