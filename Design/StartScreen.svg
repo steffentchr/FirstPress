@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1350" height="2916" viewBox="0 0 1350 2916">
 <!-- Pressing's start screen and launch screen: the app icon's artwork (Design/AppIcon.svg),
      its orange background extended upwards and the record and brush anchored at the bottom.
-     Rendered to App/Resources/Assets.xcassets/StartScreen.imageset at 3x. -->
+     Rendered to App/Resources/Assets.xcassets/StartScreen.imageset at 3x.
+     Unlike the icon, its label carries a catalogue number, "ROUGH 96 B-1U-1-1", printed
+     faintly round the lower edge: a nod to The Smiths' The Queen Is Dead (Rough Trade,
+     ROUGH 96). Keep it here only, not in AppIcon.svg or NoTrackCover.svg. -->
 <defs>
   <radialGradient id="bg" cx="30%" cy="20%" r="95%">
     <stop offset="0" stop-color="#f08a52"/><stop offset="0.55" stop-color="#d4551f"/><stop offset="1" stop-color="#9a3410"/>
@@ -41,6 +44,8 @@
 <circle cx="640" cy="700" r="165" fill="#e8642c"/>
 <circle cx="640" cy="700" r="120" fill="none" stroke="#000" stroke-opacity="0.12" stroke-width="2"/>
 <circle cx="640" cy="700" r="14" fill="#0d0c0b"/>
+<!-- the catalogue number, round the label's lower edge -->
+<g font-family="Helvetica Neue, Helvetica, Arial" font-weight="700" font-size="15" fill="#000" fill-opacity="0.38"><text transform="translate(554.4 818.3) rotate(35.9)" text-anchor="middle">R</text><text transform="translate(565.0 825.3) rotate(30.9)" text-anchor="middle">O</text><text transform="translate(576.5 831.5) rotate(25.8)" text-anchor="middle">U</text><text transform="translate(588.4 836.6) rotate(20.7)" text-anchor="middle">G</text><text transform="translate(600.5 840.5) rotate(15.7)" text-anchor="middle">H</text><text transform="translate(618.4 844.4) rotate(8.5)" text-anchor="middle">9</text><text transform="translate(629.1 845.6) rotate(4.3)" text-anchor="middle">6</text><text transform="translate(660.8 844.5) rotate(-8.2)" text-anchor="middle">B</text><text transform="translate(671.0 842.7) rotate(-12.3)" text-anchor="middle">-</text><text transform="translate(680.3 840.3) rotate(-16.0)" text-anchor="middle">1</text><text transform="translate(691.6 836.6) rotate(-20.7)" text-anchor="middle">U</text><text transform="translate(701.4 832.4) rotate(-24.9)" text-anchor="middle">-</text><text transform="translate(710.0 828.1) rotate(-28.7)" text-anchor="middle">1</text><text transform="translate(718.3 823.2) rotate(-32.4)" text-anchor="middle">-</text><text transform="translate(726.2 817.8) rotate(-36.2)" text-anchor="middle">1</text></g>
 
 <!-- brush -->
 <g transform="translate(490 450) rotate(-24)">

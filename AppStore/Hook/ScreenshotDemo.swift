@@ -59,7 +59,8 @@ enum ScreenshotDemo {
             sonos: sonos.network, streamSink: FakeStreamSink(), encoder: PassThroughEncoder(),
             phoneOutput: FakePhoneOutput(), recognizer: recognizer, artwork: artwork,
             lastFm: LastFmPorts(account: .test, http: lastFm, webAuth: FakeWebAuth(),
-                                keychain: FakeKeychain(session: LastFmSession(username: demo.lastFmUsername, key: "K")))
+                                keychain: FakeKeychain(session: LastFmSession(username: demo.lastFmUsername, key: "K"))),
+            menuServer: SilentMenuServer()
         )
         keep = [input, sonos, store, recognizer, artwork, lastFm]
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -79,4 +80,13 @@ enum ScreenshotDemo {
         }
         return pressing
     }
+}
+
+/// No Pressing Menu on the Mac: the screenshots don't show one.
+@MainActor
+private final class SilentMenuServer: MenuServer {
+    func setEventHandler(_ handler: @escaping @MainActor (MenuServerEvent) -> Void) {}
+    func start() {}
+    func stop() {}
+    func send(_ message: Data, to client: MenuClientID) {}
 }
