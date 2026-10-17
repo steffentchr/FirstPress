@@ -88,5 +88,5 @@ private final class SilentMenuServer: MenuServer {
     func setEventHandler(_ handler: @escaping @MainActor (MenuServerEvent) -> Void) {}
     func start() {}
     func stop() {}
-    func send(_ message: Data, to client: MenuClientID) {}
+    func send(_ message: Data, to connection: MenuConnectionID) {}
 }
