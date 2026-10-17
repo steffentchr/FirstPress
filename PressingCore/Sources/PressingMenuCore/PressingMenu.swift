@@ -66,6 +66,35 @@ public final class PressingMenu {
         snapshot?.recentPlays.map(\.track) ?? []
     }
 
+    /// The Sonos Rooms Pressing has found, by name, as the phone's Rooms
+    /// sheet lists them. Kept, greyed, while the phone can't be reached.
+    public var rooms: [MenuSnapshot.Room] {
+        snapshot?.rooms ?? []
+    }
+
+    public func room(_ id: MenuSnapshot.Room.ID) -> MenuSnapshot.Room? {
+        rooms.first { $0.id == id }
+    }
+
+    /// The Rooms controls work only while linked to the phone.
+    public var canControl: Bool { connection == .connected }
+
+    /// Switches a Room on or off on the phone, at once: mid-Session it is
+    /// taken over or let go; outside one it is chosen for the next.
+    public func switchRoom(_ id: MenuSnapshot.Room.ID, on: Bool) {
+        send(.switchRoom(id: id, on: on))
+    }
+
+    /// Sets a Room's volume on the phone, 0 to 100.
+    public func setVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        send(.setVolume(id: id, volume: volume))
+    }
+
+    private func send(_ command: MenuCommand) {
+        guard canControl else { return }
+        link.send(MenuWire.encode(command))
+    }
+
     /// A Record is playing on the phone, in a Gap or not: the menu-bar icon
     /// changes subtly.
     public var isRecordPlaying: Bool {

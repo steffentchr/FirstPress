@@ -8,7 +8,9 @@ public final class Pressing {
     public internal(set) var state = PressingState() {
         didSet {
             // Cheap enough for every level meter update: most change none of these.
-            guard state.page != oldValue.page || state.session != oldValue.session || state.play != oldValue.play else { return }
+            guard state.page != oldValue.page || state.session != oldValue.session || state.play != oldValue.play
+                || state.rooms != oldValue.rooms || state.phoneOutput != oldValue.phoneOutput
+            else { return }
             menuMayHaveChanged()
         }
     }
