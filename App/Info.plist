@@ -2,30 +2,23 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Merged with the Info.plist Xcode generates from project.yml. Only keys
-	     that INFOPLIST_KEY_ build settings can't express go here. -->
-	<!-- Pressing's Last.fm API account, from Config/LastFm.xcconfig (git-ignored).
-	     Empty when the build has none: Last.fm can't be connected then. -->
 	<key>LastFmAPIKey</key>
 	<string>$(PRESSING_LASTFM_API_KEY)</string>
 	<key>LastFmAPISecret</key>
 	<string>$(PRESSING_LASTFM_API_SECRET)</string>
-	<!-- The launch screen is the start screen's artwork at its natural size,
-	     centred, so launching flows straight into WaitingView without a jump. -->
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIImageName</key>
-		<string>StartScreen</string>
-		<key>UIColorName</key>
-		<string>LaunchBackground</string>
-		<key>UIImageRespectsSafeAreaInsets</key>
-		<false/>
-	</dict>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_sonos._tcp</string>
-		<!-- Advertised for Pressing Menu on a Mac (ADR-0004). -->
 		<string>_pressing._tcp</string>
 	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>StartScreen</string>
+		<key>UIImageRespectsSafeAreaInsets</key>
+		<false/>
+	</dict>
 </dict>
 </plist>
