@@ -4,6 +4,11 @@
 <dict>
 	<!-- Merged with the Info.plist Xcode generates from project.yml. Only keys
 	     that INFOPLIST_KEY_ build settings can't express go here. -->
+	<!-- Asks for the Alerts style, so "Flip the record" stays on screen until
+	     dismissed. macOS applies it to new installs only; a new Track's
+	     notification clears itself either way. -->
+	<key>NSUserNotificationAlertStyle</key>
+	<string>alert</string>
 	<!-- Pressing on the iPhone advertises itself as this (ADR-0004). -->
 	<key>NSBonjourServices</key>
 	<array>
