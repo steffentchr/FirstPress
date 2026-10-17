@@ -18,7 +18,7 @@ struct DetectionSettingsView: View {
             } header: {
                 Text("Level")
             } footer: {
-                Text("The white tick is the noise floor, the orange tick the threshold. Calibrate with the needle in the run-out groove.")
+                Text("The plain tick is the noise floor, the orange tick the threshold. Calibrate with the needle in the run-out groove.")
             }
 
             Section {
@@ -62,7 +62,7 @@ struct DetectionSettingsView: View {
     }
 }
 
-/// Horizontal meter from −80 to 0 dBFS with ticks at the noise floor (white) and the start threshold (orange).
+/// Horizontal meter from −80 to 0 dBFS with ticks at the noise floor (the primary colour) and the start threshold (orange).
 struct LevelMeterView: View {
     let level: Double?
     let noiseFloor: Double?
@@ -81,7 +81,7 @@ struct LevelMeterView: View {
                         .frame(width: geometry.size.width * Self.fraction(level))
                     if let noiseFloor {
                         Rectangle()
-                            .fill(.white)
+                            .fill(.primary)
                             .frame(width: 2)
                             .offset(x: geometry.size.width * Self.fraction(noiseFloor))
                     }
