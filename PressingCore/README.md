@@ -25,8 +25,10 @@ swift test --package-path PressingCore
   | `LastFmHTTP`, `WebAuth`, `Keychain` | Last.fm calls, sign-in and the stored session |
   | `Store` | Settings, History and the scrobble queue |
   | `Scheduler` | Time and timers |
+  | `MenuServer` | Pressing Menus connected over the network: snapshots out, commands in |
 
-- **Protocol logic lives here, not in the adapters.** That covers the SOAP envelopes, ICY stream framing, Last.fm request signing, detection and resampling. The adapters only move bytes and call system APIs, so the logic is tested.
+- **`PressingMenuCore`** is a second library product: Pressing Menu's model (`PressingMenu`), for the Mac app. It reaches the phone only through its `MenuLink` port, and shares the wire types (`MenuSnapshot`, `MenuWire`) with the core. Like the core, it imports only Foundation and Observation. See ADR-0004.
+- **Protocol logic lives here, not in the adapters.** That covers the SOAP envelopes, ICY stream framing, Last.fm request signing, detection, resampling and Pressing Menu's wire contract. The adapters only move bytes and call system APIs, so the logic is tested.
 
 ## Tests
 
@@ -34,7 +36,8 @@ Tests use Swift Testing and drive `Pressing` through its public interface only. 
 - seconds of signal fed through `FakeAudioInput`, with time moved by `FakeScheduler`;
 - the requests a fake Sonos household receives;
 - the bytes a stream client reads;
-- the published state and stored Plays.
+- the published state and stored Plays;
+- what a Pressing Menu shows, joined to a real `Pressing` by an in-memory link (`FakeMenuLink`, `World.pressingMenu()`).
 
 The fakes live in `Tests/PressingCoreTests/Fakes`. `FakeSonos` models the parts of real Sonos behaviour that matter to Pressing: groups, members refusing playback commands with error 800, and members always reporting PLAYING.
 
