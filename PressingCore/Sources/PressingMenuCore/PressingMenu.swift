@@ -69,7 +69,14 @@ public final class PressingMenu {
     /// The Sonos Rooms Pressing has found, by name, as the phone's Rooms
     /// sheet lists them. Kept, greyed, while the phone can't be reached.
     public var rooms: [MenuSnapshot.Room] {
-        snapshot?.rooms ?? []
+        (snapshot?.rooms ?? []).map { room in
+            // A slider being dragged shows where it is, not the phone's last
+            // answer, which can lag behind while volumes are held back.
+            guard let volume = draggedVolumes[room.id] else { return room }
+            var dragged = room
+            dragged.volume = volume
+            return dragged
+        }
     }
 
     /// This iPhone, the Phone output. Nil before the first snapshot, or from
@@ -102,8 +109,40 @@ public final class PressingMenu {
         send(.switchRoom(id: id, on: on))
     }
 
-    /// Sets a Room's volume on the phone, 0 to 100.
+    /// Sets a Room's volume on the phone, 0 to 100: a click, or the end of
+    /// a drag. Sent at once.
     public func setVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        volumeTimers.removeValue(forKey: id)?.cancel()
+        draggedVolumes[id] = nil
+        sendVolume(volume, for: id)
+    }
+
+    /// A Room's volume slider moved while being dragged. The phone hears at
+    /// most one volume per `volumeInterval`, the latest each time, so the
+    /// Room follows the drag without flooding the phone. Call `setVolume`
+    /// on release.
+    public func dragVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        guard canControl else { return }
+        draggedVolumes[id] = volume
+        guard volumeTimers[id] == nil else { return }
+        let elapsed = lastVolumeSent[id].map { scheduler.now.timeIntervalSince($0) } ?? .infinity
+        if elapsed >= Self.volumeInterval {
+            sendVolume(volume, for: id)
+            return
+        }
+        volumeTimers[id] = scheduler.schedule(after: Self.volumeInterval - elapsed) { [weak self] in
+            guard let self else { return }
+            volumeTimers[id] = nil
+            if let latest = draggedVolumes[id] { sendVolume(latest, for: id) }
+        }
+    }
+
+    /// The shortest time between two volumes sent while a slider is dragged:
+    /// about 10 a second.
+    public static let volumeInterval: TimeInterval = 0.1
+
+    private func sendVolume(_ volume: Int, for id: MenuSnapshot.Room.ID) {
+        lastVolumeSent[id] = scheduler.now
         send(.setVolume(id: id, volume: volume))
     }
 
@@ -124,6 +163,10 @@ public final class PressingMenu {
         return record != .flipped
     }
 
+    /// Volumes of sliders being dragged, by Room.
+    private var draggedVolumes: [MenuSnapshot.Room.ID: Int] = [:]
+    @ObservationIgnored private var lastVolumeSent: [MenuSnapshot.Room.ID: Date] = [:]
+    @ObservationIgnored private var volumeTimers: [MenuSnapshot.Room.ID: any ScheduledWork] = [:]
     @ObservationIgnored private let link: any MenuLink
     @ObservationIgnored private let scheduler: any Scheduler
     @ObservationIgnored private var lookingTimer: (any ScheduledWork)?

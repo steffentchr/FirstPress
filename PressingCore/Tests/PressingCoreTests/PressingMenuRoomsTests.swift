@@ -160,6 +160,62 @@ struct PressingMenuRoomsTests {
         #expect(menu.roomsSummary == "No Rooms")
     }
 
+    @Test("While the iPhone can't be reached, the Rooms stay on screen and the controls are disabled")
+    func controlsDisabledWhileUnreachable() async {
+        let (world, menu, link) = await session()
+        #expect(menu.canControl)
+
+        link.drop()
+
+        #expect(!menu.canControl)
+        #expect(menu.room(FakeRoom.kitchen.uuid)?.isOn == true)
+        #expect(menu.roomsSummary == "Kitchen")
+
+        world.scheduler.advance(by: 1)
+        #expect(menu.canControl)
+    }
+
+    @Test("A Pressing Menu that needs an update sends the phone nothing")
+    func needsUpdateSendsNothing() async {
+        let (world, menu, link) = await session()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 2}"#)
+        menu.switchRoom(FakeRoom.livingRoom.uuid, on: true)
+        menu.switchPhoneOutput(on: true)
+        await settle()
+
+        #expect(!menu.canControl)
+        #expect(world.menuServer.received.isEmpty)
+        #expect(world.room(.livingRoom)?.isOn == false)
+        #expect(!world.pressing.state.phoneOutput.isOn)
+    }
+
+    @Test("Dragging a volume slider sends at most 10 volumes a second, the latest each time, plus the final one on release")
+    func volumeDrag() async {
+        let (world, menu, _) = await session()
+
+        // A drag from 31 to 60 over 0.58 s, a step every 20 ms.
+        for volume in 31...60 {
+            menu.dragVolume(volume, for: FakeRoom.kitchen.uuid)
+            #expect(menu.room(FakeRoom.kitchen.uuid)?.volume == volume)
+            world.scheduler.advance(by: 0.02)
+        }
+        let duringDrag = world.menuServer.received.count
+        menu.setVolume(60, for: FakeRoom.kitchen.uuid)
+        world.scheduler.advance(by: 1)
+        await settle()
+
+        let sent = world.menuServer.received.compactMap(MenuWire.decodeCommand)
+        // 0.6 s of dragging: at most 7, one every 0.1 s.
+        #expect(duringDrag >= 5 && duringDrag <= 7)
+        #expect(sent.first == .setVolume(id: FakeRoom.kitchen.uuid, volume: 31))
+        #expect(sent.last == .setVolume(id: FakeRoom.kitchen.uuid, volume: 60))
+        #expect(sent.count == duringDrag + 1)
+        #expect(world.room(.kitchen)?.volume == 60)
+        #expect(world.sonos.volume(of: .kitchen) == 60)
+        #expect(menu.room(FakeRoom.kitchen.uuid)?.volume == 60)
+    }
+
     @Test("A command for a Room the phone doesn't know is ignored")
     func unknownRoomIgnored() async {
         let (world, menu, link) = await session()
