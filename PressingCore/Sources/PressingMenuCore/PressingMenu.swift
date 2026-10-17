@@ -35,6 +35,10 @@ public final class PressingMenu {
         case waitingForRecord
         /// A Record is playing and no Track is identified yet.
         case recordNotIdentified
+        /// The last Record ended with a Flip and the Session still runs:
+        /// "Between sides", with the Session's last Track small beneath, if
+        /// one was identified. Kept, greyed, while the phone can't be reached.
+        case betweenSides(lastTrack: Track?)
         /// The phone is newer than this Pressing Menu can follow.
         case updatePressingMenu
     }
@@ -60,6 +64,9 @@ public final class PressingMenu {
             return connection == .cantBeReached ? .cantBeReached : .lookingForPressing
         }
         if let track = snapshot.track { return .track(track) }
+        if snapshot.page == .nowPlaying, snapshot.record == .flipped {
+            return .betweenSides(lastTrack: snapshot.lastTrack)
+        }
         if connection == .cantBeReached { return .cantBeReached }
         switch (snapshot.page, snapshot.record) {
         case (.nowPlaying, .playing), (.nowPlaying, .gap): return .recordNotIdentified

@@ -78,6 +78,9 @@ private struct HeaderView: View {
             message("Waiting for a Record")
         case .recordNotIdentified:
             message("A Record is playing", detail: "Not identified yet")
+        case .betweenSides(let lastTrack):
+            // The last Track's title kept small beneath, if there was one.
+            message("Between sides", detail: lastTrack?.title)
         case .updatePressingMenu:
             message("Update Pressing Menu", detail: "Pressing on the iPhone is newer than this Pressing Menu.")
         }

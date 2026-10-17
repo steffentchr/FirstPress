@@ -32,7 +32,7 @@ struct PressingMenuTests {
         #expect(menu.header == .waitingForRecord)
     }
 
-    @Test("A Record playing that isn't identified yet says so, and after its Flip Pressing is waiting again")
+    @Test("A Record playing that isn't identified yet says so, and after its Flip no Record is playing")
     func recordNotIdentified() async {
         let world = World()
         let (menu, _) = world.pressingMenu()
@@ -44,8 +44,73 @@ struct PressingMenuTests {
 
         world.silence(seconds: 15)
         await settle()
-        #expect(menu.header == .waitingForRecord)
+        #expect(menu.header == .betweenSides(lastTrack: nil))
         #expect(!menu.isRecordPlaying)
+    }
+
+    @Test("After a Flip the header says Between sides, with the last Track beneath, until the next Record starts")
+    func betweenSides() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        world.silence(seconds: 15)
+        await settle()
+        #expect(world.pressing.state.session == .running(records: 1, record: .flipped))
+        #expect(menu.header == .betweenSides(lastTrack: .ballad))
+
+        world.music(seconds: 5)
+        await settle()
+        #expect(menu.header == .recordNotIdentified)
+    }
+
+    @Test("Between sides ends with the Session: then Pressing is waiting for a Record")
+    func betweenSidesUntilSessionEnds() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: .ballad))
+
+        world.silence(seconds: 40)
+        await settle()
+        #expect(world.pressing.state.session == .idle)
+        #expect(menu.header == .waitingForRecord)
+    }
+
+    @Test("Between sides names no Track when none was identified in the Session, not even one from an earlier Session")
+    func betweenSidesWithoutTrack() async {
+        let world = World()
+        let (menu, _) = world.pressingMenu()
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 60)
+        await settle()
+        #expect(world.pressing.state.session == .idle)
+
+        world.recognizer.answers = []
+        world.music(seconds: 12)
+        await settle()
+        world.silence(seconds: 15)
+        await settle()
+        #expect(menu.header == .betweenSides(lastTrack: nil))
+    }
+
+    @Test("A phone that doesn't send the last Track still shows Between sides after a Flip")
+    func betweenSidesFromOlderPhone() {
+        let world = World()
+        let (menu, link) = world.pressingMenu()
+
+        link.deliver(json: #"{"type": "snapshot", "major": 1, "page": "nowPlaying", "record": "flipped", "recentPlays": []}"#)
+
+        #expect(menu.header == .betweenSides(lastTrack: nil))
     }
 
     @Test("The phone's input pages show as waiting for a Record")

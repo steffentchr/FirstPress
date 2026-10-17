@@ -64,7 +64,8 @@ extension Pressing {
             rooms: state.rooms.map {
                 MenuSnapshot.Room(id: $0.id, name: $0.name, isOn: $0.isOn, volume: $0.volume, isReachable: $0.isReachable, isSteppedBack: $0.isSteppedBack)
             },
-            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route)
+            phoneOutput: MenuSnapshot.PhoneOutput(isOn: state.phoneOutput.isOn, route: state.phoneOutput.route),
+            lastTrack: record == .flipped ? sessionLastTrack : nil
         )
     }
 

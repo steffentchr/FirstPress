@@ -100,9 +100,15 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
     public var rooms: [Room]
     /// This iPhone. Added with the Rooms: nil from an older phone.
     public var phoneOutput: PhoneOutput?
+    /// Between sides, the Record flipped and the Session still running: the
+    /// last Track identified in this Session, nil if none was. Nil at any
+    /// other time. Added to version 1 after its first release: nil from an
+    /// older phone.
+    public var lastTrack: Track?
 
-    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = [], rooms: [Room] = [], phoneOutput: PhoneOutput? = nil) {
+    public init(major: Int = MenuSnapshot.currentMajor, page: Page, record: Record? = nil, track: Track? = nil, recentPlays: [Play] = [], rooms: [Room] = [], phoneOutput: PhoneOutput? = nil, lastTrack: Track? = nil) {
         self.phoneOutput = phoneOutput
+        self.lastTrack = lastTrack
         self.major = major
         self.page = page
         self.record = record
@@ -120,6 +126,7 @@ public struct MenuSnapshot: Sendable, Equatable, Codable {
         recentPlays = try container.decodeIfPresent([Play].self, forKey: .recentPlays) ?? []
         rooms = try container.decodeIfPresent([Room].self, forKey: .rooms) ?? []
         phoneOutput = try container.decodeIfPresent(PhoneOutput.self, forKey: .phoneOutput)
+        lastTrack = try container.decodeIfPresent(Track.self, forKey: .lastTrack)
     }
 }
 
