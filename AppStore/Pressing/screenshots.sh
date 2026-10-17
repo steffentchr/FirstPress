@@ -1,16 +1,16 @@
 #!/bin/zsh
 # Shoots Pressing's App Store screenshots in the simulator and frames them.
 #
-#   AppStore/screenshots.sh               shoot every scene in demo.json, then frame
-#   AppStore/screenshots.sh --frame-only  re-frame the raw shots (after editing captions)
+#   AppStore/Pressing/screenshots.sh               shoot every scene in demo.json, then frame
+#   AppStore/Pressing/screenshots.sh --frame-only  re-frame the raw shots (after editing captions)
 #
 # It applies Hook/hook.patch and copies Hook/ScreenshotDemo.swift into the app
 # for one build, and reverts both on exit, so the app source stays clean.
-# Needs Xcode, xcodegen, rsvg-convert and ImageMagick (see README.md › Artwork).
+# Needs Xcode, xcodegen, rsvg-convert and ImageMagick (see the root README.md › Artwork).
 set -euo pipefail
 
-ROOT=${0:A:h:h}
-HERE=$ROOT/AppStore
+HERE=${0:A:h}
+ROOT=${HERE:h:h}
 SIM=${SIM:-"iPhone 17 Pro Max"}   # 6.9" display: 1320 x 2868, the size App Store Connect requires
 RAW=$HERE/Screenshots/raw
 OUT=$HERE/Screenshots/6.9-inch

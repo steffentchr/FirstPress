@@ -1,6 +1,6 @@
-# App Store
+# App Store: Pressing
 
-Everything for Pressing's App Store listing: screenshots, the sample music in them, the store text, the review notes and the privacy policy. Edit the sources here and regenerate; nothing is made by hand.
+Everything for the iPhone app's App Store listing: screenshots, the sample music in them, the store text and the review notes. The privacy policy is shared with Pressing Menu and sits one level up, in [`../privacy-policy.md`](../privacy-policy.md). Edit the sources here and regenerate; nothing is made by hand.
 
 | Path | What it is |
 |---|---|
@@ -13,17 +13,16 @@ Everything for Pressing's App Store listing: screenshots, the sample music in th
 | `Metadata/en-US/` | The store text, one field per file, in fastlane `deliver`'s layout. |
 | `listing.md` | Promotional Text, Description and Keywords from `Metadata/en-US/`, ready to paste into App Store Connect. |
 | `review-notes.md` | The notes for App Review. |
-| `privacy-policy.md` | The privacy policy the store listing links to. |
 
 ## Regenerate the screenshots
 
 ```sh
-AppStore/screenshots.sh               # shoot every scene, then frame
-AppStore/screenshots.sh --frame-only  # re-frame only, after editing captions
-SIM="iPhone 18 Pro Max" AppStore/screenshots.sh   # another 6.9" simulator
+AppStore/Pressing/screenshots.sh               # shoot every scene, then frame
+AppStore/Pressing/screenshots.sh --frame-only  # re-frame only, after editing captions
+SIM="iPhone 18 Pro Max" AppStore/Pressing/screenshots.sh   # another 6.9" simulator
 ```
 
-A full run takes about three minutes. It refuses to start if the files the patch edits have uncommitted changes, and it reverts them on exit, even after an error. If the app's code moves and `hook.patch` no longer applies, redo the edits by hand (they're short; see the patch) and save the new diff over it with `git diff -- <files> > AppStore/Hook/hook.patch`.
+A full run takes about three minutes. It refuses to start if the files the patch edits have uncommitted changes, and it reverts them on exit, even after an error. If the app's code moves and `hook.patch` no longer applies, redo the edits by hand (they're short; see the patch) and save the new diff over it with `git diff -- <files> > AppStore/Pressing/Hook/hook.patch`.
 
 Scenes, by the `scene` name in `demo.json`:
 
@@ -79,6 +78,6 @@ Keep it to nods. A real band name, a full real title or anything traced from a r
 4. **Licence for Pressing's own code.** The root README says none is chosen yet.
 5. **Last.fm API terms.** Read them for an app sold or distributed publicly, and check that the bundled API key is one you're allowed to ship.
 6. **The name.** "Pressing" must be free on the App Store. If it's taken, "Pressing: Vinyl to Sonos" fits in 30 characters.
-7. **Privacy policy URL.** `Metadata/en-US/privacy_url.txt` points at `privacy-policy.md` on GitHub, which works because the repo is public. A GitHub Pages URL would look tidier.
+7. **Privacy policy URL.** `Metadata/en-US/privacy_url.txt` points at `AppStore/privacy-policy.md` on GitHub, which works because the repo is public. Pressing Menu's listing and its Settings link to the same file, so if it moves, change all three. A GitHub Pages URL would look tidier.
 8. **The review video.** `review-notes.md` asks for a link to a short video of Pressing with a deck and Sonos.
 9. **The root README** still says Pressing isn't on the App Store.
