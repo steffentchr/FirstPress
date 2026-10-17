@@ -3,9 +3,9 @@ import SwiftUI
 import PressingCore
 import PressingMenuCore
 
-/// The panel, in the reference look: the current Track's title large and
-/// bold with the artist lighter beneath and the album, once known, quieter
-/// still, then a divider and History as a numbered list. While no phone
+/// The panel, in the reference look: the current Track's cover on the
+/// left, its title large and bold with the artist lighter beneath and the
+/// album, once known, quieter still, then a divider and History as a numbered list. While no phone
 /// is connected it says, small, that it's looking for Pressing; after a
 /// drop-out the last Track and History stay on screen, greyed, with that
 /// line beneath the Track. The footer is never greyed. Its Rooms summary
@@ -70,21 +70,24 @@ private struct HeaderView: View {
     var body: some View {
         switch header {
         case .track(let track):
-            VStack(alignment: .leading, spacing: 4) {
-                Text(track.title)
-                    .font(.system(size: 26, weight: .bold))
-                    .lineLimit(2)
-                Text(track.artist)
-                    .font(.system(size: 17))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                // The album often arrives a moment later, from Last.fm: its
-                // line appears beneath without moving the title or artist.
-                if let album = track.album, !album.isEmpty {
-                    Text(album)
-                        .font(.system(size: 14))
-                        .foregroundStyle(.tertiary)
+            HStack(alignment: .top, spacing: 12) {
+                CoverView(url: track.artworkURL)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(track.title)
+                        .font(.system(size: 26, weight: .bold))
+                        .lineLimit(2)
+                    Text(track.artist)
+                        .font(.system(size: 17))
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
+                    // The album often arrives a moment later, from Last.fm: its
+                    // line appears beneath without moving the title or artist.
+                    if let album = track.album, !album.isEmpty {
+                        Text(album)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
                 }
             }
             .findsOnClick(track)
@@ -113,6 +116,24 @@ private struct HeaderView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The current Track's cover, square with rounded corners as on the
+/// phone. A neutral square of the same size stands in while it loads, or
+/// when there is none, so nothing moves when it arrives.
+private struct CoverView: View {
+    let url: URL?
+
+    var body: some View {
+        AsyncImage(url: url) { image in
+            image.resizable().aspectRatio(contentMode: .fill)
+        } placeholder: {
+            Rectangle().fill(.quaternary)
+        }
+        .frame(width: 76, height: 76)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityHidden(true)
     }
 }
 

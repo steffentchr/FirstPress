@@ -1,6 +1,6 @@
-// App Store screenshot hook. AppStore/screenshots.sh copies this into
+// App Store screenshot hook. AppStore/Pressing/screenshots.sh copies this into
 // App/Sources for one run and removes it again; it is never committed there.
-// It wires Pressing to the test fakes and plays AppStore/demo.json.
+// It wires Pressing to the test fakes and plays AppStore/Pressing/demo.json.
 import Foundation
 import PressingCore
 
@@ -88,5 +88,5 @@ private final class SilentMenuServer: MenuServer {
     func setEventHandler(_ handler: @escaping @MainActor (MenuServerEvent) -> Void) {}
     func start() {}
     func stop() {}
-    func send(_ message: Data, to client: MenuClientID) {}
+    func send(_ message: Data, to connection: MenuConnectionID) {}
 }

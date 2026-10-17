@@ -164,11 +164,11 @@ The defaults are a start threshold of −50 dBFS, a 1.5 s start delay, a 12 s Fl
 
 **Pressing Menu** is a menu-bar app for a Mac (macOS 26 or later) on the same network as the phone. It shows what Pressing is playing without getting up. It finds Pressing on the iPhone by itself over Bonjour and talks to it over a WebSocket, with no pairing ([ADR 0004](docs/adr/0004-pressing-menu-link.md)). The iPhone stays in charge: Pressing Menu only shows Pressing's state and sends the same intents as the phone's own controls. Pressing must be running on the phone, in front or in kiosk mode.
 
-- **The menu-bar icon** is a stylised record. It's dashed while no phone is connected, and fills in while a Record plays. Click it to open the panel.
-- **The panel** shows the current Track large, with the artist beneath and the album once Last.fm names it, or what Pressing is doing, with the last 10 Tracks below. After a Flip it says "Between sides", with the last Track's title beneath, until the next Record starts or the Session ends. While no phone is connected, it says only "Looking for Pressing on your iPhone…", small. If the link drops, the last Track and History stay on screen, greyed, with that line beneath the Track, while Pressing Menu keeps reconnecting.
+- **The menu-bar icon** is a stylised record: a circle around a solid label. It gains a thin groove ring while a Record plays, and is dimmed while no phone is connected. Click it to open the panel.
+- **The panel** shows the current Track large, with its cover on the left and the artist beneath and the album once Last.fm names it, or what Pressing is doing, with the last 10 Tracks below. After a Flip it says "Between sides", with the last Track's title beneath, until the next Record starts or the Session ends. While no phone is connected, it says only "Looking for Pressing on your iPhone…", small. If the link drops, the last Track and History stay on screen, greyed, with that line beneath the Track, while Pressing Menu keeps reconnecting.
 - **Click a Track** in the panel, in the header or in History, to search for it in Spotify or Apple Music, whichever Settings names. There is no menu.
-- **Notifications** announce each new Track identified while connected, with its cover. Clicking one opens the panel. There's none for the Track already playing when Pressing Menu connects, and none while the panel is open.
-- **The footer:** the power button quits Pressing Menu and leaves Pressing on the phone alone. The gear opens Settings: Appearance, Launch at login, Notify on new Track, and Find songs in. Both stay usable while no phone is connected. On the right, while a phone is connected, the Rooms summary shows where Pressing plays, and opens the Rooms view in place of History: This iPhone and every Sonos Room, ticked on or off at once, with a volume slider for each Room that's on.
+- **Notifications** announce each new Track identified while connected, with its cover. Each replaces the one before and clears itself after about 8 seconds. When a side runs out during a Session, a "Flip the record" notification names the Record's last Track and stays until you dismiss it or the next Record starts; it stays when the Session ends by itself. Clicking one opens the panel. There's none for a Track or a Flip already under way when Pressing Menu connects, and none while the panel is open. Pressing Menu asks for the Alerts style so "Flip the record" stays on screen; macOS applies that only to new installs, so on an existing install switch Pressing Menu to Alerts in System Settings › Notifications.
+- **The footer:** the power button quits Pressing Menu and leaves Pressing on the phone alone. The gear opens Settings: Appearance, Launch at login, Notifications, and Find songs in. Both stay usable while no phone is connected. On the right, while a phone is connected, the Rooms summary shows where Pressing plays, and opens the Rooms view in place of History: This iPhone and every Sonos Room, ticked on or off at once, with a volume slider for each Room that's on.
 
 ## Artwork
 
@@ -204,9 +204,8 @@ Pressing Menu's artwork has its own sources, rendered into `Menu/Resources/Asset
 | Source | Used as |
 |---|---|
 | [`Design/MenuAppIcon.svg`](Design/MenuAppIcon.svg) | Pressing Menu's Mac app icon: the app icon inside the macOS icon grid, an 824 × 824 rounded square on a transparent 1024 canvas. It's derived from `AppIcon.svg`; the comment in it says how. |
-| [`Design/MenuBarIcon.svg`](Design/MenuBarIcon.svg) | The menu-bar icon while connected: a stylised record (rim, one groove, label and spindle hole) as an 18 pt template image, black on transparent, which macOS tints. No brush. |
-| [`Design/MenuBarIconPlaying.svg`](Design/MenuBarIconPlaying.svg) | The menu-bar icon while a Record plays: the record filled in. |
-| [`Design/MenuBarIconUnreachable.svg`](Design/MenuBarIconUnreachable.svg) | The menu-bar icon while no phone is connected: the rim dashed and the label hollow. |
+| [`Design/MenuBarIcon.svg`](Design/MenuBarIcon.svg) | The menu-bar icon: a stylised record (a one-line circle around a solid label about 40% of its diameter) as an 18 pt template image, black on transparent, which macOS tints. No grooves, no brush. While no phone is connected, Pressing Menu shows it dimmed. |
+| [`Design/MenuBarIconPlaying.svg`](Design/MenuBarIconPlaying.svg) | The menu-bar icon while a Record plays: the same, with one thin groove ring between the label and the edge. |
 
 Mac icons keep their transparency. Re-render all of them with:
 
@@ -287,7 +286,7 @@ Pressing Menu ships on the Mac App Store, apart from the iPhone app. The two can
 1. Create the App Store Connect record for Pressing Menu, or add a macOS platform to the existing app, under the TwentyThree team. The name is **Pressing Menu** and the subtitle is **Remote control for Mac**. Register its bundle ID, the iPhone app's with `.menu` appended.
 2. Write and host the privacy policy, and set its URL in App Store Connect. The About footer in Settings links to [`AppStore/privacy-policy.md`](AppStore/privacy-policy.md), which covers both the iPhone app and Pressing Menu. Change `SettingsView.privacyURL` if the policy moves.
 3. In Xcode, archive with signing (Product › Archive, scheme PressingMenu), then **Validate App** and **Distribute App** › App Store Connect from the Organizer.
-4. Add the Mac screenshots and store text, and submit for review.
+4. Add the Mac screenshots and store text from [`AppStore/PressingMenu/`](AppStore/PressingMenu), and submit for review. Its README lists the store fields that aren't in files and the decisions left before submitting.
 
 ## Credits and notices
 

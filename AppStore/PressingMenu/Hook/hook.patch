@@ -1,0 +1,37 @@
+diff --git a/Menu/Sources/PanelView.swift b/Menu/Sources/PanelView.swift
+index f18cf73..be3ff9e 100644
+--- a/Menu/Sources/PanelView.swift
++++ b/Menu/Sources/PanelView.swift
+@@ -12,7 +12,7 @@ import PressingMenuCore
+ /// swaps the Rooms view in place of History.
+ struct PanelView: View {
+     let menu: PressingMenu
+-    @State private var showsRooms = false
++    @State private var showsRooms = ScreenshotDemo.showsRooms
+ 
+     var body: some View {
+         VStack(alignment: .leading, spacing: 0) {
+diff --git a/Menu/Sources/PressingMenuApp.swift b/Menu/Sources/PressingMenuApp.swift
+index 400fdbd..2b07610 100644
+--- a/Menu/Sources/PressingMenuApp.swift
++++ b/Menu/Sources/PressingMenuApp.swift
+@@ -14,16 +14,17 @@ struct PressingMenuApp: App {
+ 
+     init() {
+         let notifications = UserNotifications()
+-        let menu = PressingMenu(link: BonjourMenuLink(), scheduler: MainQueueScheduler(), notifier: notifications)
++        let menu = PressingMenu(link: ScreenshotDemo.link ?? BonjourMenuLink(), scheduler: MainQueueScheduler(), notifier: notifications)
+         let settings = MenuSettings(menu: menu)
+         notifications.onOpen = { PanelWindow.open() }
+         notifications.onDeniedChange = { menu.notificationsAreDenied = $0 }
+         // Asked at first launch; macOS only shows the prompt once.
+-        notifications.requestPermission()
++        if ScreenshotDemo.output == nil { notifications.requestPermission() }
+         menu.start()
+         _menu = State(initialValue: menu)
+         _settings = State(initialValue: settings)
+         _notifications = State(initialValue: notifications)
++        ScreenshotDemo.start(menu: menu, settings: settings, loginItem: LoginItem(), notifications: notifications)
+     }
+ 
+     var body: some Scene {

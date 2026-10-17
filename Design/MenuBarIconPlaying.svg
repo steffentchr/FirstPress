@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-<!-- Pressing Menu's menu-bar icon while a Record plays: MenuBarIcon.svg's
-     record filled in, its groove, label edge and spindle hole cut out. -->
-<defs>
-  <mask id="cut">
-    <rect width="18" height="18" fill="#fff"/>
-    <circle cx="9" cy="9" r="4.9" fill="none" stroke="#000" stroke-width="0.7"/>
-    <circle cx="9" cy="9" r="3.05" fill="none" stroke="#000" stroke-width="0.9"/>
-    <circle cx="9" cy="9" r="0.85" fill="#000"/>
-  </mask>
-</defs>
-<circle cx="9" cy="9" r="8" fill="#000" mask="url(#cut)"/>
+<!-- Pressing Menu's menu-bar icon while a Record plays: MenuBarIcon.svg with
+     one thin groove ring between the label and the edge. -->
+<circle cx="9" cy="9" r="7.6" fill="none" stroke="#000" stroke-width="1.1"/>
+<circle cx="9" cy="9" r="5.35" fill="none" stroke="#000" stroke-width="0.7"/>
+<circle cx="9" cy="9" r="3.25" fill="#000"/>
 </svg>
