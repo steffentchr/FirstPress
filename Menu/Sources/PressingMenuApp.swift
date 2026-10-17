@@ -17,6 +17,7 @@ struct PressingMenuApp: App {
         let menu = PressingMenu(link: BonjourMenuLink(), scheduler: MainQueueScheduler(), notifier: notifications)
         let settings = MenuSettings(menu: menu)
         notifications.onOpen = { PanelWindow.open() }
+        notifications.onDeniedChange = { menu.notificationsAreDenied = $0 }
         // Asked at first launch; macOS only shows the prompt once.
         notifications.requestPermission()
         menu.start()
@@ -35,7 +36,7 @@ struct PressingMenuApp: App {
         .menuBarExtraStyle(.window)
 
         Window("Pressing Menu Settings", id: SettingsView.windowID) {
-            SettingsView(settings: settings, loginItem: loginItem, notifications: notifications)
+            SettingsView(menu: menu, settings: settings, loginItem: loginItem, notifications: notifications)
         }
         .windowResizability(.contentSize)
         .defaultLaunchBehavior(.suppressed)

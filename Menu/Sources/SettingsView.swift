@@ -6,6 +6,7 @@ import PressingMenuCore
 /// title and a one-line explanation on the left and its control on the
 /// right, then an About footer.
 struct SettingsView: View {
+    let menu: PressingMenu
     @Bindable var settings: MenuSettings
     let loginItem: LoginItem
     let notifications: UserNotifications
@@ -47,16 +48,17 @@ struct SettingsView: View {
                                 .buttonStyle(.link)
                         }
                     }
-                    SettingsRow("Notify on new Track", detail: notifications.isDenied ? nil : "A notification for each new Track identified.") {
+                    // Shown as the model decides: off while macOS denies them.
+                    SettingsRow("Notify on new Track", detail: menu.notificationsAreDenied ? nil : "A notification for each new Track identified.") {
                         Toggle("Notify on new Track", isOn: Binding(
-                            get: { settings.notifiesOnNewTrack && !notifications.isDenied },
+                            get: { menu.postsNotifications },
                             set: { settings.notifiesOnNewTrack = $0 }
                         ))
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .disabled(notifications.isDenied)
+                        .disabled(menu.notificationsAreDenied)
                     } link: {
-                        if notifications.isDenied {
+                        if menu.notificationsAreDenied {
                             Link("Allow in System Settings", destination: notifications.systemSettingsURL)
                         }
                     }

@@ -111,6 +111,30 @@ struct PressingMenuNotificationTests {
         #expect(notifier.notified.isEmpty)
     }
 
+    @Test("While macOS denies Pressing Menu notifications, none is asked for and Notify on new Track shows off, until they're allowed")
+    func notWhileDeniedByMacOS() async {
+        let world = World()
+        let (menu, _, notifier) = world.notifyingPressingMenu()
+        #expect(menu.postsNotifications)
+
+        menu.notificationsAreDenied = true
+        #expect(menu.notifiesOnNewTrack)
+        #expect(!menu.postsNotifications)
+        world.recognizer.answers = [.match(.ballad, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(menu.header == .track(.ballad))
+        #expect(notifier.notified.isEmpty)
+
+        menu.notificationsAreDenied = false
+        #expect(menu.postsNotifications)
+        world.silence(seconds: 15)
+        world.recognizer.answers = [.match(.rocker, offset: 2)]
+        world.music(seconds: 12)
+        await settle()
+        #expect(notifier.notified == [.rocker])
+    }
+
     @Test("The same Track gaining its album or cover later gets no second notification")
     func detailsArrivingLater() {
         let world = World()

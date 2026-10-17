@@ -54,7 +54,16 @@ public final class PressingMenu {
     @ObservationIgnored public var isPanelOpen = false
     /// The "Notify on new Track" setting, on by default. Pressing Menu keeps
     /// it in its user defaults and sets it here.
-    @ObservationIgnored public var notifiesOnNewTrack = true
+    public var notifiesOnNewTrack = true
+    /// The listener turned notifications off for Pressing Menu in System
+    /// Settings. The notifications adapter reads it from macOS and sets it
+    /// here.
+    public var notificationsAreDenied = false
+    /// New Tracks get a notification: the setting is on and macOS allows
+    /// them. Settings shows the switch this way.
+    public var postsNotifications: Bool {
+        notifiesOnNewTrack && !notificationsAreDenied
+    }
     /// The last snapshot from the phone, kept while it can't be reached.
     private var snapshot: MenuSnapshot?
 
@@ -245,7 +254,7 @@ public final class PressingMenu {
         defer { awaitingFirstSnapshot = false }
         // The same Track, even once its album or cover is filled in.
         guard !awaitingFirstSnapshot, let track, snapshot?.track.map(track.isSame) != true else { return }
-        guard notifiesOnNewTrack, !isPanelOpen else { return }
+        guard postsNotifications, !isPanelOpen else { return }
         notifier?.notify(newTrack: track)
     }
 
