@@ -271,7 +271,7 @@ Xcode Cloud can build First Press and send it to TestFlight. Because the `.xcode
 First Press Menu ships on the Mac App Store, apart from the iPhone app. The two can be out of step, because the wire contract only ever adds fields ([ADR 0004](docs/adr/0004-first-press-menu-link.md)).
 
 - **Sandbox.** [`Menu/FirstPressMenu.entitlements`](Menu/FirstPressMenu.entitlements) turns on the App Sandbox with outgoing network connections only. [`Menu/Info.plist`](Menu/Info.plist) declares `_firstpress._tcp`, and `project.yml` sets the local network usage description. Launch at login uses `SMAppService`, which works in the sandbox.
-- **Version and build** are `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` under the `FirstPressMenu` target in `project.yml`. Raise the build for every upload.
+- **Version and build:** `MARKETING_VERSION` is under the `FirstPressMenu` target in `project.yml`. The build number, `CURRENT_PROJECT_VERSION`, is one project-wide setting at the top of `project.yml`, shared with First Press so the two apps always carry the same build number. Raise it for every upload of either app.
 - **A local Release archive**, unsigned, checks that it builds:
 
   ```sh
