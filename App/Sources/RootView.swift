@@ -13,6 +13,7 @@ struct RootView: View {
     let audioInput: AVAudioSessionInput
     @State private var showingSettings = false
     @State private var showingRooms = false
+    @State private var windowAppearance = WindowAppearance()
 
     private var page: Page { pressing.state.page }
 
@@ -56,17 +57,25 @@ struct RootView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView(pressing: pressing)
                     .screenBlanker(pressing)
+                    .preferredColorScheme(sheetColorScheme)
             }
             .sheet(isPresented: $showingRooms) {
                 RoomsSheet(pressing: pressing)
                     .screenBlanker(pressing)
+                    .preferredColorScheme(sheetColorScheme)
             }
+            .background { WindowReader { windowAppearance.attach($0) } }
         }
         .screenBlanker(pressing)
         // Kiosk mode: no clock, battery or other status bar, and the home
         // indicator fades away until the screen is touched near it.
         .statusBarHidden(isKiosk)
         .persistentSystemOverlays(isKiosk ? .hidden : .automatic)
+        // The start screen looks the same in every appearance, its status bar
+        // included, so the window is held dark there.
+        .onChange(of: windowColorScheme, initial: true) { _, scheme in
+            windowAppearance.hold(scheme)
+        }
     }
 
     /// A plain button takes only the touches on its glyph; this one takes
@@ -81,7 +90,29 @@ struct RootView: View {
     }
 
     private var isKiosk: Bool { pressing.state.screen.isKiosk }
+    private var appearance: Appearance { pressing.state.screen.appearance }
+    /// Dark on the start screen; the appearance on Now Playing, where nil
+    /// (System) follows iOS.
+    private var windowColorScheme: ColorScheme? {
+        page == .nowPlaying ? appearance.colorScheme : .dark
+    }
+    /// The sheets' appearance. They inherit the window's, which is held dark
+    /// on the start screen, so System is resolved to iOS's own setting.
+    private var sheetColorScheme: ColorScheme {
+        appearance.colorScheme ?? windowAppearance.system
+    }
     private var hidesControls: Bool { pressing.state.hidesControls }
+}
+
+extension Appearance {
+    /// Nil for System, so iOS's own setting applies.
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
+    }
 }
 
 extension View {

@@ -43,7 +43,6 @@ struct PressingApp: App {
                     pressing.start()
                     networkReturn.start { [pressing] in pressing.networkBecameAvailable() }
                 }
-                .preferredColorScheme(.dark)
         }
         .onChange(of: scenePhase) { _, phase in
             // Never come back to a black screen that needs a touch first.

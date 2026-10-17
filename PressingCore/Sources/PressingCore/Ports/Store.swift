@@ -19,6 +19,8 @@ public struct Settings: Sendable, Equatable, Codable {
     /// Kiosk mode: the app takes the whole screen, with no status bar.
     /// Off on a fresh install.
     public var kiosk: Bool
+    /// Light, Dark, or following iOS. Dark on a fresh install.
+    public var appearance: Appearance
 
     public init(
         inputID: AudioInputDevice.ID? = nil,
@@ -27,7 +29,8 @@ public struct Settings: Sendable, Equatable, Codable {
         blankAfter: BlankAfter = .default,
         rooms: [String: RoomChoice] = [:],
         phoneOutput: Bool = false,
-        kiosk: Bool = false
+        kiosk: Bool = false,
+        appearance: Appearance = .default
     ) {
         self.inputID = inputID
         self.inputName = inputName
@@ -36,6 +39,7 @@ public struct Settings: Sendable, Equatable, Codable {
         self.rooms = rooms
         self.phoneOutput = phoneOutput
         self.kiosk = kiosk
+        self.appearance = appearance
     }
 
     // Settings saved before a field existed decode with that field's default.
@@ -48,7 +52,20 @@ public struct Settings: Sendable, Equatable, Codable {
         rooms = try container.decodeIfPresent([String: RoomChoice].self, forKey: .rooms) ?? [:]
         phoneOutput = try container.decodeIfPresent(Bool.self, forKey: .phoneOutput) ?? false
         kiosk = try container.decodeIfPresent(Bool.self, forKey: .kiosk) ?? false
+        appearance = try container.decodeIfPresent(Appearance.self, forKey: .appearance) ?? .default
     }
+}
+
+/// How the app looks outside the start screen and the blank screen, which
+/// look the same in every appearance.
+public enum Appearance: String, Sendable, Hashable, Codable, CaseIterable {
+    /// Follows iOS's Light or Dark setting.
+    case system
+    case light
+    case dark
+
+    /// Dark, the look Pressing had before it could be chosen.
+    public static let `default` = Appearance.dark
 }
 
 /// Whether a Room is switched on in Pressing, and its volume.

@@ -17,6 +17,7 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    AppearanceRow(pressing: pressing)
                     Picker("Blank screen", selection: blankAfter) {
                         ForEach(Self.blankAfterChoices, id: \.self) { choice in
                             Text(Self.label(choice)).tag(choice)
@@ -56,6 +57,45 @@ struct SettingsView: View {
         case .after(let seconds):
             Int(seconds / 60) == 1 ? "After 1 minute of silence" : "After \(Int(seconds / 60)) minutes of silence"
         }
+    }
+}
+
+/// System, Light or Dark, with the icons Pressing Menu uses for the same
+/// choice. The start screen and the blank screen look the same in all three.
+private struct AppearanceRow: View {
+    let pressing: Pressing
+
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Appearance")
+                Text("System follows iOS.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            Picker("Appearance", selection: appearance) {
+                Image(systemName: "circle.lefthalf.filled")
+                    .accessibilityLabel("System")
+                    .tag(Appearance.system)
+                Image(systemName: "sun.max")
+                    .accessibilityLabel("Light")
+                    .tag(Appearance.light)
+                Image(systemName: "moon")
+                    .accessibilityLabel("Dark")
+                    .tag(Appearance.dark)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .fixedSize()
+        }
+    }
+
+    private var appearance: Binding<Appearance> {
+        Binding(
+            get: { pressing.state.screen.appearance },
+            set: { pressing.setAppearance($0) }
+        )
     }
 }
 

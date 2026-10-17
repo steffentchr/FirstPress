@@ -28,6 +28,8 @@ struct WaitingView: View {
         .foregroundStyle(.white)
         .tint(.white)
         .background { StartScreenArtwork() }
+        // The start screen looks the same in every appearance.
+        .environment(\.colorScheme, .dark)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .task(id: chooseInput) {
             // Listing the inputs needs the microphone, so ask here and not before.

@@ -112,6 +112,8 @@ public struct ScreenState: Sendable, Equatable {
     public var blankAfter: BlankAfter
     /// Kiosk mode, as set in Settings: the app takes the whole screen.
     public var isKiosk: Bool
+    /// As set in Settings.
+    public var appearance: Appearance = .default
     /// No touch for a while: in kiosk mode, Now Playing hides its icons.
     public var controlsIdle = false
 
