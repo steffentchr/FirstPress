@@ -8,7 +8,8 @@ import FirstPressMenuCore
 /// album, once known, quieter still, then a divider and History as a numbered list. While no phone
 /// is connected it says, small, that it's looking for First Press; after a
 /// drop-out the last Track and History stay on screen, greyed, with that
-/// line beneath the Track. The footer is never greyed. Its Rooms summary
+/// line beneath the Track. Without local network access it says, as small,
+/// where to allow it instead. The footer is never greyed. Its Rooms summary
 /// swaps the Rooms view in place of History.
 struct PanelView: View {
     let menu: FirstPressMenu
@@ -20,28 +21,35 @@ struct PanelView: View {
                 HeaderView(header: menu.header)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
-                    .padding(.bottom, menu.showsLookingLine ? 8 : 16)
+                    .padding(.bottom, menu.showsLookingLine || menu.showsLocalNetworkLine ? 8 : 16)
+                    .opacity(menu.header == .allowLocalNetwork ? 1 : greyed)
                 if menu.showsLookingLine {
                     LookingText()
                         .padding(.horizontal, 20)
                         .padding(.bottom, 16)
+                        .opacity(greyed)
+                } else if menu.showsLocalNetworkLine {
+                    AllowLocalNetworkText()
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 16)
                 }
-                if showsRooms {
-                    Divider()
-                        .padding(.horizontal, 20)
-                    RoomsView(menu: menu, back: { showsRooms = false })
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
-                } else if !menu.history.isEmpty {
-                    Divider()
-                        .padding(.horizontal, 20)
-                    HistoryList(tracks: menu.history)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
+                Group {
+                    if showsRooms {
+                        Divider()
+                            .padding(.horizontal, 20)
+                        RoomsView(menu: menu, back: { showsRooms = false })
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                    } else if !menu.history.isEmpty {
+                        Divider()
+                            .padding(.horizontal, 20)
+                        HistoryList(tracks: menu.history)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                    }
                 }
+                .opacity(greyed)
             }
-            // Only what the phone sent is greyed, never the footer.
-            .opacity(menu.connection == .connected ? 1 : 0.5)
             Divider()
             FooterView(roomsSummary: menu.roomsSummary, showRooms: { showsRooms.toggle() })
                 .padding(.horizontal, 14)
@@ -51,6 +59,10 @@ struct PanelView: View {
         // No notifications while the panel is open: the Track is in view.
         .background(PanelVisibility { menu.isPanelOpen = $0 })
     }
+
+    /// Only what the phone sent is greyed while it can't be reached: never
+    /// the footer, nor the way to allow First Press Menu on the local network.
+    private var greyed: Double { menu.connection == .connected ? 1 : 0.5 }
 }
 
 /// "Looking for First Press on your iPhone…", small and secondary: the whole
@@ -61,6 +73,27 @@ private struct LookingText: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// macOS hasn't allowed First Press Menu on the local network, so it can't
+/// look for First Press: small, like the looking line, with a link to the
+/// pane in System Settings where it's allowed.
+private struct AllowLocalNetworkText: View {
+    @Environment(\.openURL) private var openURL
+    private static let pane = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocalNetwork")!
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Allow First Press Menu on your local network in System Settings › Privacy & Security › Local Network.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Open Local Network Settings") { openURL(Self.pane) }
+                .buttonStyle(.link)
+                .font(.subheadline)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -95,6 +128,8 @@ private struct HeaderView: View {
             .findsOnClick(track)
         case .lookingForFirstPress:
             LookingText()
+        case .allowLocalNetwork:
+            AllowLocalNetworkText()
         case .waitingForRecord:
             message("Waiting for a Record")
         case .recordNotIdentified:

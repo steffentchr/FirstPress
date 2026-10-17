@@ -23,19 +23,38 @@ final class BonjourMenuLink: MenuLink {
         let browser = NWBrowser(for: .bonjour(type: MenuNetwork.serviceType, domain: nil), using: .tcp)
         browser.browseResultsChangedHandler = { results, _ in
             MainActor.assumeIsolated {
-                guard let first = results.first else { return }
+                guard self.browser === browser, let first = results.first else { return }
                 self.open(first.endpoint)
             }
         }
         browser.stateUpdateHandler = { state in
-            guard case .failed = state else { return }
             MainActor.assumeIsolated {
-                self.stopBrowsing()
-                self.handler?(.disconnected)
+                guard self.browser === browser else { return }
+                switch state {
+                case .waiting(let error) where Self.isLocalNetworkDenied(error):
+                    // The browser waits, and goes on by itself once macOS
+                    // allows First Press Menu on the local network.
+                    self.handler?(.localNetworkDenied)
+                case .failed, .cancelled:
+                    // Never left stuck: First Press Menu's model calls
+                    // connect() again, which starts a new browser.
+                    self.stopBrowsing()
+                    self.handler?(.disconnected)
+                default:
+                    break
+                }
             }
         }
         browser.start(queue: .main)
         self.browser = browser
+    }
+
+    /// Bonjour's answer when macOS hasn't allowed First Press Menu on the
+    /// local network (System Settings › Privacy & Security › Local Network).
+    nonisolated private static func isLocalNetworkDenied(_ error: NWError) -> Bool {
+        guard case .dns(let code) = error else { return false }
+        return code == DNSServiceErrorType(kDNSServiceErr_PolicyDenied)
+            || code == DNSServiceErrorType(kDNSServiceErr_NoAuth)
     }
 
     func send(_ message: Data) {
@@ -44,8 +63,9 @@ final class BonjourMenuLink: MenuLink {
     }
 
     private func stopBrowsing() {
+        let browser = self.browser
+        self.browser = nil
         browser?.cancel()
-        browser = nil
     }
 
     private func open(_ endpoint: NWEndpoint) {
@@ -59,7 +79,12 @@ final class BonjourMenuLink: MenuLink {
                 case .ready:
                     self.handler?(.connected)
                     self.receive(on: connection)
-                case .failed, .cancelled, .waiting:
+                case .waiting(let error):
+                    if Self.isLocalNetworkDenied(error) || connection.currentPath?.unsatisfiedReason == .localNetworkDenied {
+                        self.handler?(.localNetworkDenied)
+                    }
+                    self.drop()
+                case .failed, .cancelled:
                     self.drop()
                 default:
                     break
