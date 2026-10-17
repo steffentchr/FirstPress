@@ -130,6 +130,36 @@ struct PressingMenuRoomsTests {
         #expect(menu.phoneOutput?.whereItPlays == "AirPlay: Kitchen")
     }
 
+    @Test("The Rooms summary names the first switched-on Room and counts the rest, This iPhone included, outside a Session too")
+    func roomsSummary() async {
+        let world = World(sonos: FakeSonos(groups: [[.livingRoom], [.kitchen], [.bathroom]]))
+        world.sonos.discover(.kitchen)
+        await settle()
+        let (menu, _) = world.pressingMenu()
+        #expect(menu.roomsSummary == "No Rooms")
+
+        menu.switchRoom(FakeRoom.livingRoom.uuid, on: true)
+        #expect(menu.roomsSummary == "Living Room")
+
+        menu.switchRoom(FakeRoom.bathroom.uuid, on: true)
+        #expect(menu.roomsSummary == "Bathroom +1")
+
+        menu.switchPhoneOutput(on: true)
+        #expect(menu.roomsSummary == "Bathroom +2")
+
+        menu.switchRoom(FakeRoom.bathroom.uuid, on: false)
+        menu.switchRoom(FakeRoom.livingRoom.uuid, on: false)
+        #expect(menu.roomsSummary == "This iPhone")
+    }
+
+    @Test("Before the first snapshot, the Rooms summary says No Rooms")
+    func roomsSummaryWhileLooking() {
+        let world = World(settings: Settings())
+        let (menu, _) = world.pressingMenu()
+
+        #expect(menu.roomsSummary == "No Rooms")
+    }
+
     @Test("A command for a Room the phone doesn't know is ignored")
     func unknownRoomIgnored() async {
         let (world, menu, link) = await session()

@@ -78,6 +78,17 @@ public final class PressingMenu {
         snapshot?.phoneOutput
     }
 
+    /// Where Pressing plays, as the footer says it: the first switched-on
+    /// Room's name plus "+N" for the others, This iPhone counted, or "No
+    /// Rooms". The Rooms name This iPhone only when no Room is on. Outside a
+    /// Session these are the choices for the next one.
+    public var roomsSummary: String {
+        var names = rooms.filter(\.isOn).map(\.name)
+        if phoneOutput?.isOn == true { names.append("This iPhone") }
+        guard let first = names.first else { return "No Rooms" }
+        return names.count == 1 ? first : "\(first) +\(names.count - 1)"
+    }
+
     public func room(_ id: MenuSnapshot.Room.ID) -> MenuSnapshot.Room? {
         rooms.first { $0.id == id }
     }
