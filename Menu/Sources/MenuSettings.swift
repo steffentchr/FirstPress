@@ -22,11 +22,11 @@ final class MenuSettings {
         }
     }
 
-    /// On by default.
-    var notifiesOnNewTrack: Bool {
+    /// Notifications for new Tracks and Flips. On by default.
+    var notificationsAreOn: Bool {
         didSet {
-            defaults.set(notifiesOnNewTrack, forKey: Keys.notifiesOnNewTrack)
-            menu.notifiesOnNewTrack = notifiesOnNewTrack
+            defaults.set(notificationsAreOn, forKey: Keys.notificationsAreOn)
+            menu.notificationsAreOn = notificationsAreOn
         }
     }
 
@@ -39,7 +39,8 @@ final class MenuSettings {
 
     private enum Keys {
         static let appearance = "appearance"
-        static let notifiesOnNewTrack = "notifiesOnNewTrack"
+        // Stored under its first name, so the choice survives the rename.
+        static let notificationsAreOn = "notifiesOnNewTrack"
         // Stored under its first name, so the choice survives the rename.
         static let findTracksIn = "findSongsIn"
     }
@@ -48,9 +49,9 @@ final class MenuSettings {
         self.menu = menu
         self.defaults = defaults
         appearance = defaults.string(forKey: Keys.appearance).flatMap(Appearance.init) ?? .system
-        notifiesOnNewTrack = defaults.object(forKey: Keys.notifiesOnNewTrack) as? Bool ?? true
+        notificationsAreOn = defaults.object(forKey: Keys.notificationsAreOn) as? Bool ?? true
         findTracksIn = defaults.string(forKey: Keys.findTracksIn).flatMap(TrackSearchService.init) ?? .default
-        menu.notifiesOnNewTrack = notifiesOnNewTrack
+        menu.notificationsAreOn = notificationsAreOn
         applyAppearance()
     }
 

@@ -3,15 +3,22 @@ import AppKit
 import PressingCore
 import PressingMenuCore
 
-/// Production TrackNotifier: posts a Mac notification for each new Track
-/// Pressing Menu's model picks. The title is the heading, the artist (and
-/// the album, if known by then) below, with the cover attached once its
-/// artwork loads. Clicking it opens the panel.
+/// Production MenuNotifier: posts the Mac notifications Pressing Menu's
+/// model picks. Clicking one opens the panel.
+///
+/// - A new Track: the title as the heading, the artist (and the album, if
+///   known by then) below, with the cover attached once its artwork loads.
+///   Each replaces the one before and clears itself after `trackLifetime`,
+///   so they don't pile up on screen.
+/// - A Flip: "Flip the record", with the Record's last Track below. It stays
+///   until the listener dismisses it or the model removes it. Pressing Menu
+///   asks for the Alerts style (`NSUserNotificationAlertStyle` in its
+///   Info.plist) so it stays on screen.
 ///
 /// Whether macOS allows notifications is read here and handed to the model
 /// through `onDeniedChange`; the model decides whether to post at all.
 @MainActor
-final class UserNotifications: NSObject, TrackNotifier {
+final class UserNotifications: NSObject, MenuNotifier {
     /// Opens the panel: called when the listener clicks a notification.
     var onOpen: (() -> Void)?
     /// Called with whether the listener turned notifications off for
@@ -21,6 +28,16 @@ final class UserNotifications: NSObject, TrackNotifier {
     /// How long a cover may take to load before the notification goes
     /// without it.
     private nonisolated static let artworkTimeout: TimeInterval = 4
+    /// How long a new Track's notification stays before it clears itself.
+    private static let trackLifetime: Duration = .seconds(8)
+    /// One identifier each: a new Track's notification replaces the last
+    /// one, and the Flip's can be removed by name.
+    private static let trackID = "track"
+    private static let flipID = "flip"
+
+    /// Counts new-Track notifications, so a late cover or a self-clear
+    /// leaves a newer Track's notification alone.
+    private var trackGeneration = 0
 
     private let center = UNUserNotificationCenter.current()
 
@@ -55,13 +72,37 @@ final class UserNotifications: NSObject, TrackNotifier {
         content.title = track.title
         content.body = [track.artist, track.album].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " — ")
         content.threadIdentifier = "tracks"
+        trackGeneration += 1
+        let generation = trackGeneration
         Task {
             if let url = track.artworkURL, let cover = await Self.loadCover(url) {
                 content.attachments = [cover]
             }
-            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+            guard generation == trackGeneration else { return }
+            let request = UNNotificationRequest(identifier: Self.trackID, content: content, trigger: nil)
             try? await center.add(request)
+            try? await Task.sleep(for: Self.trackLifetime)
+            guard generation == trackGeneration else { return }
+            center.removeDeliveredNotifications(withIdentifiers: [Self.trackID])
         }
+    }
+
+    func notifyFlip(lastTrack: Track?) {
+        let content = UNMutableNotificationContent()
+        content.title = "Flip the record"
+        content.body = if let lastTrack {
+            "Side over after \(lastTrack.title) by \(lastTrack.artist)."
+        } else {
+            "The side has run out."
+        }
+        content.threadIdentifier = "flip"
+        let request = UNNotificationRequest(identifier: Self.flipID, content: content, trigger: nil)
+        Task { try? await center.add(request) }
+    }
+
+    func removeFlip() {
+        center.removePendingNotificationRequests(withIdentifiers: [Self.flipID])
+        center.removeDeliveredNotifications(withIdentifiers: [Self.flipID])
     }
 
     /// Downloads the cover into a file the notification can attach.

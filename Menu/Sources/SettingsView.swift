@@ -49,10 +49,10 @@ struct SettingsView: View {
                         }
                     }
                     // Shown as the model decides: off while macOS denies them.
-                    SettingsRow("Notify on new Track", detail: menu.notificationsAreDenied ? nil : "A notification for each new Track identified.") {
-                        Toggle("Notify on new Track", isOn: Binding(
+                    SettingsRow("Notifications", detail: menu.notificationsAreDenied ? nil : "New Tracks, and when a side has run out.") {
+                        Toggle("Notifications", isOn: Binding(
                             get: { menu.postsNotifications },
-                            set: { settings.notifiesOnNewTrack = $0 }
+                            set: { settings.notificationsAreOn = $0 }
                         ))
                         .toggleStyle(.switch)
                         .labelsHidden()

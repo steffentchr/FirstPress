@@ -47,21 +47,33 @@ extension SettingsView {
     static let windowID = "settings"
 }
 
-/// An icon only, no text: a template image of a stylised record, with no
-/// brush. It's dashed while no phone is connected, and fills in while a
-/// Record plays.
+/// An icon only, no text: a template image of a stylised record, a
+/// one-line circle around a solid label. One thin groove ring appears while
+/// a Record plays. While no phone is connected it's the idle icon dimmed,
+/// as macOS dims a disabled menu-bar item, not a different drawing.
 struct MenuBarIcon: View {
     let menu: PressingMenu
 
     var body: some View {
-        Image(imageName)
-            .accessibilityLabel("Pressing Menu")
+        icon.accessibilityLabel("Pressing Menu")
     }
 
-    private var imageName: String {
+    private var icon: Image {
         switch menu.connection {
-        case .connected: menu.isRecordPlaying ? "MenuBarIconPlaying" : "MenuBarIcon"
-        case .looking, .cantBeReached, .needsUpdate: "MenuBarIconUnreachable"
+        case .connected: Image(menu.isRecordPlaying ? "MenuBarIconPlaying" : "MenuBarIcon")
+        case .looking, .cantBeReached, .needsUpdate: Image(nsImage: Self.dimmed)
         }
     }
+
+    /// The idle icon at reduced opacity, still a template image so macOS
+    /// tints it for a light or dark menu bar.
+    private static let dimmed: NSImage = {
+        guard let source = NSImage(named: "MenuBarIcon") else { return NSImage() }
+        let image = NSImage(size: source.size, flipped: false) { rect in
+            source.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 0.4)
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }()
 }
