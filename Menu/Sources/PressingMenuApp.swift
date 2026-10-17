@@ -47,9 +47,9 @@ extension SettingsView {
     static let windowID = "settings"
 }
 
-/// An icon only, no text: a template image of the app icon's record and
-/// brush. It's dashed while the iPhone can't be reached, and fills in while
-/// a Record plays.
+/// An icon only, no text: a template image of a stylised record, with no
+/// brush. It's dashed while no phone is connected, and fills in while a
+/// Record plays.
 struct MenuBarIcon: View {
     let menu: PressingMenu
 
