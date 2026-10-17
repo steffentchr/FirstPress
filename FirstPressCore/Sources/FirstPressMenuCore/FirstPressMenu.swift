@@ -40,6 +40,10 @@ public final class FirstPressMenu {
         case betweenSides(lastTrack: Track?)
         /// The phone is newer than this First Press Menu can follow.
         case updateFirstPressMenu
+        /// No phone is connected and macOS hasn't allowed First Press Menu
+        /// on the local network, so it can't look for First Press. The panel
+        /// says, small, where to allow it.
+        case allowLocalNetwork
     }
 
     /// How long First Press Menu waits before trying again: doubling from 1 s
@@ -66,13 +70,17 @@ public final class FirstPressMenu {
     }
     /// The last snapshot from the phone, kept while it can't be reached.
     private var snapshot: MenuSnapshot?
+    /// The link says macOS hasn't allowed First Press Menu on the local
+    /// network. Until the link is up again.
+    private var isLocalNetworkDenied = false
 
     public var header: Header {
         if connection == .needsUpdate { return .updateFirstPressMenu }
-        guard let snapshot else { return .lookingForFirstPress }
+        let notFound: Header = isLocalNetworkDenied ? .allowLocalNetwork : .lookingForFirstPress
+        guard let snapshot else { return notFound }
         if let track = snapshot.track { return .track(track) }
         // After a drop-out only a Track is kept on screen.
-        if connection == .cantBeReached { return .lookingForFirstPress }
+        if connection == .cantBeReached { return notFound }
         if snapshot.page == .nowPlaying, snapshot.record == .flipped {
             return .betweenSides(lastTrack: snapshot.lastTrack)
         }
@@ -86,7 +94,20 @@ public final class FirstPressMenu {
     /// line beneath it says First Press Menu is looking for First Press. When the
     /// header says so itself, there is no line.
     public var showsLookingLine: Bool {
-        connection == .cantBeReached && header != .lookingForFirstPress
+        showsLineBeneathTrack && !isLocalNetworkDenied
+    }
+
+    /// As the looking line, beneath a kept Track, when First Press Menu
+    /// can't look because macOS hasn't allowed it on the local network: it
+    /// says where to allow it instead.
+    public var showsLocalNetworkLine: Bool {
+        showsLineBeneathTrack && isLocalNetworkDenied
+    }
+
+    private var showsLineBeneathTrack: Bool {
+        guard connection == .cantBeReached else { return false }
+        if case .track = header { return true }
+        return false
     }
 
     /// History as the panel lists it under the header: at most 10 Tracks,
@@ -228,6 +249,7 @@ public final class FirstPressMenu {
     private func handle(_ event: MenuLinkEvent) {
         switch event {
         case .connected:
+            isLocalNetworkDenied = false
             failures = 0
             awaitingFirstSnapshot = true
             connection = .connected
@@ -236,6 +258,8 @@ public final class FirstPressMenu {
             // still looking.
             if connection != .looking { connection = .cantBeReached }
             retry()
+        case .localNetworkDenied:
+            isLocalNetworkDenied = true
         case .received(let data):
             switch MenuWire.decode(data) {
             case .snapshot(let snapshot):

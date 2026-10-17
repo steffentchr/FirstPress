@@ -73,9 +73,11 @@ struct World {
     }
 
     /// A First Press Menu on a Mac on the same network, joined to this phone by
-    /// an in-memory link. It starts looking for First Press at once.
-    func firstPressMenu() -> (menu: FirstPressMenu, link: FakeMenuLink) {
+    /// an in-memory link. It starts looking for First Press at once, unless
+    /// macOS hasn't allowed it on the local network (`localNetworkDenied`).
+    func firstPressMenu(localNetworkDenied: Bool = false) -> (menu: FirstPressMenu, link: FakeMenuLink) {
         let link = FakeMenuLink(server: menuServer)
+        link.isLocalNetworkDenied = localNetworkDenied
         let menu = FirstPressMenu(link: link, scheduler: scheduler)
         menu.start()
         return (menu, link)

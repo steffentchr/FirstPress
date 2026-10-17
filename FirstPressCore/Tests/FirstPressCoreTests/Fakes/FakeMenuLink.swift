@@ -85,20 +85,37 @@ final class FakeMenuLink: MenuLink {
 
     func setEventHandler(_ handler: @escaping @MainActor (MenuLinkEvent) -> Void) { self.handler = handler }
 
+    /// macOS hasn't allowed First Press Menu on the local network: looking
+    /// waits, as Bonjour's browser does, and the link says why. Allowing it
+    /// (false) lets the waiting look go on by itself.
+    var isLocalNetworkDenied = false {
+        didSet {
+            if oldValue, !isLocalNetworkDenied, isLooking { phoneFound() }
+        }
+    }
+    /// Looking for the phone, not connected.
+    private var isLooking = false
+
     func connect() {
         connectAttempts += 1
+        isLooking = true
         phoneFound()
     }
 
     /// The phone is advertised: connect to it, unless connected already.
     func phoneFound() {
         guard connection == nil else { return }
+        if isLocalNetworkDenied {
+            handler?(.localNetworkDenied)
+            return
+        }
         if server.refusesConnections && server.isAdvertising {
             handler?(.disconnected)
             return
         }
         guard let id = server.accept(self) else { return }
         connection = id
+        isLooking = false
         handler?(.connected)
         server.announce(id)
     }

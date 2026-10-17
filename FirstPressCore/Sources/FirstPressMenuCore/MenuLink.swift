@@ -7,6 +7,10 @@ public enum MenuLinkEvent: Sendable, Equatable {
     case received(Data)
     /// The link went down, or connecting to the First Press found failed.
     case disconnected
+    /// macOS hasn't allowed First Press Menu on the local network, so
+    /// looking for First Press waits. The link goes on by itself once it is
+    /// allowed, and reports `.connected` when it finds the phone.
+    case localNetworkDenied
 }
 
 /// Port: First Press Menu's side of the link to the phone. Production: finds
